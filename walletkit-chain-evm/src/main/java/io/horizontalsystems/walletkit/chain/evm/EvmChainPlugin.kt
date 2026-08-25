@@ -33,7 +33,10 @@ import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderActi
 import io.horizontalsystems.walletkit.modules.multiswap.providers.EvmSwapHelper
 import io.horizontalsystems.walletkit.modules.multiswap.providers.IMultiSwapProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.OneInchProvider
+import io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeSwapProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeSwapV3Provider
+import io.horizontalsystems.walletkit.modules.multiswap.providers.QuickSwapProvider
+import io.horizontalsystems.walletkit.modules.multiswap.providers.UniswapProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.UniswapV3Provider
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.AbstractSendTransactionService
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionServiceEvm
@@ -160,7 +163,16 @@ class EvmChainPlugin(override val blockchainType: BlockchainType) : ChainPlugin 
 
     override fun swapProviders(): List<IMultiSwapProvider> =
         if (isFamilyAnchor) {
-            listOf(OneInchProvider(), UniswapV3Provider, PancakeSwapV3Provider)
+            listOf(
+                OneInchProvider(),
+                UniswapV3Provider,
+                PancakeSwapV3Provider,
+                // V2 routers restored: fee-on-transfer / tax tokens overwhelmingly
+                // have liquidity in V2-style pairs rather than V3 pools.
+                UniswapProvider,
+                PancakeSwapProvider,
+                QuickSwapProvider,
+            )
         } else {
             emptyList()
         }

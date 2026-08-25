@@ -110,6 +110,13 @@ abstract class BaseUniswapProvider : IMultiSwapProvider {
         else -> throw Exception("Invalid coin for swap: $token")
     }
 
+    /**
+     * Whether this provider may encode swaps against the router's fee-on-transfer
+     * functions. Overridable per provider; defaults to the fork-wide policy.
+     */
+    protected open val feeOnTransferPolicy: FeeOnTransferPolicy
+        get() = FeeOnTransferPolicy.current
+
     private suspend fun fetchBestTrade(
         tokenIn: Token,
         tokenOut: Token,
@@ -126,6 +133,7 @@ abstract class BaseUniswapProvider : IMultiSwapProvider {
             allowedSlippagePercent = slippage,
             ttl = TradeOptions.defaultTtl,
             recipient = recipient.getEthereumKitAddress(),
+            feeOnTransfer = feeOnTransferPolicy.appliesTo(tokenIn),
         )
 
         val swapData = uniswapKit.swapData(
