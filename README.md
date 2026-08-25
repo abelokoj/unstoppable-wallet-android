@@ -1,3 +1,62 @@
+# Open Swap Wallet
+
+A personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT). **Not affiliated with or endorsed by Horizontal Systems. This is not the Unstoppable Wallet.**
+
+Package: `money.openswap.wallet` — installs alongside the original.
+
+## Fork notes
+
+This is a personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT). It is **not** affiliated with or endorsed by Horizontal Systems, and is not the Unstoppable Wallet.
+
+App name: Open Swap. Package: `money.openswap.wallet` — installs alongside the original.
+
+### Changes
+
+- Restored the Uniswap V2, PancakeSwap V2 and QuickSwap swap providers, which upstream disabled. Tax and meme tokens overwhelmingly have liquidity in V2 pairs, not V3 pools.
+- Fixed selling fee-on-transfer (tax) tokens, which previously failed with `PancakeSwap: K` / `UniswapV2: K`. Swaps now encode the router's `...SupportingFeeOnTransferTokens` functions. Requires the matching fork of [ethereum-kit-android](https://github.com/abelokoj/ethereum-kit-android).
+- Enabled WalletConnect in the fdroid flavor.
+- Swap provider name shown by default.
+
+### Known behaviour
+
+**Taxed tokens need higher slippage.** Quotes come from standard constant-product math and do not account for a token's transfer tax, so the displayed output is optimistic. If slippage is below the token's own sell tax, the swap reverts with `INSUFFICIENT_OUTPUT_AMOUNT`. Raise slippage above the tax rate.
+
+All ERC20-input V2 swaps route through the fee-on-transfer router functions, including untaxed tokens. This is safe (for an untaxed token the result is identical) but costs marginally more gas.
+
+### Installing
+
+1. Go to [Releases](https://github.com/abelokoj/unstoppable-wallet-android/releases) and download `app-fdroid-release.apk` from the latest release.
+2. Verify the signature before installing (see below). Do not skip this.
+3. On your Android device, open the downloaded file. You will be prompted to allow installing from this source; Android blocks it by default.
+4. Requires Android 9 (API 28) or newer.
+
+This installs alongside the official Unstoppable Wallet rather than replacing it, since the package name differs. Your existing wallet is untouched.
+
+Updates are not automatic. Check the Releases page, download the new APK, and install over the top. Your data is preserved as long as each release is signed with the same key.
+
+### Verifying a release
+
+Release APKs are signed with:
+
+    SHA-256: 277c10bbed425c98b8df4aa7372dfe483daeefdc6ddbc19b462ac83df8d8b295
+    SHA-1:   5f1d0cf868588fd989ddcf05d0996c43a8cd7bd1
+
+Check any download before installing:
+
+    apksigner verify --print-certs app-fdroid-release.apk
+
+If the SHA-256 does not match, do not install it.
+
+### Warning
+
+Unaudited software handling private keys and real funds. Use at your own risk.
+
+---
+
+# Upstream README
+
+The original project's README follows, preserved for reference.
+
 # Unstoppable Wallet
 
 We dream of a world… A world where private property is untouchable and market access is unconditional.
@@ -33,52 +92,3 @@ Devices with Android versions 8.1 and above
 ## License
 
 This wallet is open source and available under the terms of the MIT License.
-
-
----
-
-## Fork notes
-
-This is a personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT).
-It is **not** affiliated with or endorsed by Horizontal Systems, and is not the Unstoppable Wallet.
-
-App name: Open Swap. Package: `money.openswap.wallet` — installs alongside the original.
-
-### Changes
-
-- Restored the Uniswap V2, PancakeSwap V2 and QuickSwap swap providers, which upstream
-  disabled. Tax and meme tokens overwhelmingly have liquidity in V2 pairs, not V3 pools.
-- Fixed selling fee-on-transfer (tax) tokens, which previously failed with
-  `PancakeSwap: K` / `UniswapV2: K`. Swaps now encode the router's
-  `...SupportingFeeOnTransferTokens` functions. Requires the matching fork of
-  [ethereum-kit-android](https://github.com/abelokoj/ethereum-kit-android).
-- Enabled WalletConnect in the fdroid flavor.
-- Swap provider name shown by default.
-
-### Known behaviour
-
-**Taxed tokens need higher slippage.** Quotes come from standard constant-product
-math and do not account for a token's transfer tax, so the displayed output is
-optimistic. If slippage is below the token's own sell tax, the swap reverts with
-`INSUFFICIENT_OUTPUT_AMOUNT`. Raise slippage above the tax rate.
-
-All ERC20-input V2 swaps route through the fee-on-transfer router functions,
-including untaxed tokens. This is safe (for an untaxed token the result is
-identical) but costs marginally more gas.
-
-### Verifying a release
-
-Release APKs are signed with:
-
-    SHA-256: 277c10bbed425c98b8df4aa7372dfe483daeefdc6ddbc19b462ac83df8d8b295
-    SHA-1:   5f1d0cf868588fd989ddcf05d0996c43a8cd7bd1
-
-Check any download before installing:
-
-    apksigner verify --print-certs app-fdroid-release.apk
-
-If the SHA-256 does not match, do not install it.
-
-### Warning
-
-Unaudited software handling private keys and real funds. Use at your own risk.
