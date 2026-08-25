@@ -6,7 +6,7 @@ Package: `money.openswap.wallet` — installs alongside the original.
 
 ## Fork notes
 
-This is a personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT). It is **not** affiliated with or endorsed by Horizontal Systems, and is not the Unstoppable Wallet.
+This is a personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT). It is **not** affiliated with or endorsed by Horizontal Systems, and is not exactly the Unstoppable Wallet.
 
 App name: Open Swap. Package: `money.openswap.wallet` — installs alongside the original.
 
