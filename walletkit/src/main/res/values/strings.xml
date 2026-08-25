@@ -10,7 +10,7 @@
     <string name="Duration_Seconds">%d sec.</string>
 
 
-    <string name="App_Name" translatable="false">Unstoppable</string>
+    <string name="App_Name" translatable="false">Open Swap (UW)</string>
     <string name="DeeplinkScheme" translatable="false">unstoppable</string>
 
     <!--Common-->
