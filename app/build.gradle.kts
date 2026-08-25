@@ -22,7 +22,7 @@ android {
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "io.horizontalsystems.bankwallet"
+        applicationId = "money.openswap.wallet"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
         versionCode = 176
@@ -64,6 +64,22 @@ android {
             storePassword = "testKeystore123"
             keyAlias = "testKeystore"
             keyPassword = "testKeystore123"
+        }
+
+        create("release") {
+            val propsFile = rootProject.file("keystore.properties")
+            if (propsFile.exists()) {
+                val props = propsFile.readLines()
+                    .filter { it.contains("=") && !it.startsWith("#") }
+                    .associate { line ->
+                        val i = line.indexOf("=")
+                        line.substring(0, i).trim() to line.substring(i + 1).trim()
+                    }
+                storeFile = file(props.getValue("storeFile"))
+                storePassword = props.getValue("storePassword")
+                keyAlias = props.getValue("keyAlias")
+                keyPassword = props.getValue("keyPassword")
+            }
         }
     }
 
@@ -145,6 +161,7 @@ android {
         }
 
         release {
+            signingConfig = signingConfigs.getByName("release")
             isDebuggable = false
             isMinifyEnabled = false
             isShrinkResources = false
