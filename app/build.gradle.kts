@@ -295,6 +295,8 @@ afterEvaluate {
             "baseDebugImplementation"(it)
             "baseReleaseImplementation"(it)
             "ciImplementation"(it)
+            "fdroidImplementation"(it)
+            "fdroidCiImplementation"(it)
         }
 
         "baseDebugImplementation"(libs.androidx.credentials.play.services.auth)

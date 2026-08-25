@@ -644,7 +644,7 @@ private fun ProviderCellInfo(
                 )
             }
         )
-        if (BuildConfig.DEBUG && App.localStorage.showSwapProviderName) {
+        if (App.localStorage.showSwapProviderName) {
             CellSecondary(
                 middle = {
                     CellMiddleInfo(eyebrow = "Provider".hs)

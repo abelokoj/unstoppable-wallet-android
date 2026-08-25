@@ -185,7 +185,7 @@ private fun SwapSelectProviderScreenInner(
                                                 )
                                             }
                                         }
-                                        if (BuildConfig.DEBUG && App.localStorage.showSwapProviderName) {
+                                        if (App.localStorage.showSwapProviderName) {
                                             Text(
                                                 text = provider.title,
                                                 style = ComposeAppTheme.typography.subhead,

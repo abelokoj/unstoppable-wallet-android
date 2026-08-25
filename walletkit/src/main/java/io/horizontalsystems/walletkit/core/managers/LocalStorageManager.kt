@@ -454,7 +454,7 @@ class LocalStorageManager(
         }
 
     override var showSwapProviderName: Boolean
-        get() = preferences.getBoolean("show-swap-provider-name", false)
+        get() = preferences.getBoolean("show-swap-provider-name", true)
         set(value) {
             preferences.edit { putBoolean("show-swap-provider-name", value) }
         }
