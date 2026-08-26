@@ -1,6 +1,6 @@
 # Open Swap Wallet
 
-A personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT). **Not affiliated with or endorsed by Horizontal Systems. This is exactly not the Unstoppable Wallet. _A few modifications have been made_**
+A personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT). **Not affiliated with or endorsed by Horizontal Systems. This is not exactly the Unstoppable Wallet. _A few modifications have been made (see below for changes/additions that were made)_**
 
 Package: `money.openswap.wallet` — installs alongside the original.
 
