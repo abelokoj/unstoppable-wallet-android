@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavBackStack
+import io.horizontalsystems.walletkit.BuildConfig
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.NavigationType
 import io.horizontalsystems.walletkit.core.stats.StatEvent
@@ -17,6 +18,8 @@ import io.horizontalsystems.walletkit.modules.settings.terms.TermsPage
 import io.horizontalsystems.walletkit.modules.usersubscription.BuySubscriptionHavHostPage
 import io.horizontalsystems.subscriptions.core.IPaidAction
 import io.horizontalsystems.subscriptions.core.UserSubscriptionManager
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.serializerOrNull
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -24,22 +27,27 @@ class HSNavigation(val backStack: NavBackStack<HSPage>) {
 
     fun slideFromRight(screen: HSPage) {
         screen.navType = NavigationType.SlideFromRight
-        backStack.add(screen)
+        push(screen)
     }
 
     fun slideFromRightForResult(screen: HSPage, resultKey: String) {
         screen.resultKey = resultKey
         screen.navType = NavigationType.SlideFromRight
-        backStack.add(screen)
+        push(screen)
     }
 
     fun slideFromBottom(screen: HSPage) {
         screen.navType = NavigationType.SlideFromBottom
-        backStack.add(screen)
+        push(screen)
     }
 
     fun removeLastOrNull() {
-        backStack.removeLastOrNull()
+        // Never pop the root entry: NavDisplay requires a non-empty backstack,
+        // and rapid double back events (toolbar arrow double-tap or system back
+        // during the pop animation) can otherwise drain the stack and crash.
+        if (backStack.size > 1) {
+            backStack.removeLastOrNull()
+        }
     }
 
     fun navigateWithTermsAccepted(
@@ -82,7 +90,24 @@ class HSNavigation(val backStack: NavBackStack<HSPage>) {
     }
 
     fun add(element: HSPage): Boolean {
-        return backStack.add(element)
+        return push(element)
+    }
+
+    private fun push(screen: HSPage): Boolean {
+        verifyPageSerializable(screen)
+        return backStack.add(screen)
+    }
+
+    // The backstack is persisted in onSaveInstanceState; a page whose class is
+    // not @Serializable crashes the app as soon as it goes to background. Fail
+    // fast in debug builds so the mistake is caught when the screen is opened.
+    @OptIn(InternalSerializationApi::class)
+    private fun verifyPageSerializable(screen: HSPage) {
+        if (!BuildConfig.DEBUG) return
+        checkNotNull(screen::class.serializerOrNull()) {
+            "${screen::class.qualifiedName} must be @Serializable — " +
+                "every HSPage is persisted with the nav backstack"
+        }
     }
 
 
@@ -92,7 +117,8 @@ class HSNavigation(val backStack: NavBackStack<HSPage>) {
             for (i in backStack.lastIndex downTo (index + 1)) {
                 backStack.removeAt(i)
             }
-            if (inclusive) {
+            // index 0 is the root entry; removing it would empty the backstack.
+            if (inclusive && index > 0) {
                 backStack.removeAt(index)
             }
         }
