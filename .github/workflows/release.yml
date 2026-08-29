@@ -44,13 +44,13 @@ jobs:
       - name: Build signed APK
         run: ./gradlew :app:assembleFdroidRelease --no-daemon
 
-      - name: Rename APK
+        - name: Rename APK
+        run: mv app/build/outputs/apk/fdroid/release/app-fdroid-release.apk open-swap-${{ github.ref_name }}.apk
+
+        - name: Print fingerprint
         run: |
           APKSIGNER=$(ls -d $ANDROID_HOME/build-tools/*/apksigner | sort -V | tail -1)
           "$APKSIGNER" verify --print-certs open-swap-${{ github.ref_name }}.apk
-
-      - name: Print fingerprint
-        run: $ANDROID_HOME/build-tools/*/apksigner verify --print-certs open-swap-${{ github.ref_name }}.apk
 
       - uses: softprops/action-gh-release@v2
         with:
