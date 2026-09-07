@@ -12,6 +12,14 @@ import java.math.BigDecimal
 interface IMultiSwapProvider {
     val id: String
     val title: String
+
+    /**
+     * Provider logo. Restored from upstream 82f4fbc0d ("Remove provider names in Swap"),
+     * which deleted the field, every override and 18 drawables. Upstream had this as a
+     * non-null Int; nullable here so a provider without an asset still compiles.
+     */
+    val icon: Int?
+        get() = null
     val type: SwapProviderType
     val amlPrecheck: Boolean
         get() = false

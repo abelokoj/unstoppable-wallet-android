@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
+import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.blockTime
 import io.horizontalsystems.walletkit.core.convertedError
@@ -31,16 +32,22 @@ class OneInchProvider(
     private val disableEstimate: Boolean? = null,
 ) : IMultiSwapProvider {
     override val id = ID
+    override val icon = R.drawable.swap_provider_1inch
     override val title = "1inch"
     override val type = SwapProviderType.DEX
     override val isEvm = true
     override val requireTerms = false
     override val riskLevel = RiskLevel.GOOD
+    // Open Swap fork: the 1inch integrator fee and referrer are removed entirely rather than
+    // set to zero. Both are nullable in OneInchKit and Retrofit omits null query params, so
+    // nothing is sent: no commission to the integrator (was ONE_INCH_PARTNER_FEE_ADDRESS at
+    // SWAP_FEE_BPS -- 1.00% release, 0.25% debug). Note 1inch itself still retains swap surplus
+    // at the API-provider layer; that is not controllable by an integrator parameter.
+    // Side benefit: 1inch docs note that setting fee+referrer makes fee-on-transfer token
+    // swaps always fail, so removing them also fixes tax-token swaps on this provider.
     private val oneInchKit by lazy { OneInchKit.getInstance(App.appConfigProvider.oneInchApiKey) }
-    private val partnerAddress: String by lazy { App.appConfigProvider.oneInchPartnerFeeAddress }
 
-    // 1inch's `fee` param is a percentage; SWAP_FEE_BPS is in basis points (100 bps = 1%).
-    private val partnerFeePercent: Float by lazy { App.appConfigProvider.swapFeeBps / 100f }
+    // 25 bps (0.25%) in debug; now 0, so this resolves to 0.0f and 1inch adds no fee.
 
     companion object {
         const val ID = ONEINCH_PROVIDER_ID
@@ -81,8 +88,7 @@ class OneInchProvider(
             chain = evmBlockchainHelper.chain,
             fromToken = getTokenAddress(tokenIn),
             toToken = getTokenAddress(tokenOut),
-            amount = amountIn.scaleUp(tokenIn.decimals),
-            fee = partnerFeePercent
+            amount = amountIn.scaleUp(tokenIn.decimals)
         ).onErrorResumeNext {
             Single.error(it.convertedError)
         }.await()
@@ -134,8 +140,6 @@ class OneInchProvider(
             slippagePercentage = slippage.toFloat(),
             recipient = recipient?.hex?.let { Address(it) },
             gasPrice = gasPrice,
-            referrer = partnerAddress,
-            fee = partnerFeePercent,
             disableEstimate = disableEstimate,
         ).await()
 

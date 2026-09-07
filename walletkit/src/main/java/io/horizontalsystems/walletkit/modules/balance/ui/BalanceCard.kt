@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.balance.ui
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -248,7 +249,7 @@ fun IconCell(
         CoinImage(
             token = token,
             modifier = Modifier
-                .size(32.dp)
+                .size(IconSizes.Token)
                 .alpha(iconAlpha),
         )
     }

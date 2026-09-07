@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
+import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.IReceiveAdapter
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
@@ -10,10 +11,17 @@ import java.math.BigDecimal
 
 object MayaProvider : BaseThorChainProvider(
     baseUrl = "https://mayanode.mayachain.info/mayachain/",
-    affiliate = "hrz_android",
-    affiliateBps = App.appConfigProvider.swapFeeBps,
+    // Open Swap fork: affiliate fee removed. swapFeeBps was 100 bps (1.00%) in release
+    // builds, 25 bps (0.25%) in debug; now 0, so Maya takes no affiliate cut.
+    // Open Swap fork: affiliate removed. Was affiliate = "hrz_android", affiliateBps =
+    // SWAP_FEE_BPS. This matters beyond the fee: Maya returns a memo built from these
+    // values and that memo is broadcast on-chain (OP_RETURN / tx data / shielded memo),
+    // so a non-null affiliate permanently tags every swap.
+    affiliate = null,
+    affiliateBps = null,
 ) {
     override val id = MAYA_PROVIDER_ID
+    override val icon = R.drawable.swap_provider_maya
     override val title = "Maya Protocol"
     override val riskLevel = RiskLevel.EXCELLENT
 

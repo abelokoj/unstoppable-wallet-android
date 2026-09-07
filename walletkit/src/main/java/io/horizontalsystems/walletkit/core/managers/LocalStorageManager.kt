@@ -453,6 +453,15 @@ class LocalStorageManager(
             preferences.edit().putString("simulate-failed-swap", value.name).apply()
         }
 
+    // Open Swap fork: remembers whether fees are shown in the app's base currency or the
+    // chain's native token. Defaults to true (fiat first); upstream had no persistence and
+    // always started on the token.
+    override var feeDisplayInFiat: Boolean
+        get() = preferences.getBoolean("fee-display-in-fiat", true)
+        set(value) {
+            preferences.edit { putBoolean("fee-display-in-fiat", value) }
+        }
+
     override var showSwapProviderName: Boolean
         get() = preferences.getBoolean("show-swap-provider-name", true)
         set(value) {

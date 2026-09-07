@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.ui.compose.components
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -188,7 +189,7 @@ fun CoinList(
                             left = {
                                 CellLeftImage(
                                     type = ImageType.Ellipse,
-                                    size = 32,
+                                    size = IconSizes.TokenInt,
                                     painter = rememberAsyncImagePainter(
                                         model = item.fullCoin.coin.imageUrl,
                                         error = item.fullCoin.coin.alternativeImageUrl?.let { alternativeUrl ->

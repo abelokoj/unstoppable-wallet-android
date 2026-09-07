@@ -97,7 +97,11 @@ fun ProvideLocalAssets(
     CompositionLocalProvider(
         LocalColors provides colorPalette,
         LocalTypography provides typography,
-        LocalDensity provides Density(currentDensity.density, fontScale = 1f),
+        // Open Swap fork: all text 10% larger. Upstream pins fontScale = 1f, which makes the
+        // app ignore the system font size setting entirely; this keeps that behaviour but at a
+        // larger base. Use currentDensity.fontScale * 1.1f instead to also respect the system
+        // setting, at the cost of layouts reflowing on devices set to very large text.
+        LocalDensity provides Density(currentDensity.density, fontScale = 1.1f),
         content = content
     )
 }

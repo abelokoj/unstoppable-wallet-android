@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.multiswap
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -892,9 +893,10 @@ private fun SwapCoinInputIn(
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CoinSelector(token, onClickCoin)
-        HSpacer(width = 8.dp)
-        Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+        // Open Swap fork: amount on the left, token selector on the right. Upstream had
+        // CoinSelector first with the amounts right-aligned; this restores the older
+        // arrangement used in earlier releases.
+        Column(modifier = Modifier.weight(1f)) {
             AmountInput(
                 value = coinAmount,
                 onValueChange = onValueChange,
@@ -908,6 +910,8 @@ private fun SwapCoinInputIn(
                 enabled = fiatAmountInputEnabled
             )
         }
+        HSpacer(width = 8.dp)
+        CoinSelector(token, onClickCoin)
     }
 }
 
@@ -926,12 +930,10 @@ private fun SwapCoinInputTo(
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CoinSelector(token, onClickCoin)
-        HSpacer(8.dp)
-        Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.End
-        ) {
+        // Open Swap fork: amount on the left, token selector on the right. Upstream had
+        // CoinSelector first with the amounts right-aligned; this restores the older
+        // arrangement used in earlier releases.
+        Column(modifier = Modifier.weight(1f)) {
             if (coinAmount == null) {
                 headline1_grey(text = "0")
             } else {
@@ -960,6 +962,8 @@ private fun SwapCoinInputTo(
                 }
             }
         }
+        HSpacer(8.dp)
+        CoinSelector(token, onClickCoin)
     }
 }
 
@@ -972,7 +976,7 @@ private fun CoinSelector(
         icon = {
             CoinImage(
                 token = token,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(IconSizes.Token)
             )
         },
         text = {
@@ -1040,7 +1044,6 @@ fun FiatAmountInput(
         textStyle = ColoredTextStyle(
             color = ComposeAppTheme.colors.grey,
             textStyle = ComposeAppTheme.typography.body,
-            textAlign = TextAlign.End
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -1139,7 +1142,6 @@ fun AmountInput(
         textStyle = ColoredTextStyle(
             color = ComposeAppTheme.colors.leah,
             textStyle = ComposeAppTheme.typography.headline1,
-            textAlign = TextAlign.End
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -1148,9 +1150,7 @@ fun AmountInput(
         cursorBrush = SolidColor(ComposeAppTheme.colors.leah),
         decorationBox = { innerTextField ->
             if (textFieldValue.text.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                    headline1_grey(text = "0")
-                }
+                headline1_grey(text = "0")
             }
             innerTextField()
         },

@@ -1,5 +1,7 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
+import io.horizontalsystems.walletkit.R
+
 enum class UProvider(
     val id: String,
     val title: String,
@@ -14,6 +16,9 @@ enum class UProvider(
     // chains (Bitcoin-family, Zcash, Monero, Zano). Providers with special tx
     // requirements (e.g. thorchain memos) must be false and handled separately if ever needed.
     val supportsSimpleUtxoTransactions: Boolean,
+    // Restored from upstream 82f4fbc0d. Nullable with a default so entries that
+    // use positional arguments are unaffected and unmapped providers still compile.
+    val icon: Int? = null,
 ) {
     Near(
         "NEAR",
@@ -25,7 +30,8 @@ enum class UProvider(
         RiskLevel.FAIR,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_near
     ),
     QuickEx(
         "QUICKEX",
@@ -37,7 +43,8 @@ enum class UProvider(
         RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_quickex
     ),
     LetsExchange(
         "LETSEXCHANGE",
@@ -49,7 +56,8 @@ enum class UProvider(
         RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_letsexchange
     ),
     StealthEx(
         "STEALTHEX",
@@ -61,7 +69,8 @@ enum class UProvider(
         RiskLevel.FAIR,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_stealthex
     ),
     Exolix(
         "EXOLIX",
@@ -73,7 +82,8 @@ enum class UProvider(
         RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_exolix
     ),
     Cce(
         "CCE",
@@ -85,7 +95,8 @@ enum class UProvider(
         RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_cce
     ),
     Swapuz(
         "SWAPUZ",
@@ -97,7 +108,8 @@ enum class UProvider(
         RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_swapuz
     ),
     Lizex(
         "LIZEX",
@@ -109,7 +121,8 @@ enum class UProvider(
         RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.ic_platform_placeholder_32
     ),
     Bitania(
         "BITANIA",
@@ -121,7 +134,8 @@ enum class UProvider(
         RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.ic_platform_placeholder_32
     ),
     Barter(
         "BARTER",
@@ -133,7 +147,8 @@ enum class UProvider(
         RiskLevel.FAIR,
         isEvm = true,
         isSingleTransactionSwap = true,
-        supportsSimpleUtxoTransactions = false
+        supportsSimpleUtxoTransactions = false,
+        icon = R.drawable.swap_provider_barter
     ),
     Circle(
         "CIRCLE",
@@ -145,7 +160,8 @@ enum class UProvider(
         RiskLevel.EXCELLENT,
         isEvm = true,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = false
+        supportsSimpleUtxoTransactions = false,
+        icon = R.drawable.swap_provider_circle
     ),
     Pegasus(
         id = "PEGASUS",
@@ -157,7 +173,8 @@ enum class UProvider(
         riskLevel = RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_pegasus
     ),
     Jupiter(
         id = "JUPITER",
@@ -183,7 +200,8 @@ enum class UProvider(
         // Cross-chain default; a same-chain LI.FI pair IS a single tx —
         // USwapProvider.isSingleTransactionSwap resolves that per pair.
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = false
+        supportsSimpleUtxoTransactions = false,
+        icon = R.drawable.swap_provider_lifi
     ),
     // Same-token 1:1 bridge (not a swap) for XLM and classic SHX between Stellar and
     // Ethereum via Axelar's Interchain Token Service. Both legs are server-built signed

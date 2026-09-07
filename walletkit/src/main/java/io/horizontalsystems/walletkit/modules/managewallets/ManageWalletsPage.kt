@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.managewallets
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -225,7 +226,7 @@ private fun CoinCell(
             CellLeftImage(
                 painter = viewItem.imageSource.painter(),
                 type = ImageType.Ellipse,
-                size = 32
+                size = IconSizes.TokenInt
             )
         },
         middle = {

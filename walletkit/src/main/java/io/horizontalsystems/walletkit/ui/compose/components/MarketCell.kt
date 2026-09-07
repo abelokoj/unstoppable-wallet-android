@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.ui.compose.components
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -52,12 +53,12 @@ fun MarketCoin(
                 Box {
                     CellLeftImage(
                         type = ImageType.Ellipse,
-                        size = 32,
+                        size = IconSizes.TokenInt,
                         painter = painterResource(coinIconPlaceholder),
                     )
                     CellLeftImage(
                         type = ImageType.Ellipse,
-                        size = 32,
+                        size = IconSizes.TokenInt,
                         painter = rememberAsyncImagePainter(
                             model = coinIconUrl,
                             error = alternativeCoinIconUrl?.let { alternativeUrl ->

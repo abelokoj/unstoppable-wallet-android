@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.market.topplatforms
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
@@ -212,7 +213,7 @@ fun TopPlatformItem(item: TopPlatformViewItem, onItemClick: (Platform) -> Unit) 
         left = {
             CellLeftImage(
                 type = ImageType.Rectangle,
-                size = 32,
+                size = IconSizes.TokenInt,
                 painter = rememberAsyncImagePainter(
                     model =  item.iconUrl,
                     error =  rememberAsyncImagePainter(

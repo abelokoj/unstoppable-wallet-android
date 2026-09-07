@@ -12,13 +12,13 @@ import kotlinx.coroutines.flow.update
 
 class AppIconService(private val localStorage: ILocalStorage) {
     private val _optionsFlow = MutableStateFlow(
-        Select(localStorage.appIcon ?: AppIcon.Main, getAvailableIcons())
+        Select(localStorage.appIcon ?: AppIcon.Thorchain, getAvailableIcons())
     )
     val optionsFlow = _optionsFlow.asStateFlow()
 
     fun setAppIcon(appIcon: AppIcon) {
         val targetIcon = if (appIcon.isDeprecated) {
-            AppIcon.Main // Fallback to default if deprecated or unavailable
+            AppIcon.Thorchain // Fallback to default if deprecated or unavailable
         } else {
             appIcon
         }
@@ -58,11 +58,11 @@ class AppIconService(private val localStorage: ILocalStorage) {
 
         when {
             currentIcon == null -> {
-                setAppIcon(AppIcon.Main)
+                setAppIcon(AppIcon.Thorchain)
             }
             currentIcon.isDeprecated -> {
                 // Current icon is deprecated or missing, fallback to default
-                setAppIcon(AppIcon.Main)
+                setAppIcon(AppIcon.Thorchain)
             }
             else -> {
                 //do nothing, current icon is valid

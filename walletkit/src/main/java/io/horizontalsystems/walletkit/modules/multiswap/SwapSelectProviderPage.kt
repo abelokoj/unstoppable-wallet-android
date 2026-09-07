@@ -1,5 +1,9 @@
 package io.horizontalsystems.walletkit.modules.multiswap
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.padding
+import io.horizontalsystems.walletkit.uiv3.components.cell.ImageType
+import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.spacedBy
@@ -149,72 +153,100 @@ private fun SwapSelectProviderScreenInner(
                     }
                     BoxBordered(bottom = true) {
                         CellPrimary(
+                            // Two-row layout restored from upstream 82f4fbc0d^, the last commit
+                            // before provider icons and names were removed. Provider logo left,
+                            // title + amount on row 1, time/risk + fiat on row 2, selector right.
                             left = {
-                                Icon(
-                                    modifier = Modifier.size(20.dp),
-                                    painter = painterResource(icon),
-                                    contentDescription = null,
-                                    tint = iconTint
-                                )
+                                provider.icon?.let { providerIcon ->
+                                    CellLeftImage(
+                                        painter = painterResource(providerIcon),
+                                        type = ImageType.Rectangle,
+                                        size = 32
+                                    )
+                                }
                             },
                             middle = {
                                 Row(
                                     horizontalArrangement = spacedBy(12.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Column(
-                                        modifier = Modifier.weight(1f),
-                                        verticalArrangement = spacedBy(3.dp)
-                                    ) {
-                                        subhead_leah(viewItem.tokenAmount)
-                                        Row(
-                                            horizontalArrangement = spacedBy(4.dp)
-                                        ) {
-                                            viewItem.fiatAmount?.let {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Row {
+                                            Text(
+                                                text = provider.title,
+                                                style = ComposeAppTheme.typography.headline2,
+                                                color = ComposeAppTheme.colors.leah,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            Text(
+                                                text = viewItem.tokenAmount,
+                                                style = ComposeAppTheme.typography.subheadSB,
+                                                color = ComposeAppTheme.colors.leah,
+                                            )
+                                        }
+                                        Row {
+                                            Row(
+                                                horizontalArrangement = spacedBy(4.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(end = 4.dp)
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.clock_filled_24),
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = ComposeAppTheme.colors.grey,
+                                                    contentDescription = null
+                                                )
                                                 Text(
-                                                    text = it,
+                                                    text = viewItem.estimationTime?.let {
+                                                        formatSwapTime(it, provider.type)
+                                                    } ?: stringResource(R.string.NotAvailable),
+                                                    style = ComposeAppTheme.typography.subhead,
+                                                    color = if (viewItem.timeStatus == SwapTimeStatus.Attention) {
+                                                        ComposeAppTheme.colors.jacob
+                                                    } else {
+                                                        ComposeAppTheme.colors.grey
+                                                    },
+                                                )
+                                                Text(
+                                                    text = "|",
                                                     style = ComposeAppTheme.typography.subhead,
                                                     color = ComposeAppTheme.colors.grey,
                                                 )
-                                            }
-                                            getPriceImpact(viewItem.priceImpactData)?.let {
-                                                Text(
-                                                    text = it.text,
-                                                    style = ComposeAppTheme.typography.subhead,
-                                                    color = it.color ?: ComposeAppTheme.colors.grey,
+                                                RiskScore(
+                                                    riskLevel = provider.riskLevel,
+                                                    modifier = Modifier.clickable {
+                                                        onBadgeClick.invoke()
+                                                    },
                                                 )
                                             }
-                                        }
-                                        if (App.localStorage.showSwapProviderName) {
-                                            Text(
-                                                text = provider.title,
-                                                style = ComposeAppTheme.typography.subhead,
-                                                color = ComposeAppTheme.colors.grey,
-                                            )
+                                            Row(horizontalArrangement = spacedBy(4.dp)) {
+                                                viewItem.fiatAmount?.let {
+                                                    Text(
+                                                        text = it,
+                                                        style = ComposeAppTheme.typography.subhead,
+                                                        color = ComposeAppTheme.colors.grey,
+                                                        textAlign = TextAlign.End,
+                                                    )
+                                                }
+                                                getPriceImpact(viewItem.priceImpactData)?.let {
+                                                    Text(
+                                                        text = it.text,
+                                                        style = ComposeAppTheme.typography.subhead,
+                                                        color = it.color ?: ComposeAppTheme.colors.grey,
+                                                        textAlign = TextAlign.End,
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
-                                    Column(
-                                        horizontalAlignment = Alignment.End,
-                                        verticalArrangement = spacedBy(3.dp)
-                                    ) {
-                                        RiskScore(
-                                            riskLevel = provider.riskLevel,
-                                            modifier = Modifier.clickable {
-                                                onBadgeClick.invoke()
-                                            },
-                                        )
-                                        Text(
-                                            text = viewItem.estimationTime?.let {
-                                                formatSwapTime(it, provider.type)
-                                            } ?: stringResource(R.string.NotAvailable),
-                                            style = ComposeAppTheme.typography.subheadSB,
-                                            color = if (viewItem.timeStatus == SwapTimeStatus.Attention) {
-                                                ComposeAppTheme.colors.jacob
-                                            } else {
-                                                ComposeAppTheme.colors.grey
-                                            },
-                                        )
-                                    }
+                                    Icon(
+                                        modifier = Modifier.size(20.dp),
+                                        painter = painterResource(icon),
+                                        contentDescription = null,
+                                        tint = iconTint
+                                    )
                                 }
                             },
                             onClick = { onSelectQuote.invoke(viewItem.quote) }

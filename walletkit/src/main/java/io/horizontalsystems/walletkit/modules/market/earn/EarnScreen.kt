@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.market.earn
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -273,7 +274,7 @@ private fun VaultItem(
         left = {
             CellLeftImage(
                 type = ImageType.Ellipse,
-                size = 32,
+                size = IconSizes.TokenInt,
                 painter = rememberAsyncImagePainter(
                     model = coinIconUrl,
                     error = alternativeCoinIconUrl?.let { alternativeUrl ->

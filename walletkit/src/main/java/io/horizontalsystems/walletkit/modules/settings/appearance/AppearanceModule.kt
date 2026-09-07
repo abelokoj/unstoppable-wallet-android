@@ -42,10 +42,20 @@ enum class AppIcon(val icon: Int, val titleText: String, val isDeprecated: Boole
     Doge(R.drawable.launcher_doge_preview, "Doge"),
     Punk(R.drawable.launcher_punk_preview, "Punk"),
     Ape(R.drawable.launcher_ape_preview, "#1874"),
-    Plflag(R.drawable.launcher_plflag_preview, "Plflag"),
-    Sinwar(R.drawable.launcher_sinwar_preview, "Sinwar"),
+    // Open Swap fork: removed from the picker. Kept as a deprecated entry so the manifest
+    // alias still resolves for anyone with it active; setAppIcon migrates them to Main.
+    Plflag(R.drawable.launcher_plflag_preview, "Plflag", true),
+    // Open Swap fork: removed from the picker. Kept as a deprecated entry so the manifest
+    // alias still resolves for anyone with it active; setAppIcon migrates them to Main.
+    Sinwar(R.drawable.launcher_sinwar_preview, "Sinwar", true),
     Yeschad(R.drawable.launcher_yeschad_preview, "Yeschad"),
     Gigachad(R.drawable.launcher_gigachad_preview, "Gigachad"),
+    Btc(R.drawable.launcher_btc_preview, "Bitcoin"),
+    Bch(R.drawable.launcher_bch_preview, "Bitcoin Cash"),
+    Eth(R.drawable.launcher_eth_preview, "Ethereum"),
+    Bnb(R.drawable.launcher_bsc_preview, "BNB Chain"),
+    Polygon(R.drawable.launcher_pol_preview, "Polygon"),
+    Thorchain(R.drawable.launcher_thor_preview, "THORChain"),
     //deprecated icons with manifest aliases should stay in app for 2 releases before removal
     //remove deprecated below in 0.47
     Leo(R.drawable.launcher_leo_preview, "Leo", true),

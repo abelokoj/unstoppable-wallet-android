@@ -4,6 +4,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -252,7 +253,11 @@ fun TransactionCell(item: TransactionViewItem, onClick: () -> Unit) {
     Column {
         RowUniversal(
             modifier = Modifier
-                .height(72.dp)
+                // Open Swap fork: was .height(72.dp). A fixed dp height does not grow with the
+                // font scale (Theme.kt raises it above 1f), so text was being clipped by the
+                // row divider. heightIn keeps the same look at normal size but lets the row
+                // expand when the text needs it.
+                .heightIn(min = 72.dp)
                 .background(ComposeAppTheme.colors.lawrence)
                 .clickable(onClick = onClick),
         ) {

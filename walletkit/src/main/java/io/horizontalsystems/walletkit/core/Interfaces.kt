@@ -102,6 +102,7 @@ interface ILocalStorage {
     var swapTermsAccepted: Boolean
     var simulateFailSwap: SimulateFailSwapMode
     var showSwapProviderName: Boolean
+    var feeDisplayInFiat: Boolean
     var passkeyTermsAccepted: Boolean
     var checkedTerms: List<String>
     val mainShowedOnceFlow: StateFlow<Boolean>

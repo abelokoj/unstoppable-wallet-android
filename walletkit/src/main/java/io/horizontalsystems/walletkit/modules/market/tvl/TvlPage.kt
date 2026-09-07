@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.market.tvl
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import android.view.View
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -306,7 +307,7 @@ private fun DefiMarket(
         left = {
             CellLeftImage(
                 type = ImageType.Rectangle,
-                size = 32,
+                size = IconSizes.TokenInt,
                 painter = rememberAsyncImagePainter(
                     model = iconUrl,
                     error = iconPlaceholder?.let { alternativeUrl ->

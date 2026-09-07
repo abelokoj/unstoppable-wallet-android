@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.eip20approve
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -155,8 +156,8 @@ private fun ConfirmTokenUnlimitedSection(token: Token) {
         CellPrimary(
             left = {
                 CoinImage(
-                    coin = token.coin,
-                    modifier = Modifier.size(32.dp)
+                    token = token,
+                    modifier = Modifier.size(IconSizes.Token)
                 )
             },
             middle = {
@@ -194,8 +195,8 @@ fun ConfirmTokenSection(
         CellPrimary(
             left = {
                 CoinImage(
-                    coin = token.coin,
-                    modifier = Modifier.size(32.dp)
+                    token = token,
+                    modifier = Modifier.size(IconSizes.Token)
                 )
             },
             middle = {

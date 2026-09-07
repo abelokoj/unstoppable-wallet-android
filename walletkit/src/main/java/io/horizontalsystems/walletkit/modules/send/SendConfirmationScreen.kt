@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.send
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -255,7 +256,7 @@ fun ConfirmationTopSection(
                 left = {
                     CoinImage(
                         token = token,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(IconSizes.Token)
                     )
                 },
                 middle = {
@@ -338,7 +339,7 @@ fun ConfirmAmountCell(fiatAmount: String?, coinAmount: String, coin: Coin) {
     ) {
         CoinImage(
             coin = coin,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(IconSizes.Token)
         )
         subhead2_leah(
             modifier = Modifier.padding(start = 16.dp),

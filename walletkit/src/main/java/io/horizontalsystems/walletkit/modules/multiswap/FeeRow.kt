@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.multiswap
 
 import androidx.compose.runtime.Composable
+import io.horizontalsystems.walletkit.core.App
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +24,14 @@ fun FeeRow(
     valueToken: String,
     onInfoClick: (() -> Unit)? = null,
 ) {
-    var showFiat by remember(valueFiat) { mutableStateOf(false) }
+    // Open Swap fork: default to the app's base currency rather than the chain's native
+    // token. Was mutableStateOf(false), i.e. token-first. Tapping still toggles, so the
+    // native amount is one tap away instead of being the default.
+    // Falls back to the token when no fiat value is available (no rate for the gas coin).
+    // Open Swap fork: default to the app's base currency rather than the chain's native
+    // token, and persist the user's choice. Upstream used remember(valueFiat) with a false
+    // initial value, so it started on the token and reset on every re-quote.
+    var showFiat by remember { mutableStateOf(App.localStorage.feeDisplayInFiat) }
 
     val displayedValue = when {
         showFiat && valueFiat != null -> valueFiat
@@ -49,7 +57,10 @@ fun FeeRow(
             CellRightInfo(
                 eyebrow = displayedValue.hs(ComposeAppTheme.colors.leah),
                 onClick = if (valueFiat != null) {
-                    { showFiat = !showFiat }
+                    {
+                        showFiat = !showFiat
+                        App.localStorage.feeDisplayInFiat = showFiat
+                    }
                 } else {
                     null
                 },

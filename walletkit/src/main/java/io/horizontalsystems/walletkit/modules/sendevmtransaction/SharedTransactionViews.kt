@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.sendevmtransaction
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -151,7 +152,7 @@ fun Amount(item: ViewItem.Amount) {
             token = item.token,
             modifier = Modifier
                 .padding(end = 16.dp)
-                .size(32.dp)
+                .size(IconSizes.Token)
         )
         Text(
             text = item.coinAmount,
@@ -172,7 +173,7 @@ fun AmountWithTitle(item: ViewItem.AmountWithTitle) {
         left = {
             CoinImage(
                 token = item.token,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(IconSizes.Token)
             )
         },
         middle = {
@@ -215,7 +216,7 @@ fun Token(item: ViewItem.TokenItem) {
     ) {
         CoinImage(
             token = item.token,
-            modifier = Modifier.padding(end = 16.dp).size(32.dp)
+            modifier = Modifier.padding(end = 16.dp).size(IconSizes.Token)
         )
         subhead1_leah(item.token.coin.code)
     }

@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.multiswap
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -195,7 +196,7 @@ private fun TokenIconWithBadge(token: Token) {
     ) {
         if (token.type.isNative) {
             CoinImage(
-                coin = token.coin,
+                token = token,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .clip(CircleShape)
@@ -204,7 +205,7 @@ private fun TokenIconWithBadge(token: Token) {
             )
         } else {
             CoinImage(
-                coin = token.coin,
+                token = token,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .clip(CircleShape)
@@ -241,8 +242,8 @@ private fun CoinCell(
         CellPrimary(
             left = {
                 CoinImage(
-                    coin = coinItem.token.coin,
-                    modifier = Modifier.size(32.dp)
+                    token = coinItem.token,
+                    modifier = Modifier.size(IconSizes.Token)
                 )
             },
             middle = {

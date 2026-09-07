@@ -1,10 +1,12 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
+import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.uniswapkit.models.DexType
 
 object PancakeSwapV3Provider : BaseUniswapV3Provider(DexType.PancakeSwap) {
     override val id = PANCAKE_V3_PROVIDER_ID
+    override val icon = R.drawable.swap_provider_pancake
     override val title = "PancakeSwap V3"
     override val riskLevel = RiskLevel.EXCELLENT
 

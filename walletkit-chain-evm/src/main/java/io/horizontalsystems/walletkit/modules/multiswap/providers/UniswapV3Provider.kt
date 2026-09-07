@@ -1,10 +1,12 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
+import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.uniswapkit.models.DexType
 
 object UniswapV3Provider : BaseUniswapV3Provider(DexType.Uniswap) {
     override val id = UNISWAP_V3_PROVIDER_ID
+    override val icon = R.drawable.swap_provider_uniswap
     override val title = "Uniswap V3"
     override val riskLevel = RiskLevel.EXCELLENT
 

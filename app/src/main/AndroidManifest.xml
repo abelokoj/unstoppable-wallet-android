@@ -108,7 +108,7 @@
 
         <activity-alias
             android:name="${applicationId}.MainLauncherAlias"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/launcher_main"
             android:label="@string/App_Name"
@@ -241,6 +241,84 @@
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/launcher_yeschad"
+            android:label="@string/App_Name"
+            android:targetActivity=".modules.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="${applicationId}.BtcLauncherAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_btc"
+            android:label="@string/App_Name"
+            android:targetActivity=".modules.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="${applicationId}.BchLauncherAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_bch"
+            android:label="@string/App_Name"
+            android:targetActivity=".modules.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="${applicationId}.EthLauncherAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_eth"
+            android:label="@string/App_Name"
+            android:targetActivity=".modules.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="${applicationId}.BnbLauncherAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_bsc"
+            android:label="@string/App_Name"
+            android:targetActivity=".modules.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="${applicationId}.PolygonLauncherAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_pol"
+            android:label="@string/App_Name"
+            android:targetActivity=".modules.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="${applicationId}.ThorchainLauncherAlias"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/launcher_thor"
             android:label="@string/App_Name"
             android:targetActivity=".modules.main.MainActivity">
             <intent-filter>
