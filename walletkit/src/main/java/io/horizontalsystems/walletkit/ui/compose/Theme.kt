@@ -23,7 +23,8 @@ val lightPalette = Colors(
     lawrence = White,
     laguna = LagunaL,
     raina = White50,
-    andy = Steel,
+    // Open Swap fork: was Steel (#B3B3B3), too faint on white. Grey is darker.
+    andy = GreyDark,
     blade = Light,
     ocean = BlueL,
 )
@@ -37,7 +38,8 @@ val darkPalette = Colors(
     lawrence = Dark,
     laguna = LagunaD,
     raina = Color(0x1a6E7899),
-    andy = Smoke,
+    // Open Swap fork: was Smoke (#4B4B4B), too faint on near-black. Steel is lighter.
+    andy = Steel,
     blade = Carbon,
     ocean = BlueD,
 )

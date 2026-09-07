@@ -74,7 +74,7 @@ bitcoinKit = "dad7ed4"
 hdWalletKit = "a74b51f3"
 ethereumKit = "11b92fc"
 feeRateKit = "393cc14"
-marketKit = "33432f8"
+marketKit = "966a222"
 solanaKit = "b487161"
 tronKit = "6fc27cf"
 thorchainKit = "9de6579"
@@ -244,7 +244,7 @@ kit-hodler = { module = "com.github.horizontalsystems.bitcoin-kit-android:hodler
 kit-bitcoin-core = { module = "com.github.horizontalsystems.bitcoin-kit-android:bitcoincore", version.ref = "bitcoinKit" }
 kit-ethereum = { module = "com.github.abelokoj:ethereum-kit-android", version.ref = "ethereumKit" }
 kit-fee-rate = { module = "com.github.horizontalsystems:blockchain-fee-rate-kit-android", version.ref = "feeRateKit" }
-kit-market = { module = "com.github.horizontalsystems:market-kit-android", version.ref = "marketKit" }
+kit-market = { module = "com.github.abelokoj:market-kit-android", version.ref = "marketKit" }
 kit-solana = { module = "com.github.horizontalsystems:solana-kit-android", version.ref = "solanaKit" }
 kit-tron = { module = "com.github.horizontalsystems:tron-kit-android", version.ref = "tronKit" }
 kit-thorchain = { module = "com.github.horizontalsystems:thorchain-kit-android", version.ref = "thorchainKit" }

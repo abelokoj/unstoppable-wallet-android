@@ -71,7 +71,7 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
         Currency("JPY", "¥", 2, R.drawable.icon_32_flag_japan),
         // VIABILITY TEST: placeholder flag. If rates populate, swap in a real
         // icon_32_flag_nigeria drawable converted from swap.unstoppable public/flags/ng.svg.
-        Currency("NGN", "\u20A6", 2, R.drawable.icon_32_flag_usa),
+        Currency("NGN", "\u20A6", 2, R.drawable.icon_32_flag_nigeria),
         Currency("NOK", "kr", 2, R.drawable.icon_32_flag_norway),
         Currency("PHP", "₱", 2, R.drawable.icon_32_flag_philippine),
         Currency("RUB", "₽", 2, R.drawable.icon_32_flag_russia),

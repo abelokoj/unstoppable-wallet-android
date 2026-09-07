@@ -33,6 +33,9 @@ val Red20 = Color(0x33FF1539)
 //old colors
 val LightGrey = Color(0xFFC8C7CC)
 val Grey = Color(0xFF808085)
+// Open Swap fork: a step darker than Grey, for secondary text on light backgrounds.
+// Nothing existed between Grey (#808085) and Smoke (#4B4B4B).
+val GreyDark = Color(0xFF63636A)
 
 val Black50 = Color(0x80000000)
 val White50 = Color(0x80FFFFFF)
