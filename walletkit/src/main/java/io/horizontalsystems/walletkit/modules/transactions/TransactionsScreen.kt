@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.transactions
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -264,7 +265,9 @@ fun TransactionCell(item: TransactionViewItem, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .size(42.dp)
+                    // Open Swap fork: was 42.dp. Must grow with the icons inside it,
+                    // or the 48dp single icons are clipped.
+                    .size(IconSizes.TransactionRowContainer)
                     .alpha(if (item.spam) 0.5f else 1f),
                 contentAlignment = Alignment.Center
             ) {
@@ -283,7 +286,7 @@ fun TransactionCell(item: TransactionViewItem, onClick: () -> Unit) {
 
                     is TransactionViewItem.Icon.Platform -> {
                         Icon(
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(IconSizes.TransactionRow),
                             painter = painterResource(
                                 icon.iconRes ?: R.drawable.coin_placeholder
                             ),
@@ -297,7 +300,7 @@ fun TransactionCell(item: TransactionViewItem, onClick: () -> Unit) {
                             if (icon.rectangle) RoundedCornerShape(CornerSize(4.dp)) else CircleShape
                         HsImage(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(IconSizes.TransactionRow)
                                 .clip(shape),
                             url = icon.url,
                             alternativeUrl = icon.alternativeUrl,
@@ -314,7 +317,7 @@ fun TransactionCell(item: TransactionViewItem, onClick: () -> Unit) {
                             modifier = Modifier
                                 .align(Alignment.TopStart)
                                 .padding(top = 4.dp, start = 6.dp)
-                                .size(24.dp)
+                                .size(IconSizes.TransactionRowPaired)
                                 .clip(backShape),
                             url = icon.back.url,
                             alternativeUrl = icon.back.alternativeUrl,
@@ -325,7 +328,7 @@ fun TransactionCell(item: TransactionViewItem, onClick: () -> Unit) {
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(bottom = 4.5.dp, end = 6.5.dp)
-                                .size(24.dp)
+                                .size(IconSizes.TransactionRowPaired)
                                 .clip(frontShape)
                                 .background(ComposeAppTheme.colors.tyler)
                         )
@@ -334,7 +337,7 @@ fun TransactionCell(item: TransactionViewItem, onClick: () -> Unit) {
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(bottom = 4.dp, end = 6.dp)
-                                .size(24.dp)
+                                .size(IconSizes.TransactionRowPaired)
                                 .clip(frontShape),
                             url = icon.front.url,
                             alternativeUrl = icon.front.alternativeUrl,
@@ -344,7 +347,7 @@ fun TransactionCell(item: TransactionViewItem, onClick: () -> Unit) {
 
                     is TransactionViewItem.Icon.ImageResource -> {
                         Icon(
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(IconSizes.TransactionRow),
                             painter = painterResource(icon.resourceId),
                             tint = ComposeAppTheme.colors.leah,
                             contentDescription = null

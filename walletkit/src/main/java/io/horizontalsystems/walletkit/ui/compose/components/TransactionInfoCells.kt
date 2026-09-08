@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.ui.compose.components
 
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -126,7 +127,7 @@ fun TransactionNftAmountCell(
             url = iconUrl,
             placeholder = iconPlaceholder,
             modifier = Modifier
-                .size(32.dp)
+                .size(IconSizes.TransactionInfo)
                 .clip(RoundedCornerShape(CornerSize(4.dp)))
         )
         HSpacer(16.dp)
@@ -180,7 +181,7 @@ fun TransactionAmountCell(
             url = coinIconUrl,
             alternativeUrl = alternativeCoinIconUrl,
             placeholder = coinIconPlaceholder,
-            modifier = Modifier.size(32.dp).clip(CircleShape)
+            modifier = Modifier.size(IconSizes.TransactionInfo).clip(CircleShape)
         )
         HSpacer(16.dp)
         Column {
@@ -239,7 +240,7 @@ fun PriceWithToggleCell(
                 stat(page = StatPage.TransactionInfo, event = StatEvent.TogglePrice)
             },
             modifier = Modifier
-                .size(28.dp)
+                .size(IconSizes.TransactionInfo)
                 .clip(CircleShape),
         ) {
             Icon(

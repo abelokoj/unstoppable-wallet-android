@@ -8,6 +8,17 @@ import kotlin.math.pow
 
 class NumberRounding {
 
+    companion object {
+        /** Compression kicks in above this many leading zeros. */
+        const val COMPRESSION_MIN_ZEROS = 2
+
+        /** Characters after the '.' for compressed values: "0" + subscript + digits. */
+        const val SUBSCRIPT_BUDGET = 7
+
+        /** Decimal cap for sub-1 values that are not compressed. */
+        const val UNCOMPRESSED_MAX_DECIMALS = 6
+    }
+
     fun getRoundedFull(value: BigDecimal, minimumFractionDigits: Int, maximumFractionDigits: Int): BigDecimalRounded {
         val mostLowValue = BigDecimal(BigInteger.ONE, maximumFractionDigits)
 
@@ -44,7 +55,11 @@ class NumberRounding {
                         value = value,
                         minimumFractionDigits = 0,
                         maximumFractionDigits = maximumFractionDigitsCoerced,
-                        maxFractionNonZeroDigits = 4
+                        // Open Swap fork: was 4. The formatter compresses leading zeros to a
+                        // subscript and budgets 7 chars after the '.', so a one-digit subscript
+                        // leaves room for 5 significant digits. Rounding to 4 here would throw
+                        // the fifth away before the formatter ever sees it.
+                        maxFractionNonZeroDigits = 5
                     ))
             }
             else -> {
@@ -77,16 +92,11 @@ class NumberRounding {
         val shortened = getShortened(value)
         val shortenedValue = shortened.value
         return when {
-            shortenedValue < BigDecimal("20") -> {
-                val rounded = shortenedValue.setScale(2, RoundingMode.HALF_UP).stripTrailingZeros()
-                shortened.copy(value = rounded)
-            }
-            shortenedValue < BigDecimal("200") -> {
-                val rounded = shortenedValue.setScale(1, RoundingMode.HALF_UP).stripTrailingZeros()
-                shortened.copy(value = rounded)
-            }
+            // Open Swap fork: two decimals at every magnitude, and no stripTrailingZeros, so
+            // abbreviated values line up: 1.72 T, 505.00 B, 250.00 M. Upstream used 2/1/0
+            // decimals by size and stripped zeros, giving ragged widths.
             else -> {
-                val rounded = shortenedValue.setScale(0, RoundingMode.HALF_UP).stripTrailingZeros()
+                val rounded = shortenedValue.setScale(2, RoundingMode.HALF_UP)
                 shortened.copy(value = rounded)
             }
         }
@@ -100,7 +110,23 @@ class NumberRounding {
     ): BigDecimal {
         val decimals = when {
             value < BigDecimal("1") ->  {
-                minOf(maximumFractionDigits, getNumberOfZerosAfterDot(value) + maxFractionNonZeroDigits)
+                // Open Swap fork: two regimes for sub-1 values.
+                //
+                // More than 2 leading zeros: the formatter compresses them to a subscript with
+                // a 7-char budget after the '.', so keep zeros + (budget - "0" - subscript
+                // width) decimals. Rounding tighter here would discard digits the formatter
+                // still needs.
+                //
+                // 2 or fewer leading zeros: no compression, so cap at 6 decimals. Upstream's
+                // zeros + maxFractionNonZeroDigits gave 5 to 7 depending on the value, which
+                // read inconsistently down a column.
+                val zeros = getNumberOfZerosAfterDot(value)
+                val wanted = if (zeros > COMPRESSION_MIN_ZEROS) {
+                    zeros + (SUBSCRIPT_BUDGET - 1 - zeros.toString().length)
+                } else {
+                    UNCOMPRESSED_MAX_DECIMALS
+                }
+                minOf(maximumFractionDigits, wanted)
             }
             value < BigDecimal("1.01") -> 4
             value < BigDecimal("1.1") -> 3
@@ -111,7 +137,16 @@ class NumberRounding {
 
         val coerced = decimals.coerceIn(minimumFractionDigits, maximumFractionDigits)
 
-        return value.setScale(coerced, RoundingMode.DOWN).stripTrailingZeros()
+        // Open Swap fork: keep trailing zeros only where the source value actually had
+        // digits at those positions, rather than stripping all or padding all.
+        //
+        //   0.0559803 -> 0.055980   sixth digit is a real zero from truncation, so keep it
+        //   0.5       -> 0.5        padding to 0.500000 would invent five zeros
+        //   0.08512   -> 0.08512    only five digits exist
+        //
+        // Upstream stripped unconditionally, which lost the first case.
+        val scaled = value.setScale(coerced, RoundingMode.DOWN)
+        return if (value.stripTrailingZeros().scale() > coerced) scaled else scaled.stripTrailingZeros()
     }
 
     private fun getShortened(value: BigDecimal): BigDecimalRounded.Large {
@@ -135,7 +170,10 @@ class NumberRounding {
             3 -> LargeNumberName.Billion
             4 -> LargeNumberName.Trillion
             5 -> LargeNumberName.Quadrillion
-            else -> null
+            // Open Swap fork: above quadrillion there is no suffix anyone would recognise,
+            // so the formatter renders these in scientific notation instead. Reachable via
+            // token balances (18 decimals x quadrillion supply), not fiat values.
+            else -> LargeNumberName.Scientific
         }
 
         return when (suffix) {
@@ -167,5 +205,6 @@ enum class LargeNumberName {
     Million,
     Billion,
     Trillion,
-    Quadrillion;
+    Quadrillion,
+    Scientific;
 }
