@@ -1,45 +1,51 @@
 package io.horizontalsystems.walletkit.modules.solananetwork
 
 import io.horizontalsystems.walletkit.core.Clearable
+import io.horizontalsystems.walletkit.core.ServiceState
 import io.horizontalsystems.walletkit.core.managers.SolanaRpcSourceManager
 import io.horizontalsystems.solanakit.models.RpcSource
-import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.BehaviorSubject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class SolanaNetworkService(
         private val rpcSourceManager: SolanaRpcSourceManager,
-) : Clearable {
-    private val disposables = CompositeDisposable()
+) : ServiceState<SolanaNetworkService.State>(), Clearable {
 
-    private val itemsSubject = BehaviorSubject.create<List<Item>>()
-    var items = listOf<Item>()
-        private set(value) {
-            field = value
+    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val mutex = Mutex()
 
-            itemsSubject.onNext(value)
-        }
+    private var items = listOf<Item>()
 
-    private val currentRpcSource: RpcSource
-        get() = rpcSourceManager.rpcSource
+    override fun createState() = State(items = items)
 
     init {
         syncItems()
+
+        coroutineScope.launch {
+            rpcSourceManager.rpcSourceUpdateFlow.collect {
+                mutex.withLock {
+                    syncItems()
+                }
+            }
+        }
     }
 
     private fun syncItems() {
-        val currentRpcSourceName = currentRpcSource.name
+        val currentRpcSourceName = rpcSourceManager.rpcSource.name
 
         items = rpcSourceManager.allRpcSources.map { rpcSource ->
             Item(rpcSource, rpcSource.name == currentRpcSourceName)
         }
+
+        emitState()
     }
 
-    val itemsObservable: Observable<List<Item>>
-        get() = itemsSubject
-
     fun setCurrentSource(name: String) {
-        if (currentRpcSource.name == name) return
+        if (rpcSourceManager.rpcSource.name == name) return
 
         val rpcSource = items.find { it.rpcSource.name == name }?.rpcSource ?: return
 
@@ -47,8 +53,10 @@ class SolanaNetworkService(
     }
 
     override fun clear() {
-        disposables.clear()
+        coroutineScope.cancel()
     }
+
+    data class State(val items: List<Item>)
 
     data class Item(val rpcSource: RpcSource, val selected: Boolean)
 

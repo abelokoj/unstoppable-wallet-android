@@ -38,7 +38,8 @@ interface IAppConfigProvider {
     val twitterBearerToken: String
     val etherscanApiKey: List<String>
     val bscscanApiKey: List<String>
-    val otherScanApiKey: List<String>
+    val blockscoutApiKey: List<String>
+    val alchemyApiKey: List<String>
     val guidesUrl: String
     val eduUrl: String
     val faqUrl: String
@@ -66,4 +67,13 @@ interface IAppConfigProvider {
     val oneInchPartnerFeeAddress: String
     val swapFeeBps: Int
     val fdroidBuild: Boolean
+
+    /**
+     * Whether a token that shows up in the account's history (a received transfer, a swap
+     * output, a discovered token account) gets a wallet enabled for it automatically. An app
+     * that works with a fixed token set turns this off; its wallets then come only from the
+     * explicit enable paths.
+     */
+    val autoEnableTokensOnReceive: Boolean
+        get() = true
 }

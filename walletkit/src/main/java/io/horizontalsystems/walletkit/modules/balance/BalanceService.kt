@@ -4,6 +4,7 @@ import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.Clearable
 import io.horizontalsystems.walletkit.core.IAccountManager
 import io.horizontalsystems.walletkit.core.ILocalStorage
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.isNative
 import io.horizontalsystems.walletkit.core.managers.ConnectivityManager
 import io.horizontalsystems.walletkit.entities.Account
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.math.BigDecimal
@@ -59,22 +59,22 @@ class BalanceService(
 
     fun start() {
         coroutineScope.launch {
-            activeWalletRepository.itemsObservable.asFlow().collect { wallets ->
+            activeWalletRepository.itemsFlow.collectSafely { wallets ->
                 handleWalletsUpdate(wallets)
             }
         }
         coroutineScope.launch {
-            xRateRepository.itemObservable.asFlow().collect { latestRates ->
+            xRateRepository.itemObservable.collectSafely { latestRates ->
                 handleXRateUpdate(latestRates)
             }
         }
         coroutineScope.launch {
-            adapterRepository.readyObservable.asFlow().collect {
+            adapterRepository.readyFlow.collectSafely {
                 handleAdaptersReady()
             }
         }
         coroutineScope.launch {
-            adapterRepository.updatesObservable.asFlow().collect {
+            adapterRepository.updatesFlow.collectSafely {
                 handleAdapterUpdate(it)
             }
         }

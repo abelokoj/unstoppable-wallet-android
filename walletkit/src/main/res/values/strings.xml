@@ -16,6 +16,7 @@
     <!--Common-->
 
     <string name="Error_BrowserNotFound">No app was found to open this link</string>
+    <string name="Error_FilePickerNotFound">No app was found to open files</string>
     <string name="Error_ParameterNotSet">Parameter is not set</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
 
@@ -498,7 +499,8 @@
     <string name="Send_Button_Paste">Paste</string>
     <string name="Send_Button_Max">Max</string>
     <string name="Send_Advanced">Advanced</string>
-    <string name="Send_Hodler_Description">TimeLock works only for sending to BIP44 addresses (starting with 1)</string>
+    <string name="Send_Hodler_Description">TimeLock works only for sending to BIP44 addresses (starting with 1).</string>
+    <string name="Send_Hodler_PrivateSendUnavailable">Not available when Private Send is on.</string>
     <string name="Send_Utxos" translatable="false">UTxOs</string>
     <string name="Send_UtxoExpertMode">UTxO Expert Mode</string>
     <string name="Send_Utxo_Description">Manually select UTxO to spend the funds in the balance</string>
@@ -596,6 +598,29 @@
     <string name="Send_Error_FetchFeeRateFailed">Fee Error</string>
     <string name="Send_Error_FetchFeeRateFailed_Description">The connection to the server has been lost. To proceed, set up the fees manually using the data on the site.</string>
 
+    <!-- Private Send -->
+
+    <string name="PrivateSend_Toggle_Title">Private Send</string>
+    <string name="PrivateSend_Info_Description">Private Send routes your transaction through a confidential intermediary, hiding the public link between your address and the recipient. Both transactions remain visible on chain, but they are not directly connected to each other.</string>
+    <string name="PrivateSend_Unavailable">Private send unavailable</string>
+    <string name="PrivateSend_Fee">Private send fee</string>
+    <string name="PrivateSend_Fee_Info">This fee covers the cost of processing your transaction privately. It is charged in addition to the network fee and depends on the amount you send.</string>
+    <string name="PrivateSend_ReservedAmount">Reserved amount</string>
+    <string name="PrivateSend_ReservedAmount_Info">An additional amount is temporarily reserved to cover possible price changes while your transaction is processed. Any unused part is returned to your wallet in a separate transaction after the send completes.</string>
+    <string name="PrivateSend_EstimatedTime">Estimated arrival</string>
+    <string name="PrivateSend_CommitFailed">Couldn\'t set up the private send. Try again.</string>
+    <string name="PrivateSend_Caution_Title">Private send</string>
+    <string name="PrivateSend_Caution_BelowMinimum">Private send requires the recipient to receive at least %s.</string>
+    <string name="PrivateSend_Caution_AboveMaximum">Private send supports at most %s.</string>
+    <string name="PrivateSend_Caution_NoRoute">No private route is available for this token and amount right now.</string>
+    <string name="PrivateSend_Caution_ExactOutputUnsupported">This route can\'t guarantee an exact received amount.</string>
+    <string name="PrivateSend_Caution_ProviderSuspended">The private send provider is temporarily unavailable.</string>
+    <string name="PrivateSend_Caution_NetworkError">Couldn\'t reach the private send provider. Check your connection and try again.</string>
+    <string name="PrivateSend_Caution_TokenUnsupported">Private send is no longer available for this token.</string>
+    <string name="PrivateSend_Caution_AttachmentUnsupported">This private route requires a transaction tag this wallet can\'t attach. Private send is unavailable for this token.</string>
+    <string name="PrivateSend_Caution_BufferUnknown">The fee shown is an upper estimate; the final cost may be lower.</string>
+    <string name="PrivateSend_NotAvailable">Memo is not available when Private Send is on.</string>
+
     <!-- Send Evm Settings -->
 
     <string name="SendEvmSettings_Title">Fee Settings</string>
@@ -610,7 +635,7 @@
 
     <!-- Fee Settings -->
 
-    <string name="FeeSettings_NetworkFee">Fee</string>
+    <string name="FeeSettings_NetworkFee">Network Fee</string>
     <string name="FeeSettings_NetworkFee_Info">The estimated cost of sending given transaction on the network.</string>
     <string name="FeeSettings_GasLimit" translatable="false">Gas Limit</string>
     <string name="FeeSettings_GasLimit_Info">Transaction complexity is measured in units called \"gas\". It varies depending on the smart contract being executed. The Gas Limit is the estimated maximum gas needed to execute it. The actual gas used will normally be lower.</string>
@@ -681,6 +706,20 @@
     <string name="WalletConnect_SendTransactionRequest_Title">Send Transaction</string>
     <string name="WalletConnect_SendTransactionRequest_ButtonSend">Send</string>
     <string name="WalletConnect_SignMessageRequest_Title">Sign Request</string>
+    <plurals name="WalletConnect_Solana_SignTransactionsCount">
+        <item quantity="one">Sign %d transaction</item>
+        <item quantity="other">Sign %d transactions</item>
+    </plurals>
+    <string name="WalletConnect_Solana_Method">Method</string>
+    <string name="WalletConnect_Solana_MethodSwap">Swap</string>
+    <string name="WalletConnect_Solana_MethodTransfer">Transfer</string>
+    <string name="WalletConnect_Solana_Network">Network</string>
+    <string name="WalletConnect_Solana_Value">Value</string>
+    <string name="WalletConnect_Solana_SignMessage_Warning">Warning</string>
+    <string name="WalletConnect_Solana_SignMessage_LooksLikeTransaction">This request asks you to sign what is actually a transaction disguised as a message. Signing it could authorize moving your funds. It was blocked for your safety.</string>
+    <string name="WalletConnect_Solana_SignMessage_ForeignPubkey">This message-signing request is for a different account than your active wallet. It was blocked.</string>
+    <string name="WalletConnect_Solana_UnreadableTransaction_Title">Unreadable transaction</string>
+    <string name="WalletConnect_Solana_UnreadableTransaction">This transaction\'s details could not be decoded, so you cannot see what it does — the recipient, amount and programs are hidden. Only continue if you fully trust this app.</string>
     <string name="WalletConnect_Error_NoWallet">You need to create or import a wallet before you can use WalletConnect</string>
     <string name="WalletConnect_Error_NeedBackup">Create a backup of your recovery phrase and the associated passphrase. These will allow you to restore your wallet if your phone is lost, stolen, or damaged.</string>
     <string name="WalletConnect_Error_UnsupportedChainId">Unsupported Blockchain</string>
@@ -715,6 +754,8 @@
     <string name="WalletConnect_TokenAllowance">Token Allowance</string>
     <string name="WalletConnect_ConfirmTransaction">Confirm Transaction</string>
     <string name="WalletConnect_DappWillBeAbleToMoveToken">%s will be able to move these tokens on your behalf.</string>
+    <string name="WalletConnect_SignTransactionRequest_Title">Sign Transaction</string>
+    <string name="WalletConnect_SignTransactionRequest_Description">%s will receive the signed transaction and can broadcast it at any time.</string>
     <string name="WalletConnect_RequestFailedDescription">Something went wrong and the request couldn’t be completed</string>
     <string name="WalletConnect_DisconnectWarning">Are you sure you want to remove this connection?</string>
     <string name="WalletConnect_DefenseMessage_Warning">You may connect to a fake site and lose funds. Turn me on to stay protected.</string>
@@ -1225,6 +1266,8 @@
     <string name="Appearance_HideMarketsTab_Tip">Hide the Markets tab completely.</string>
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_HideBalanceTabButtons_Tip">Hide the Send, Receive, and Swap buttons from the Balance tab.</string>
+    <string name="Appearance_ChartButton">Chart Button</string>
+    <string name="Appearance_ChartButton_Tip">Show the Chart button on the token balance page.</string>
     <string name="Appearance_AmountRounding">Amount Rounding</string>
     <string name="Appearance_AmountRounding_Tip">Display rounded balances and transaction amounts.</string>
     <string name="Appearance_BalanceAutoHide">Balance Auto Hide</string>
@@ -1299,6 +1342,11 @@
     <string name="AddEvmSyncSource_Error_InvalidUrl">Entered url is invalid. Valid url must have one of the following schemes: https, wss</string>
 
 
+    <!--Node/server selection, shared by the per-chain network settings screens-->
+    <string name="NetworkSettings_AutoSelect">Auto-Select</string>
+    <string name="NetworkSettings_Unreachable">Unreachable</string>
+    <string name="NetworkSettings_Latency">%d ms</string>
+
     <!--Add Monero Node-->
     <string name="AddMoneroNode_AddNode">Add Node</string>
     <string name="AddZanoNode_AddNode">Add Node</string>
@@ -1317,13 +1365,11 @@
         \n\nOff → transactions are shown only after confirmations from the network (slower, but safer and more private).</string>
     <string name="MoneroNodeSettings_Trusted">Trusted</string>
     <string name="MoneroNodeSettings_Description">Choose the node Unstoppable app should use for synchronizing wallet(s).</string>
-    <string name="MoneroNodeSettings_AutoSelect">Auto-Select</string>
     <string name="MoneroNodeSettings_AutoSelectDescription">Automatically use the fastest node</string>
-    <string name="MoneroNodeSettings_Unreachable">Unreachable</string>
-    <string name="MoneroNodeSettings_Latency">%d ms</string>
     <string name="ZanoNodeSettings_Description">Choose the node Unstoppable app should use for synchronizing wallet(s).</string>
     <!--Zcash Endpoint Settings-->
     <string name="ZcashEndpointSettings_Description">Choose the lightwallet server Unstoppable app should use for synchronizing Zcash wallet(s).</string>
+    <string name="ZcashEndpointSettings_AutoSelectDescription">Automatically use the fastest server</string>
     <string name="AddZcashEndpoint_AddEndpoint">Add Endpoint</string>
     <string name="AddZcashEndpoint_EndpointUrl">Endpoint URL</string>
     <string name="AddZcashEndpoint_Warning_UrlExists">Endpoint with this URL already exists</string>

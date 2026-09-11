@@ -16,7 +16,6 @@ import io.horizontalsystems.walletkit.modules.theme.ThemeService
 import io.horizontalsystems.walletkit.modules.theme.ThemeType
 import io.horizontalsystems.walletkit.ui.compose.Select
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 
 class AppearanceViewModel(
     private val launchScreenService: LaunchScreenService,
@@ -32,6 +31,7 @@ class AppearanceViewModel(
     private var themeOptions = themeService.optionsFlow.value
     private var marketsTabHidden = !localStorage.marketsTabEnabled
     private var balanceTabButtonsHidden = !localStorage.balanceTabButtonsEnabled
+    private var chartButtonEnabled = localStorage.chartButtonEnabled
     private var amountRoundingEnabled = localStorage.amountRoundingEnabled
     private var recentlySentEnabled = localStorage.recentlySentEnabled
     private var balanceViewTypeOptions = buildBalanceViewTypeSelect(balanceViewTypeManager.balanceViewTypeFlow.value)
@@ -69,7 +69,7 @@ class AppearanceViewModel(
                 }
         }
         viewModelScope.launch {
-            currencyManager.baseCurrencyUpdatedSignal.asFlow().collect {
+            currencyManager.baseCurrencyUpdatedFlow.collect {
                 emitState()
             }
         }
@@ -84,6 +84,7 @@ class AppearanceViewModel(
         balanceViewTypeOptions = balanceViewTypeOptions,
         marketsTabHidden = marketsTabHidden,
         balanceTabButtonsHidden = balanceTabButtonsHidden,
+        chartButtonEnabled = chartButtonEnabled,
         selectedTheme = themeService.selectedTheme,
         selectedLaunchScreen = launchScreenService.selectedLaunchScreen,
         selectedBalanceViewType = balanceViewTypeManager.balanceViewType,
@@ -169,6 +170,12 @@ class AppearanceViewModel(
         stat(page = StatPage.Appearance, event = StatEvent.HideBalanceButtons(shown = !hidden))
     }
 
+    fun onChartButtonToggle(enabled: Boolean) {
+        localStorage.chartButtonEnabled = enabled
+        chartButtonEnabled = enabled
+        emitState()
+    }
+
     fun onAmountRoundingToggle(enabled: Boolean) {
         localStorage.amountRoundingEnabled = enabled
         amountRoundingEnabled = enabled
@@ -205,6 +212,7 @@ data class AppearanceUIState(
     val balanceViewTypeOptions: Select<BalanceViewType>,
     val marketsTabHidden: Boolean,
     val balanceTabButtonsHidden: Boolean,
+    val chartButtonEnabled: Boolean,
     val selectedTheme: ThemeType,
     val selectedLaunchScreen: LaunchPage,
     val selectedBalanceViewType: BalanceViewType,

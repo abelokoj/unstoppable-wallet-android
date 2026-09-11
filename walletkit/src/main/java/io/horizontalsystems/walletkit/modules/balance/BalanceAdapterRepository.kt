@@ -4,18 +4,18 @@ import io.horizontalsystems.walletkit.core.AdapterState
 import io.horizontalsystems.walletkit.core.BalanceData
 import io.horizontalsystems.walletkit.core.Clearable
 import io.horizontalsystems.walletkit.core.IAdapterManager
-import io.horizontalsystems.walletkit.core.adapters.BaseTronAdapter
+import io.horizontalsystems.walletkit.core.chain.ChainRegistry
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.entities.Wallet
 import io.horizontalsystems.walletkit.modules.balance.BalanceModule.BalanceWarning
-import io.horizontalsystems.marketkit.models.BlockchainType
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
 
 class BalanceAdapterRepository(
@@ -28,17 +28,19 @@ class BalanceAdapterRepository(
     private val balanceStateUpdatedJobs = mutableListOf<Job>()
     private val balanceUpdatedJobs = mutableListOf<Job>()
 
-    private val readySubject = PublishSubject.create<Unit>()
-    val readyObservable: Observable<Unit> get() = readySubject
+    private val _readyFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val readyFlow: Flow<Unit> get() = _readyFlow
 
-    private val updatesSubject = PublishSubject.create<Wallet>()
-    val updatesObservable: Observable<Wallet> get() = updatesSubject
+    // Unbounded, matching the Rx BUFFER strategy this replaced: each event names a
+    // wallet whose row must re-read its data, so no event may be dropped.
+    private val _updatesFlow = MutableSharedFlow<Wallet>(extraBufferCapacity = Int.MAX_VALUE)
+    val updatesFlow: Flow<Wallet> get() = _updatesFlow
 
     init {
         coroutineScope.launch {
-            adapterManager.adaptersReadyObservable.asFlow().collect {
+            adapterManager.adaptersReadyFlow.collectSafely {
                 unsubscribeFromAdapterUpdates()
-                readySubject.onNext(Unit)
+                _readyFlow.tryEmit(Unit)
 
                 balanceCache.setCache(
                     wallets.mapNotNull { wallet ->
@@ -78,14 +80,14 @@ class BalanceAdapterRepository(
         wallets.forEach { wallet ->
             adapterManager.getBalanceAdapterForWallet(wallet)?.let { adapter ->
                 balanceStateUpdatedJobs += coroutineScope.launch {
-                    adapter.balanceStateUpdatedFlowable.asFlow().collect {
-                        updatesSubject.onNext(wallet)
+                    adapter.balanceStateUpdatedFlow.collectSafely {
+                        _updatesFlow.tryEmit(wallet)
                     }
                 }
 
                 balanceUpdatedJobs += coroutineScope.launch {
-                    adapter.balanceUpdatedFlowable.asFlow().collect {
-                        updatesSubject.onNext(wallet)
+                    adapter.balanceUpdatedFlow.collectSafely {
+                        _updatesFlow.tryEmit(wallet)
 
                         adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.let {
                             balanceCache.setCache(wallet, it)
@@ -109,12 +111,7 @@ class BalanceAdapterRepository(
 
     suspend fun warning(wallet: Wallet): BalanceWarning? {
         try {
-            if (wallet.token.blockchainType is BlockchainType.Tron) {
-                adapterManager.getAdapterForWallet<BaseTronAdapter>(wallet)?.let { adapter ->
-                    if (!adapter.tronKit.accountActive)
-                        return BalanceWarning.TronInactiveAccountWarning
-                }
-            }
+            return ChainRegistry[wallet.token.blockchainType]?.balanceWarning(wallet)
         } catch (e: Exception) {
             e.printStackTrace()
         }

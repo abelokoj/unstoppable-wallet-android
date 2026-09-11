@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.market.filtersresult
 
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.managers.MarketFavoritesManager
 import io.horizontalsystems.walletkit.core.managers.MarketKitWrapper
 import io.horizontalsystems.walletkit.core.managers.SignalsControlManager
@@ -10,14 +11,14 @@ import io.horizontalsystems.walletkit.modules.market.favorites.MarketItemWrapper
 import io.horizontalsystems.walletkit.modules.market.filters.IMarketListFetcher
 import io.horizontalsystems.walletkit.modules.market.sort
 import io.horizontalsystems.marketkit.models.Analytics
-import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.rx2.await
 
 class MarketFiltersResultService(
     private val fetcher: IMarketListFetcher,
@@ -27,8 +28,8 @@ class MarketFiltersResultService(
 ) {
     val showSignals: Boolean
         get() = signalsControlManager.showSignals
-    val stateObservable: BehaviorSubject<DataState<List<MarketItemWrapper>>> =
-        BehaviorSubject.create()
+    private val _stateFlow = MutableSharedFlow<DataState<List<MarketItemWrapper>>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val stateFlow: Flow<DataState<List<MarketItemWrapper>>> = _stateFlow
 
     var marketItems: List<MarketItem> = listOf()
     var signals: Map<String, Analytics.TechnicalAdvice.Advice> = mapOf()
@@ -47,7 +48,7 @@ class MarketFiltersResultService(
 
     fun start() {
         coroutineScope.launch {
-            favoritesManager.dataUpdatedAsync.asFlow().collect {
+            favoritesManager.dataUpdatedFlow.collectSafely {
                 syncItems()
             }
         }
@@ -91,15 +92,14 @@ class MarketFiltersResultService(
 
         fetchJob = coroutineScope.launch {
             try {
-                marketItems = fetcher.fetchAsync().await()
+                marketItems = fetcher.fetchAsync()
                 if (showSignals) {
                     signals = marketKitWrapper
                         .getCoinSignalsSingle(marketItems.map { it.fullCoin.coin.uid })
-                        .await()
                 }
                 syncItems()
             } catch (e: Throwable) {
-                stateObservable.onNext(DataState.Error(e))
+                _stateFlow.tryEmit(DataState.Error(e))
             }
         }
     }
@@ -117,7 +117,7 @@ class MarketFiltersResultService(
                 )
             }
 
-        stateObservable.onNext(DataState.Success(items))
+        _stateFlow.tryEmit(DataState.Success(items))
     }
 
 }

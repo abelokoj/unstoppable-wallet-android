@@ -23,12 +23,19 @@ abstract class HSPage(
     // for tall sheet content that would otherwise show partially
     val expandedBottomSheet: Boolean = false,
     val screenshotEnabled: Boolean = true,
+    // May be shown while the app is PIN-locked (read-only market content). Pushing a page
+    // without this while locked shows the keypad first — see LockGate.
+    val accessibleWhileLocked: Boolean = false,
     var resultKey: String? = null,
     val uuid: String = UUID.randomUUID().toString(),
     var navType: NavigationType = NavigationType.SlideFromRight,
 ) : NavKey {
 
-    fun contentKey() = this::class.simpleName ?: "HSScreen"
+    // Identifies the entry's content: NavDisplay, the saveable state holder and the per-entry
+    // ViewModel store are all keyed by it. Pages that can be replaced by another instance of
+    // the same class in one frame (e.g. a coin page by a widget tap) must include what makes
+    // the instance distinct, or the old content and its ViewModel stay on screen.
+    open fun contentKey(): String = this::class.simpleName ?: "HSScreen"
 
     @OptIn(ExperimentalMaterial3Api::class)
     fun getMetadata() = buildMap {

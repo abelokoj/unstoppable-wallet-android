@@ -41,20 +41,14 @@ import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.HsTimePeriod
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.marketkit.models.TokenQuery
-import io.horizontalsystems.tronkit.models.Contract
-import io.horizontalsystems.tronkit.network.CreatedTransaction
-import io.horizontalsystems.tronkit.transaction.Fee
-import io.reactivex.Flowable
-import io.reactivex.Single
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.math.BigDecimal
 import java.util.Date
-import io.horizontalsystems.tronkit.models.Address as TronAddress
 
 interface IAdapterManager {
-    val adaptersReadyObservable: Flowable<Map<Wallet, IAdapter>>
+    val adaptersReadyFlow: Flow<Map<Wallet, IAdapter>>
     fun startAdapterManager()
     suspend fun refresh()
     fun <T> getAdapterForWallet(wallet: Wallet): T?
@@ -72,6 +66,8 @@ interface ILocalStorage {
     var swapRecentTokenQueryIds: List<String>
     var uSwapSuspensions: String?
     var uSwapSuspensionsSyncTime: Long
+    var privateSendProviderIds: String?
+    var privateSendProviderIdsSyncTime: Long
     var zcashAccountIds: Set<String>
     var zcashMigrationTransactionIds: Set<String>
     var autoLockInterval: AutoLockInterval
@@ -128,6 +124,8 @@ interface ILocalStorage {
     val marketsTabEnabledFlow: StateFlow<Boolean>
     var balanceTabButtonsEnabled: Boolean
     val balanceTabButtonsEnabledFlow: StateFlow<Boolean>
+    var chartButtonEnabled: Boolean
+    val chartButtonEnabledFlow: StateFlow<Boolean>
     var amountRoundingEnabled: Boolean
     val amountRoundingEnabledFlow: StateFlow<Boolean>
     var personalSupportEnabled: Boolean
@@ -171,8 +169,8 @@ interface IAccountManager {
     val activeAccountStateFlow: Flow<ActiveAccountState>
     val isAccountsEmpty: Boolean
     val accounts: List<Account>
-    val accountsFlowable: Flowable<List<Account>>
-    val accountsDeletedFlowable: Flowable<Unit>
+    val accountsFlow: Flow<List<Account>>
+    val accountsDeletedFlow: Flow<Unit>
 
     fun setActiveAccountId(activeAccountId: String?)
     fun account(id: String): Account?
@@ -190,7 +188,7 @@ interface IAccountManager {
 
 interface IBackupManager {
     val allBackedUp: Boolean
-    val allBackedUpFlowable: Flowable<Boolean>
+    val allBackedUpFlow: Flow<Boolean>
 }
 
 interface IAccountFactory {
@@ -221,13 +219,6 @@ interface IRandomProvider {
 interface INetworkManager {
     suspend fun getMarkdown(host: String, path: String): String
     suspend fun getReleaseNotes(host: String, path: String): JsonObject
-    fun getTransactionWithPost(
-        host: String,
-        path: String,
-        body: Map<String, Any>
-    ): Flowable<JsonObject>
-
-    fun getEvmInfo(host: String, path: String): Single<JsonObject>
     suspend fun registerApp(userId: String, referralCode: String): RegisterAppResponse
     suspend fun getWCWhiteList(host: String, path: String): List<ServiceWCWhitelist.WCWhiteList>
 }
@@ -282,10 +273,10 @@ sealed class AdapterState {
 interface ITransactionsAdapter {
     val explorerTitle: String
     val transactionsState: AdapterState
-    val transactionsStateUpdatedFlowable: Flowable<Unit>
+    val transactionsStateUpdatedFlow: Flow<Unit>
 
     val lastBlockInfo: LastBlockInfo?
-    val lastBlockUpdatedFlowable: Flowable<Unit>
+    val lastBlockUpdatedFlow: Flow<Unit>
     val additionalTokenQueries: List<TokenQuery> get() = listOf()
 
     suspend fun getTransactions(
@@ -299,11 +290,6 @@ interface ITransactionsAdapter {
     suspend fun getTransactionsAfter(
         fromTransactionId: String?
     ): List<TransactionRecord> = emptyList()
-
-    suspend fun getTronFullTransactionsBefore(
-        fromTransactionHash: ByteArray?,
-        limit: Int
-    ): List<io.horizontalsystems.tronkit.models.FullTransaction> = emptyList()
 
     fun getRawTransaction(transactionHash: String): String? = null
 
@@ -320,10 +306,10 @@ class UnsupportedFilterException : Exception()
 
 interface IBalanceAdapter {
     val balanceState: AdapterState
-    val balanceStateUpdatedFlowable: Flowable<Unit>
+    val balanceStateUpdatedFlow: Flow<Unit>
 
     val balanceData: BalanceData?
-    val balanceUpdatedFlowable: Flowable<Unit>
+    val balanceUpdatedFlow: Flow<Unit>
 }
 
 data class StellarAssetBalance(val code: String)
@@ -458,20 +444,6 @@ interface ISendZanoAdapter {
     suspend fun estimateFee(amount: BigDecimal, address: String, memo: String?) : BigDecimal
 }
 
-interface ISendTronAdapter {
-    val balanceData: BalanceData
-    val trxBalanceData: BalanceData
-
-    suspend fun estimateFee(amount: BigDecimal, to: TronAddress): List<Fee>
-    suspend fun estimateFee(transaction: CreatedTransaction): List<Fee>
-    suspend fun estimateFee(contract: Contract): List<Fee>
-    suspend fun send(amount: BigDecimal, to: TronAddress, feeLimit: Long?): String
-    suspend fun send(contract: Contract, feeLimit: Long?): String
-    suspend fun send(createdTransaction: CreatedTransaction): String
-    suspend fun isAddressActive(address: TronAddress): Boolean
-    fun isOwnAddress(address: TronAddress): Boolean
-}
-
 interface IAccountsStorage {
     val isAccountsEmpty: Boolean
 
@@ -481,7 +453,6 @@ interface IAccountsStorage {
     fun save(account: Account)
     fun update(account: Account)
     fun delete(id: String)
-    fun getNonBackedUpCount(): Flowable<Int>
     fun clear()
     fun getDeletedAccountIds(): List<String>
     fun clearDeleted()
@@ -547,7 +518,7 @@ interface IAccountCleaner {
 
 interface ITorManager {
     fun start()
-    fun stop(): Single<Boolean>
+    suspend fun stop(): Boolean
     fun setTorAsEnabled()
     fun setTorAsDisabled()
     val isTorEnabled: Boolean

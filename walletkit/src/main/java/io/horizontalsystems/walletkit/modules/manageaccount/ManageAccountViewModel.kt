@@ -7,13 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.IAccountManager
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.modules.balance.headerNote
 import io.horizontalsystems.walletkit.modules.manageaccount.ManageAccountModule.BackupItem
 import io.horizontalsystems.walletkit.modules.manageaccount.ManageAccountModule.KeyAction
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 
 class ManageAccountViewModel(
     accountId: String,
@@ -39,8 +39,8 @@ class ManageAccountViewModel(
 
     init {
         viewModelScope.launch {
-            accountManager.accountsFlowable.asFlow()
-                .collect { handleUpdatedAccounts(it) }
+            accountManager.accountsFlow
+                .collectSafely { handleUpdatedAccounts(it) }
         }
     }
 

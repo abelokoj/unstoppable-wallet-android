@@ -60,8 +60,6 @@ import io.horizontalsystems.walletkit.core.managers.TermsManager
 import io.horizontalsystems.walletkit.core.managers.TokenAutoEnableManager
 import io.horizontalsystems.walletkit.core.managers.TorManager
 import io.horizontalsystems.walletkit.core.managers.TransactionAdapterManager
-import io.horizontalsystems.walletkit.core.managers.TronAccountManager
-import io.horizontalsystems.walletkit.core.managers.TronKitManager
 import io.horizontalsystems.walletkit.core.managers.UserManager
 import io.horizontalsystems.walletkit.core.managers.WalletActivator
 import io.horizontalsystems.walletkit.core.managers.WalletManager
@@ -69,6 +67,7 @@ import io.horizontalsystems.walletkit.core.managers.WalletStorage
 import io.horizontalsystems.walletkit.core.managers.WordsManager
 import io.horizontalsystems.walletkit.core.managers.ZanoNodeManager
 import io.horizontalsystems.walletkit.core.managers.ZcashLightWalletEndpointManager
+import io.horizontalsystems.walletkit.core.managers.StalledSyncWatcher
 import io.horizontalsystems.walletkit.core.providers.EvmLabelProvider
 import io.horizontalsystems.walletkit.core.providers.FeeTokenProvider
 import io.horizontalsystems.walletkit.core.providers.IAppConfigProvider
@@ -93,8 +92,10 @@ import io.horizontalsystems.walletkit.modules.market.topplatforms.TopPlatformsRe
 import io.horizontalsystems.walletkit.modules.multiswap.history.SwapRecordManager
 import io.horizontalsystems.walletkit.modules.multiswap.history.SwapSyncService
 import io.horizontalsystems.walletkit.modules.multiswap.providers.SwapProviderInfoManager
+import io.horizontalsystems.walletkit.modules.privatesend.PrivateSendManager
 import io.horizontalsystems.walletkit.modules.opencryptopay.OcpProofSubmissionWorker
 import io.horizontalsystems.walletkit.modules.pin.PinComponent
+import io.horizontalsystems.walletkit.modules.pin.core.LockGate
 import io.horizontalsystems.walletkit.modules.pin.core.PinDbStorage
 import io.horizontalsystems.walletkit.modules.roi.RoiManager
 import io.horizontalsystems.walletkit.modules.settings.appearance.AppIconService
@@ -116,10 +117,15 @@ import io.horizontalsystems.dapp.core.DAppManager
 import io.horizontalsystems.hdwalletkit.Mnemonic
 import io.horizontalsystems.subscriptions.core.UserSubscriptionManager
 import io.reactivex.plugins.RxJavaPlugins
+import io.horizontalsystems.walletkit.ui.helpers.TextHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.async
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.security.MessageDigest
@@ -158,10 +164,10 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         lateinit var backupManager: IBackupManager
 
         lateinit var connectivityManager: ConnectivityManager
+        lateinit var stalledSyncWatcher: StalledSyncWatcher
         lateinit var appDatabase: AppDatabase
         lateinit var accountsStorage: IAccountsStorage
         lateinit var enabledWalletsStorage: IEnabledWalletStorage
-        lateinit var tronKitManager: TronKitManager
         lateinit var numberFormatter: IAppNumberFormatter
         lateinit var feeCoinProvider: FeeTokenProvider
         lateinit var accountCleaner: IAccountCleaner
@@ -169,6 +175,7 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         lateinit var coinManager: ICoinManager
         lateinit var wcSessionManager: WCSessionManager
         lateinit var wcManager: WCManager
+        lateinit var lockGate: LockGate
         var wcWalletRequestHandler: IWCWalletRequestHandler? = null
         lateinit var termsManager: ITermsManager
         lateinit var swapTermsManager: SwapTermsManager
@@ -206,6 +213,7 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         lateinit var swapRecordManager: SwapRecordManager
         lateinit var swapSyncService: SwapSyncService
         lateinit var swapProviderInfoManager: SwapProviderInfoManager
+        lateinit var privateSendManager: PrivateSendManager
         var trialExpired: Boolean = false
     }
 
@@ -232,6 +240,8 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             Logger.getLogger("").level = Level.SEVERE
         }
 
+        // The app code no longer uses RxJava, but WalletConnect's Scarlet still ships it
+        // transitively; without a global handler an undeliverable Rx error crashes the app.
         RxJavaPlugins.setErrorHandler { e: Throwable? ->
             Log.w("RxJava ErrorHandler", e)
         }
@@ -299,7 +309,6 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         coinManager = CoinManager(marketKit, walletManager)
 
 
-        tronKitManager = TronKitManager(evmSyncSourceManager, backgroundManager)
 
         wordsManager = WordsManager(Mnemonic())
         networkManager = NetworkManager()
@@ -320,7 +329,7 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
         walletActivator = WalletActivator(walletManager, marketKit)
         passkeyManager = PasskeyManager()
-        tokenAutoEnableManager = TokenAutoEnableManager(appDatabase.tokenAutoEnabledBlockchainDao())
+        tokenAutoEnableManager = TokenAutoEnableManager(appDatabase.tokenAutoEnabledBlockchainDao(), appConfig.autoEnableTokensOnReceive)
 
         scannedTransactionStorage = ScannedTransactionStorage(appDatabase.scannedTransactionDao())
         contactsRepository = ContactsRepository(marketKit)
@@ -328,16 +337,9 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         swapRecordManager = SwapRecordManager(accountManager, appDatabase.swapRecordDao())
         swapSyncService = SwapSyncService(swapRecordManager, appConfigProvider)
         swapProviderInfoManager = SwapProviderInfoManager(appConfigProvider, localStorage)
+        privateSendManager = PrivateSendManager(appConfigProvider, localStorage)
         evmBlockchainManager = EvmBlockchainManager(marketKit)
 
-        val tronAccountManager = TronAccountManager(
-            accountManager,
-            walletManager,
-            marketKit,
-            tronKitManager,
-            tokenAutoEnableManager
-        )
-        tronAccountManager.start()
 
 
 
@@ -350,6 +352,7 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         numberFormatter = NumberFormatter(languageManager)
 
         connectivityManager = ConnectivityManager(backgroundManager)
+        stalledSyncWatcher = StalledSyncWatcher(coroutineScope)
 
         evmLabelManager = EvmLabelManager(
             EvmLabelProvider(),
@@ -362,7 +365,6 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             context = instance,
             evmBlockchainManager = evmBlockchainManager,
             evmSyncSourceManager = evmSyncSourceManager,
-            tronKitManager = tronKitManager,
             backgroundManager = backgroundManager,
             restoreSettingsManager = restoreSettingsManager,
             coinManager = coinManager,
@@ -373,7 +375,6 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             walletManager,
             adapterFactory,
             evmBlockchainManager,
-            tronKitManager,
         )
         transactionAdapterManager = TransactionAdapterManager(adapterManager, adapterFactory)
         spamManager = SpamManager(localStorage, scannedTransactionStorage, contactsRepository, transactionAdapterManager)
@@ -389,11 +390,18 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             localStorage = localStorage
         )
 
+        lockGate = LockGate(
+            isLockedFlow = pinComponent.isLockedFlow,
+            marketsTabEnabledFlow = localStorage.marketsTabEnabledFlow,
+            // Main.immediate: the held navigation action touches the nav back stack.
+            scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+        )
+
         statsManager = StatsManager(appDatabase.statsDao(), localStorage, marketKit, appConfigProvider, backgroundManager)
 
         rateAppManager = RateAppManager(walletManager, adapterManager, localStorage)
 
-        wcManager = WCManager(accountManager)
+        wcManager = WCManager(accountManager, pinComponent)
         ChainRegistry.all.forEach { plugin ->
             plugin.wcHandlers().forEach(wcManager::addWcHandler)
         }
@@ -571,7 +579,7 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
     private fun startTasks() {
         coroutineScope.launch {
-            walletManager.start(restoreSettingsManager, btcBlockchainManager, evmBlockchainManager, tronKitManager)
+            walletManager.start(restoreSettingsManager, btcBlockchainManager, evmBlockchainManager)
             adapterManager.startAdapterManager()
             marketKit.sync()
             rateAppManager.onAppLaunch()
@@ -579,6 +587,19 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             accountManager.clearAccounts()
             wcSessionManager.start()
             swapSyncService.start()
+            // Fire-and-forget like the neighbouring starts: nothing below depends on it, and
+            // awaiting it would hold the rest of startup behind a network round trip. Guarded
+            // because this scope has no SupervisorJob — a failure here would cancel the
+            // remaining startup work.
+            launch {
+                try {
+                    privateSendManager.sync()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    Timber.e(e, "Private send sync failed")
+                }
+            }
 
             AppVersionManager(systemInfoManager, localStorage).apply { storeAppVersion() }
 
@@ -598,27 +619,55 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             appIconService.validateAndFixCurrentIcon()
         }
 
+        // A node can also die mid-session, foreground or background; watch for a sync that
+        // stays stalled and let the chain re-pick. Started independently of onAppStart below:
+        // its first tick is 30s out and chains still resolving have no adapters to report.
+        stalledSyncWatcher.start()
+
         coroutineScope.launch {
-            // If Monero Auto-Select is enabled, pick the fastest reachable node at startup so the
-            // wallet syncs through it without opening the node screen. The Monero adapter creation
-            // is deferred (MoneroNodeManager.isResolvingFastestNode) until this completes; then a
-            // single non-churning re-init creates it once with the fastest node already selected.
-            ChainRegistry.all.forEach { plugin ->
-                try {
-                    plugin.onAppStart()
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Throwable) {
-                    Timber.e(e, "Chain plugin %s onAppStart failed", plugin.blockchainType.uid)
-                }
+            // If Auto-Select is enabled, pick the fastest reachable node at startup so the wallet
+            // syncs through it without opening the node screen. Adapters start on the stored node
+            // right away; a probe that finds a faster one saves it, which rebuilds that chain's
+            // adapter once through walletReloadTrigger. Hooks run concurrently so one chain's
+            // probe cannot delay another's, and each probe caps itself.
+            supervisorScope {
+                ChainRegistry.all.map { plugin ->
+                    async {
+                        try {
+                            plugin.onAppStart()
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Throwable) {
+                            Timber.e(e, "Chain plugin %s onAppStart failed", plugin.blockchainType.uid)
+                        }
+                    }
+                }.awaitAll()
             }
-            walletManager.refreshActiveWallets()
         }
 
         coroutineScope.launch {
             backgroundManager.stateFlow.collect { state ->
                 when (state) {
-                    BackgroundManagerState.EnterForeground -> UserSubscriptionManager.onResume()
+                    BackgroundManagerState.EnterForeground -> {
+                        UserSubscriptionManager.onResume()
+                        // A copied secret whose lifetime ran out while the app was away could not
+                        // be cleared from the background — only the foreground app may write to
+                        // the clipboard — so it is cleared on the way back in.
+                        TextHelper.clearSecretIfExpired()
+
+                        // A node can die while the app is away; give each chain a chance to
+                        // recover (Monero/Zcash Auto-Select re-pick a reachable node here).
+                        ChainRegistry.all.forEach { plugin ->
+                            try {
+                                plugin.onEnterForeground()
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Throwable) {
+                                Timber.e(e, "Chain plugin %s onEnterForeground failed", plugin.blockchainType.uid)
+                            }
+                        }
+                    }
+
                     BackgroundManagerState.EnterBackground -> UserSubscriptionManager.pause()
                 }
             }

@@ -49,11 +49,11 @@ class BitcoinCashAdapter(
         "https://blockchair.com/bitcoin-cash/transaction/$transactionHash"
 
     override fun onBalanceUpdate(balance: BalanceInfo) {
-        balanceUpdatedSubject.onNext(Unit)
+        _balanceUpdatedFlow.tryEmit(Unit)
     }
 
     override fun onLastBlockInfoUpdate(blockInfo: BlockInfo) {
-        lastBlockUpdatedSubject.onNext(Unit)
+        _lastBlockUpdatedFlow.tryEmit(Unit)
     }
 
     override fun onKitStateUpdate(state: BitcoinCore.KitState) {
@@ -71,7 +71,7 @@ class BitcoinCashAdapter(
             records.add(transactionRecord(info))
         }
 
-        transactionRecordsSubject.onNext(records)
+        _transactionRecordsFlow.tryEmit(records)
     }
 
     override fun onTransactionsDelete(hashes: List<String>) {
@@ -134,7 +134,11 @@ class BitcoinCashAdapter(
         }
 
         fun clear(walletId: String) {
-            BitcoinCashKit.clear(App.instance, getNetworkType(), walletId)
+            // Both derivations, not just the default: a wallet on the Type0 derivation keeps its
+            // own database, and clearing with the default Type145 left it behind entirely.
+            MainNetBitcoinCash.CoinType.values().forEach { coinType ->
+                BitcoinCashKit.clear(App.instance, getNetworkType(coinType), walletId)
+            }
         }
 
         private fun getNetworkType(kitCoinType: MainNetBitcoinCash.CoinType = MainNetBitcoinCash.CoinType.Type145) =

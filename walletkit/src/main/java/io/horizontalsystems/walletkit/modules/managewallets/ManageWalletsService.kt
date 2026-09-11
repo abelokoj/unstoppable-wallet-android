@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.managewallets
 
 import io.horizontalsystems.walletkit.core.Clearable
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.eligibleTokens
 import io.horizontalsystems.walletkit.core.isDefault
 import io.horizontalsystems.walletkit.core.isNative
@@ -27,7 +28,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 
 class ManageWalletsService(
     private val walletManager: WalletManager,
@@ -54,12 +54,12 @@ class ManageWalletsService(
 
     init {
         coroutineScope.launch {
-            walletManager.activeWalletsUpdatedObservable.asFlow().collect {
+            walletManager.activeWalletsUpdatedFlow.collectSafely {
                 handleUpdated(it)
             }
         }
         coroutineScope.launch {
-            restoreSettingsService.approveSettingsObservable.asFlow().collect {
+            restoreSettingsService.approveSettingsFlow.collectSafely {
                 enable(it.token, it.settings)
             }
         }

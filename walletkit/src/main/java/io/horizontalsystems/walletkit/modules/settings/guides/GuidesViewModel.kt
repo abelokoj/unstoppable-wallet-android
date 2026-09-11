@@ -6,7 +6,6 @@ import io.horizontalsystems.walletkit.entities.DataState
 import io.horizontalsystems.walletkit.entities.GuideCategory
 import io.horizontalsystems.walletkit.entities.ViewState
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 
 class GuidesViewModel(private val repository: GuidesRepository) : ViewModelUiState<GuidesUiState>() {
     private var viewState: ViewState = ViewState.Loading
@@ -23,7 +22,7 @@ class GuidesViewModel(private val repository: GuidesRepository) : ViewModelUiSta
 
     init {
         viewModelScope.launch {
-            repository.guideCategories.asFlow().collect { dataState ->
+            repository.guideCategories.collect { dataState ->
                 viewModelScope.launch {
                     dataState.viewState?.let {
                         viewState = it
@@ -59,7 +58,11 @@ class GuidesViewModel(private val repository: GuidesRepository) : ViewModelUiSta
 
     private fun didFetchGuideCategories(guideCategories: List<GuideCategory>) {
         categories = guideCategories
-        selectedCategory = guideCategories.first()
+        // A successful fetch can carry an empty index — the content is served, not built in — and
+        // first() on it threw out of a coroutine, taking the process down every time the screen
+        // was opened until the content was fixed. Nothing to select is a state the screen already
+        // handles.
+        selectedCategory = guideCategories.firstOrNull()
 
         emitState()
     }

@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.nav3
 
+import android.app.Activity
 import android.content.Intent
 import android.view.WindowManager
 import android.widget.Toast
@@ -17,8 +18,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSerializable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -33,11 +37,14 @@ import androidx.navigation3.runtime.serialization.NavKeySerializer
 import androidx.navigation3.ui.NavDisplay
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.helpers.HudHelper
 import io.horizontalsystems.walletkit.hideKeyboard
 import io.horizontalsystems.walletkit.modules.keystore.KeyStoreActivity
 import io.horizontalsystems.walletkit.modules.main.MainActivityViewModel
 import io.horizontalsystems.walletkit.modules.main.MainActivityViewModel.Factory
+import io.horizontalsystems.walletkit.modules.main.MainModule
+import io.horizontalsystems.walletkit.modules.main.MarketDeepLinks
 import io.horizontalsystems.walletkit.modules.main.MainScreenValidationError
 import io.horizontalsystems.walletkit.modules.pin.ui.PinUnlock
 import io.horizontalsystems.walletkit.modules.walletconnect.WCAccountTypeNotSupportedSheet
@@ -52,11 +59,20 @@ import io.horizontalsystems.dapp.core.HSDAppEvent
 fun Nav3(entryPage: HSPage) {
     val mainActivityViewModel = viewModel<MainActivityViewModel>(factory = Factory())
     val isLocked by App.pinComponent.isLockedFlow.collectAsState()
+    // The keypad covers only screens that need the wallet; the Market tab and its read-only
+    // pages stay browsable while locked (see LockGate).
+    val showUnlock by App.lockGate.showUnlockFlow.collectAsState()
+
+    val activity = LocalActivity.current
 
     val backStack = rememberSerializable(
         serializer = NavBackStackSerializer(elementSerializer = NavKeySerializer())
     ) {
-        NavBackStack<HSPage>(entryPage)
+        // A market widget tap starts right on its page. Pushing it after the first frame would
+        // show the main screen first and then slide the page in. IntentEffect switches the tab
+        // behind it.
+        val pages = listOfNotNull(entryPage, marketDeepLinkPage(activity?.intent))
+        NavBackStack<HSPage>(*pages.toTypedArray())
     }
 
     val hsNavigation = remember { HSNavigation(backStack) }
@@ -65,16 +81,17 @@ fun Nav3(entryPage: HSPage) {
     IntentEffect(mainActivityViewModel, hsNavigation)
     Validate(mainActivityViewModel)
     HandleWcEvent(mainActivityViewModel, hsNavigation)
-    ToggleScreenshot(hsNavigation, isLocked)
+    ToggleScreenshot(hsNavigation, showUnlock)
+    ReportCurrentPageToLockGate(hsNavigation)
 
     LaunchedEffect(isLocked) {
         if (!isLocked) {
-            // Re-show any WC request/proposal that arrived while locked
+            // Pair with any `wc:` link that arrived while locked, then re-show any WC
+            // request/proposal that arrived while locked
+            App.wcManager.flushPendingPairing()
             mainActivityViewModel.reEmitPendingWcEventIfNeeded()
         }
     }
-
-    val activity = LocalActivity.current
 
     Box {
         val eventBusNavEntryDecorator = rememberResultEventBusNavEntryDecorator<HSPage>()
@@ -104,19 +121,24 @@ fun Nav3(entryPage: HSPage) {
         )
 
         AnimatedVisibility(
-            visible = isLocked,
+            visible = showUnlock,
             enter = fadeIn(),
             // Leaves immediately rather than fading. The secure flag is cleared as soon as the app
             // unlocks, so an exit animation would keep the keypad composited on a surface that is
             // capturable again. Entering is unaffected: the flag is set before the fade in starts.
             exit = ExitTransition.None
         ) {
-            PinUnlock(isLocked = isLocked)
+            PinUnlock(isLocked = showUnlock)
         }
     }
 
-    BackHandler(enabled = isLocked) {
-        activity?.moveTaskToBack(true)
+    BackHandler(enabled = showUnlock) {
+        if (App.lockGate.unlockRequested) {
+            // Keypad was opened for a wallet action from a public screen: back just dismisses it.
+            App.lockGate.cancelUnlockRequest()
+        } else {
+            activity?.moveTaskToBack(true)
+        }
     }
 }
 
@@ -137,22 +159,38 @@ private fun HandleNavigateToMain(
 @Composable
 private fun IntentEffect(viewModel: MainActivityViewModel, navigation: HSNavigation) {
     val activity = LocalActivity.current
+    // The launch intent is acted on once, on a fresh start. After process death the activity
+    // comes back with the same intent, and the restored back stack already reflects it.
+    var launchIntentHandled by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
+        if (launchIntentHandled) return@LaunchedEffect
+        launchIntentHandled = true
         activity?.intent?.let {
-            if (!handleWalletConnectDeepLink(it, navigation)) {
-                viewModel.setIntent(it)
+            when {
+                handleWalletConnectDeepLink(it, navigation) -> {}
+                // Its page is already the initial back stack entry (see Nav3).
+                handleMarketDeepLink(it, activity, navigation, openPage = false) -> {}
+                else -> viewModel.setIntent(it)
             }
         }
     }
     DisposableEffect(activity) {
         val consumer = Consumer<Intent> {
-            if (!handleWalletConnectDeepLink(it, navigation)) {
-                viewModel.setIntent(it)
-                // The intent is consumed by MainScreen's observer, which only runs while
-                // MainScreen (EntryPage) is composed. If an inner screen (e.g. Receive) is on
-                // top, pop back to the root so the deeplink is processed immediately instead of
-                // waiting until the user manually returns to the main screen.
-                navigation.removeLastUntil(EntryPage::class, false)
+            when {
+                handleWalletConnectDeepLink(it, navigation) -> {}
+                handleMarketDeepLink(it, activity, navigation, openPage = true) -> {}
+                else -> {
+                    viewModel.setIntent(it)
+                    // The intent is consumed by MainScreen's observer, which only runs while
+                    // MainScreen (EntryPage) is composed. If an inner screen (e.g. Receive) is
+                    // on top, the deeplink would sit unhandled until the user returns to the
+                    // main screen. Pop to the root only for real deeplinks: a plain launcher
+                    // tap also delivers a new intent (without data) and must keep the current
+                    // screen.
+                    if (it.data != null) {
+                        navigation.removeLastUntil(EntryPage::class, false)
+                    }
+                }
             }
         }
         (activity as? ComponentActivity)?.addOnNewIntentListener(consumer)
@@ -160,6 +198,41 @@ private fun IntentEffect(viewModel: MainActivityViewModel, navigation: HSNavigat
             (activity as? ComponentActivity)?.removeOnNewIntentListener(consumer)
         }
     }
+}
+
+private fun deeplinkScheme(): String = Translator.getString(R.string.DeeplinkScheme)
+
+// Page a market widget deeplink opens, or null if the intent is not one. Before onboarding has
+// finished there is no main screen to put the page over, so the link is ignored.
+private fun marketDeepLinkPage(intent: Intent?): HSPage? {
+    val uri = intent?.data ?: return null
+    if (!App.localStorage.mainShowedOnceFlow.value) return null
+    return MarketDeepLinks.page(uri, deeplinkScheme())
+}
+
+// Market widget deeplinks are opened here, at the navigation root, rather than through
+// MainScreen's deeplink flow: that flow runs only while MainScreen is composed and shows the
+// Market tab before sliding the page in. Returns true if the intent was a market deeplink.
+//
+// The tab behind the page is switched to Market by MainViewModel (activity-scoped, so it can be
+// reached before MainScreen is composed) so that going back lands on Market and the page stays
+// browsable while locked — a wallet tab underneath would bring up the keypad.
+private fun handleMarketDeepLink(
+    intent: Intent,
+    activity: Activity?,
+    navigation: HSNavigation,
+    openPage: Boolean,
+): Boolean {
+    val uri = intent.data ?: return false
+    if (!MarketDeepLinks.isMarketDeepLink(uri.toString(), deeplinkScheme())) return false
+
+    val page = marketDeepLinkPage(intent) ?: return true
+    (activity as? ComponentActivity)?.let { MainModule.viewModel(it).handleDeepLink(uri) }
+    if (openPage) {
+        navigation.removeLastUntil(EntryPage::class, false)
+        navigation.slideFromRight(page)
+    }
+    return true
 }
 
 // WalletConnect deeplinks are handled here, at the navigation root, so they work no matter which
@@ -178,7 +251,8 @@ private fun handleWalletConnectDeepLink(intent: Intent, navigation: HSNavigation
 
     when (val supportState = App.wcManager.getWalletConnectSupportState()) {
         WCManager.SupportState.Supported -> {
-            DAppManager.pair(wcUri.trim())
+            // Held until unlock while the app is locked — see WCManager.pairOrDefer.
+            App.wcManager.pairOrDefer(wcUri)
         }
 
         WCManager.SupportState.NotSupportedDueToNoActiveAccount -> {
@@ -262,17 +336,26 @@ private fun HandleWcEvent(
 }
 
 @Composable
-private fun ToggleScreenshot(navigation: HSNavigation, isLocked: Boolean) {
+private fun ReportCurrentPageToLockGate(navigation: HSNavigation) {
+    val currentScreen = navigation.lastOrNull()
+    LaunchedEffect(currentScreen) {
+        App.lockGate.mainPageOnTop = currentScreen is EntryPage
+        App.lockGate.currentPageAccessibleWhileLocked = currentScreen?.accessibleWhileLocked ?: false
+    }
+}
+
+@Composable
+private fun ToggleScreenshot(navigation: HSNavigation, showUnlock: Boolean) {
     val activity = LocalActivity.current
     val currentScreen = navigation.lastOrNull()
-    LaunchedEffect(currentScreen, isLocked) {
+    LaunchedEffect(currentScreen, showUnlock) {
         if (activity != null) {
             activity.currentFocus?.hideKeyboard(activity)
             // The unlock keypad is drawn as an overlay rather than pushed as a page, so it has no
             // screenshotEnabled of its own. Without the lock state here the flag stays however the
             // page underneath left it, and locking over an ordinary screen leaves passcode entry
             // recordable.
-            if (isLocked || currentScreen?.screenshotEnabled == false) {
+            if (showUnlock || currentScreen?.screenshotEnabled == false) {
                 activity.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             } else {
                 activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)

@@ -5,20 +5,23 @@ import io.horizontalsystems.walletkit.entities.AccountOrigin
 import io.horizontalsystems.walletkit.entities.BtcRestoreMode
 import io.horizontalsystems.walletkit.entities.TransactionDataSortMode
 import io.horizontalsystems.marketkit.models.BlockchainType
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 class BtcBlockchainManager(
     private val storage: BlockchainSettingsStorage,
     marketKit: MarketKitWrapper,
 ) {
 
-    private val restoreModeUpdatedSubject = PublishSubject.create<BlockchainType>()
-    val restoreModeUpdatedObservable: Observable<BlockchainType> = restoreModeUpdatedSubject
+    // Unbounded, matching the Rx BUFFER strategy this replaced: each event names a
+    // blockchain whose setting changed, so no event may be dropped.
+    private val _restoreModeUpdatedFlow =
+        MutableSharedFlow<BlockchainType>(extraBufferCapacity = Int.MAX_VALUE)
+    val restoreModeUpdatedFlow: Flow<BlockchainType> = _restoreModeUpdatedFlow
 
-    private val transactionSortModeUpdatedSubject = PublishSubject.create<BlockchainType>()
-    val transactionSortModeUpdatedObservable: Observable<BlockchainType> =
-        transactionSortModeUpdatedSubject
+    private val _transactionSortModeUpdatedFlow =
+        MutableSharedFlow<BlockchainType>(extraBufferCapacity = Int.MAX_VALUE)
+    val transactionSortModeUpdatedFlow: Flow<BlockchainType> = _transactionSortModeUpdatedFlow
 
     private val blockchairSyncEnabledBlockchains = listOf(BlockchainType.Bitcoin, BlockchainType.BitcoinCash, BlockchainType.Litecoin)
 
@@ -56,7 +59,7 @@ class BtcBlockchainManager(
 
     fun save(restoreMode: BtcRestoreMode, blockchainType: BlockchainType) {
         storage.save(restoreMode, blockchainType)
-        restoreModeUpdatedSubject.onNext(blockchainType)
+        _restoreModeUpdatedFlow.tryEmit(blockchainType)
     }
 
     fun transactionSortMode(blockchainType: BlockchainType): TransactionDataSortMode {
@@ -65,6 +68,6 @@ class BtcBlockchainManager(
 
     fun save(transactionSortMode: TransactionDataSortMode, blockchainType: BlockchainType) {
         storage.save(transactionSortMode, blockchainType)
-        transactionSortModeUpdatedSubject.onNext(blockchainType)
+        _transactionSortModeUpdatedFlow.tryEmit(blockchainType)
     }
 }

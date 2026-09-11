@@ -25,6 +25,7 @@ fun evmTransactionSource(blockchainType: BlockchainType, appConfigProvider: IApp
         BlockchainType.ArbitrumOne -> TransactionSource.arbitrumOne(appConfigProvider.etherscanApiKey)
         BlockchainType.Gnosis -> TransactionSource.gnosis(appConfigProvider.etherscanApiKey)
         BlockchainType.Fantom -> TransactionSource.fantom(appConfigProvider.etherscanApiKey)
-        BlockchainType.ZkSync -> TransactionSource.zkSync(appConfigProvider.otherScanApiKey)
+        BlockchainType.ZkSync -> TransactionSource.zkSync(appConfigProvider.blockscoutApiKey)
+        BlockchainType.RobinhoodChain -> TransactionSource.robinhood(appConfigProvider.blockscoutApiKey)
         else -> throw IllegalArgumentException("No transaction source for ${blockchainType.uid}")
     }

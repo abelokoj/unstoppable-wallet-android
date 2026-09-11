@@ -3,27 +3,33 @@ package io.horizontalsystems.walletkit.modules.transactions
 import io.horizontalsystems.walletkit.core.AdapterState
 import io.horizontalsystems.walletkit.core.Clearable
 import io.horizontalsystems.walletkit.core.ITransactionsAdapter
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.managers.TransactionAdapterManager
 import io.horizontalsystems.walletkit.entities.LastBlockInfo
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 
 class TransactionSyncStateRepository(
     private val adapterManager: TransactionAdapterManager
 ) : Clearable {
     private val adapters = mutableMapOf<TransactionSource, ITransactionsAdapter>()
 
-    private val syncingSubject = PublishSubject.create<Boolean>()
-    val syncingObservable: Observable<Boolean> get() = syncingSubject.distinctUntilChanged()
+    private val _syncingFlow = MutableSharedFlow<Boolean>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val syncingFlow: Flow<Boolean> get() = _syncingFlow.distinctUntilChanged()
 
-    private val lastBlockInfoSubject = PublishSubject.create<Pair<TransactionSource, LastBlockInfo>>()
-    val lastBlockInfoObservable: Observable<Pair<TransactionSource, LastBlockInfo>> get() = lastBlockInfoSubject
+    // Bounded at 64 with newest-wins overflow. Last-block events are self-healing: every
+    // source re-emits on each new block, so an event dropped under a burst is superseded by
+    // that source's next update, while the bound prevents an unbounded backlog if the
+    // collector stalls.
+    private val _lastBlockInfoFlow = MutableSharedFlow<Pair<TransactionSource, LastBlockInfo>>(extraBufferCapacity = 64, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val lastBlockInfoFlow: Flow<Pair<TransactionSource, LastBlockInfo>> get() = _lastBlockInfoFlow
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
@@ -44,15 +50,15 @@ class TransactionSyncStateRepository(
 
         adapters.forEach { (source, adapter) ->
             coroutineScope.launch {
-                adapter.lastBlockUpdatedFlowable.asFlow().collect {
+                adapter.lastBlockUpdatedFlow.collectSafely {
                     adapter.lastBlockInfo?.let { lastBlockInfo ->
-                        lastBlockInfoSubject.onNext(Pair(source, lastBlockInfo))
+                        _lastBlockInfoFlow.tryEmit(Pair(source, lastBlockInfo))
                     }
                 }
             }
 
             coroutineScope.launch {
-                adapter.transactionsStateUpdatedFlowable.asFlow().collect {
+                adapter.transactionsStateUpdatedFlow.collectSafely {
                     emitSyncing()
                 }
             }
@@ -63,7 +69,7 @@ class TransactionSyncStateRepository(
         val syncing = adapters.any {
             it.value.transactionsState is AdapterState.Syncing
         }
-        syncingSubject.onNext(syncing)
+        _syncingFlow.tryEmit(syncing)
     }
 
     override fun clear() {

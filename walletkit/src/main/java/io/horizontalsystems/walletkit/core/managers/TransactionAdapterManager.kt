@@ -4,6 +4,7 @@ import io.horizontalsystems.walletkit.core.chain.ChainRegistry
 import io.horizontalsystems.walletkit.core.IAdapter
 import io.horizontalsystems.walletkit.core.IAdapterManager
 import io.horizontalsystems.walletkit.core.ITransactionsAdapter
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.factories.AdapterFactory
 import io.horizontalsystems.walletkit.entities.Wallet
 import io.horizontalsystems.walletkit.modules.transactions.TransactionSource
@@ -14,7 +15,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 import java.util.concurrent.ConcurrentHashMap
 
 class TransactionAdapterManager(
@@ -34,7 +34,7 @@ class TransactionAdapterManager(
 
     init {
         coroutineScope.launch {
-            adapterManager.adaptersReadyObservable.asFlow().collect(::initAdapters)
+            adapterManager.adaptersReadyFlow.collectSafely { initAdapters(it) }
         }
     }
 
@@ -50,13 +50,8 @@ class TransactionAdapterManager(
 
             var txAdapter = currentAdapters.remove(source)
             if (txAdapter == null) {
-                txAdapter = when (val blockchainType = source.blockchain.type) {
-                    BlockchainType.Tron -> {
-                        adapterFactory.tronTransactionsAdapter(wallet.transactionSource)
-                    }
-                    else -> ChainRegistry[blockchainType]?.createTransactionsAdapter(wallet.transactionSource)
-                        ?: adapter as? ITransactionsAdapter
-                }
+                txAdapter = (ChainRegistry[source.blockchain.type]?.createTransactionsAdapter(wallet.transactionSource)
+                        ?: adapter as? ITransactionsAdapter)
                     // decorate only freshly created adapters — reused entries from
                     // adaptersMap are already decorated, wrapping again would stack
                     ?.let { raw ->

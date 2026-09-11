@@ -18,12 +18,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.Caution
 import io.horizontalsystems.walletkit.core.NavigationType
+import io.horizontalsystems.walletkit.core.launchSafe
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.core.stats.StatPage
 import io.horizontalsystems.walletkit.core.stats.stat
@@ -92,6 +94,7 @@ private fun BackupManagerScreen(
     onCreateBackup: () -> Unit,
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
 
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -100,8 +103,10 @@ private fun BackupManagerScreen(
     val restoreLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let { uriNonNull ->
-                context.contentResolver.openInputStream(uriNonNull)?.use { inputStream ->
-                    try {
+                // openInputStream itself can throw (picked file deleted, cloud
+                // provider failed to stream) — keep it inside the try.
+                try {
+                    (context.contentResolver.openInputStream(uriNonNull) ?: error("Unable to open file")).use { inputStream ->
                         inputStream.bufferedReader().use { br ->
                             val jsonString = br.readText()
                             //validate json format
@@ -110,12 +115,12 @@ private fun BackupManagerScreen(
                             val fileName = context.getFileName(uriNonNull)
                             onRestoreBackup(jsonString, fileName)
                         }
-                    } catch (e: Throwable) {
-                        //show json parsing error
-                        scope.launch {
-                            delay(300)
-                            showBottomSheet = true
-                        }
+                    }
+                } catch (e: Throwable) {
+                    //show json parsing error
+                    scope.launch {
+                        delay(300)
+                        showBottomSheet = true
                     }
                 }
             }
@@ -144,7 +149,7 @@ private fun BackupManagerScreen(
                         )
                     },
                     right = { CellRightNavigation() },
-                    onClick = { restoreLauncher.launch(arrayOf("application/json")) }
+                    onClick = { restoreLauncher.launchSafe(arrayOf("application/json"), view) }
                 )
                 HsDivider()
                 CellPrimary(
@@ -186,7 +191,7 @@ private fun BackupManagerScreen(
                     cautionType = Caution.Type.Warning,
                     cancelText = stringResource(R.string.Button_Cancel),
                     onConfirm = {
-                        restoreLauncher.launch(arrayOf("application/json"))
+                        restoreLauncher.launchSafe(arrayOf("application/json"), view)
                         scope.launch {
                             sheetState.hide()
                             showBottomSheet = false

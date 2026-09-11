@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,7 +25,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.SnackbarDuration
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.launchSafe
 import io.horizontalsystems.walletkit.helpers.HudHelper
+import kotlin.coroutines.cancellation.CancellationException
 import io.horizontalsystems.walletkit.modules.evmfee.ButtonsGroupWithShade
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.components.FormsInput
@@ -53,9 +56,11 @@ fun LocalBackupPasswordScreen(
     val backupLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
             uri?.let {
-                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                    uiState.backupJson?.let { backupJson ->
-                        try {
+                uiState.backupJson?.let { backupJson ->
+                    // openOutputStream itself can throw (target deleted, cloud
+                    // provider failure) — keep it inside the try.
+                    try {
+                        (context.contentResolver.openOutputStream(uri) ?: error("Unable to open file")).use { outputStream ->
                             outputStream.bufferedWriter().use { bw ->
                                 bw.write(backupJson)
                                 bw.flush()
@@ -70,9 +75,9 @@ fun LocalBackupPasswordScreen(
 
                                 viewModel.backupFinished()
                             }
-                        } catch (e: Throwable) {
-                            HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
                         }
+                    } catch (e: Throwable) {
+                        HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
                     }
                 }
             } ?: run {
@@ -86,9 +91,24 @@ fun LocalBackupPasswordScreen(
         viewModel.accountErrorIsShown()
     }
 
-    if (uiState.backupJson != null) {
-        App.pinComponent.keepUnlocked()
-        backupLauncher.launch(viewModel.backupFileName)
+    // One-shot per backup attempt: launching from composition would re-fire on
+    // recomposition, and a failed launch never invokes the result callback, so
+    // the state must be reset here or the screen stays stuck.
+    LaunchedEffect(uiState.backupJson) {
+        if (uiState.backupJson != null) {
+            try {
+                App.pinComponent.keepUnlocked()
+                if (!backupLauncher.launchSafe(viewModel.backupFileName, view)) {
+                    viewModel.backupCanceled()
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Any failure before the picker opens means the result callback
+                // will never fire — reset, or the screen stays stuck.
+                viewModel.backupCanceled()
+            }
+        }
     }
 
     if (uiState.closeScreen) {

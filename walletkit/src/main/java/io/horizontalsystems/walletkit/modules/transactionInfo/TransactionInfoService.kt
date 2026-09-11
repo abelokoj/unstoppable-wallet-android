@@ -46,8 +46,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
@@ -225,7 +223,7 @@ class TransactionInfoService(
         }
 
         launch {
-            adapter.lastBlockUpdatedFlowable.asFlow()
+            adapter.lastBlockUpdatedFlow
                 .collect {
                     handleLastBlockUpdate()
                 }
@@ -260,8 +258,7 @@ class TransactionInfoService(
             try {
                 val rate = marketKit
                     .coinHistoricalPriceSingle(coinUid, currencyManager.baseCurrency.code, timestamp)
-                    .await()
-                if (rate != BigDecimal.ZERO) {
+                if (rate != null && rate != BigDecimal.ZERO) {
                     Pair(coinUid, CurrencyValue(currencyManager.baseCurrency, rate))
                 } else {
                     null

@@ -10,7 +10,6 @@ import io.horizontalsystems.walletkit.entities.Faq
 import io.horizontalsystems.walletkit.entities.FaqSection
 import io.horizontalsystems.walletkit.entities.ViewState
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 
 class FaqViewModel(private val repository: FaqRepository) : ViewModel() {
 
@@ -25,7 +24,7 @@ class FaqViewModel(private val repository: FaqRepository) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            repository.faqList.asFlow().collect { dataState ->
+            repository.faqList.collect { dataState ->
                 viewModelScope.launch {
                     dataState.viewState?.let {
                         viewState = it
@@ -52,6 +51,12 @@ class FaqViewModel(private val repository: FaqRepository) : ViewModel() {
 
     private fun didFetchFaqSections(faqSections: List<FaqSection>) {
         sections = faqSections
-        onSelectSection(faqSections.first())
+
+        // See GuidesViewModel: an empty but successful index used to crash the process here.
+        // Assigned rather than skipped when empty, so a refetch that comes back empty clears the
+        // previous selection instead of leaving its items on a screen that has no sections.
+        val section = faqSections.firstOrNull()
+        selectedSection = section
+        faqItems = section?.faqItems.orEmpty()
     }
 }

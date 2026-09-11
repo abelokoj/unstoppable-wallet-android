@@ -180,6 +180,7 @@ fun TransactionInfoSection(
                             TitleAndValueCell(
                                 title = viewItem.title,
                                 value = viewItem.value,
+                                copyable = viewItem.copyable,
                             )
                         }
                     }

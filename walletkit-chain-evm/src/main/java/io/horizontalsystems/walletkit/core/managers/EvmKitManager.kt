@@ -26,16 +26,19 @@ import io.horizontalsystems.oneinchkit.OneInchKit
 import io.horizontalsystems.uniswapkit.TokenFactory.UnsupportedChainError
 import io.horizontalsystems.uniswapkit.UniswapKit
 import io.horizontalsystems.uniswapkit.UniswapV3Kit
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
+import kotlinx.coroutines.withContext
 import java.net.URI
 
 class EvmKitManager(
@@ -48,37 +51,40 @@ class EvmKitManager(
 
     init {
         coroutineScope.launch {
-            syncSourceManager.syncSourceObservable.asFlow().collect { blockchain ->
+            syncSourceManager.syncSourceFlow.collect { blockchain ->
                 handleUpdateNetwork(blockchain)
             }
         }
     }
 
+    // Runs off the sync-source subscription while getEvmKitWrapper()/unlink() may be inside the
+    // monitor. Without it, the wrapper can be nulled between that getter's null check and its !!,
+    // and the blockchainType read below is a check-then-act on the same field. Callers already
+    // holding the monitor re-enter it — Zano's manager has had this since it was written.
+    @Synchronized
     private fun handleUpdateNetwork(blockchainType: BlockchainType) {
         if (blockchainType != evmKitWrapper?.blockchainType) return
 
         stopEvmKit()
 
-        evmKitUpdatedSubject.onNext(Unit)
+        _evmKitUpdatedFlow.tryEmit(Unit)
     }
 
-    private val kitStartedSubject = BehaviorSubject.createDefault(false)
-    val kitStartedObservable: Observable<Boolean> = kitStartedSubject
+    private val _kitStartedFlow = MutableStateFlow(false)
+    val kitStartedFlow: StateFlow<Boolean> = _kitStartedFlow.asStateFlow()
 
     var evmKitWrapper: EvmKitWrapper? = null
         private set(value) {
             field = value
 
-            kitStartedSubject.onNext(value != null)
+            _kitStartedFlow.value = value != null
         }
 
     private var useCount = 0
     var currentAccount: Account? = null
         private set
-    private val evmKitUpdatedSubject = PublishSubject.create<Unit>()
-
-    val evmKitUpdatedObservable: Observable<Unit>
-        get() = evmKitUpdatedSubject
+    private val _evmKitUpdatedFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val evmKitUpdatedFlow: SharedFlow<Unit> = _evmKitUpdatedFlow.asSharedFlow()
 
     val statusInfo: Map<String, Any>?
         get() = evmKitWrapper?.evmKit?.statusInfo()
@@ -232,6 +238,7 @@ class EvmKitManager(
         }
     }
 
+    @Synchronized
     private fun stopEvmKit() {
         job?.cancel()
         evmKitWrapper?.evmKit?.stop()
@@ -256,41 +263,37 @@ class EvmKitWrapper(
     val merkleTransactionAdapter: MerkleTransactionAdapter?
 ) {
 
-    fun sendSingle(
+    suspend fun send(
         transactionData: TransactionData,
         gasPrice: GasPrice,
         gasLimit: Long,
         nonce: Long?,
         mevProtectionEnabled: Boolean
-    ): Single<FullTransaction> {
-        if (signer == null) return Single.error(Exception())
-        if (mevProtectionEnabled && merkleTransactionAdapter == null) return Single.error(Exception())
+    ): FullTransaction = withContext(Dispatchers.IO) {
+        if (signer == null) throw Exception()
+        if (mevProtectionEnabled && merkleTransactionAdapter == null) throw Exception()
 
-        return evmKit.rawTransaction(transactionData, gasPrice, gasLimit, nonce)
-            .flatMap { rawTransaction ->
-                val signature = signer.signature(rawTransaction)
+        val rawTransaction = evmKit.rawTransaction(transactionData, gasPrice, gasLimit, nonce)
+        val signature = signer.signature(rawTransaction)
 
-                if (mevProtectionEnabled && merkleTransactionAdapter != null) {
-                    merkleTransactionAdapter.send(rawTransaction, signature)
-                } else {
-                    evmKit.send(rawTransaction, signature)
-                }
-            }
+        if (mevProtectionEnabled && merkleTransactionAdapter != null) {
+            merkleTransactionAdapter.send(rawTransaction, signature)
+        } else {
+            evmKit.send(rawTransaction, signature)
+        }
     }
 
-    fun signSingle(
+    suspend fun sign(
         transactionData: TransactionData,
         gasPrice: GasPrice,
         gasLimit: Long,
         nonce: Long?,
-    ): Single<EvmKitManager.SignedTx> {
-        if (signer == null) return Single.error(IllegalStateException("Signer not available"))
-        return evmKit.rawTransaction(transactionData, gasPrice, gasLimit, nonce)
-            .map { rawTransaction ->
-                val signature = signer.signature(rawTransaction)
-                val encoded = TransactionBuilder.encode(rawTransaction, signature, evmKit.chain.id)
-                EvmKitManager.SignedTx(hex = encoded.toHexString(), txHash = CryptoUtils.sha3(encoded).toHexString())
-            }
+    ): EvmKitManager.SignedTx = withContext(Dispatchers.IO) {
+        if (signer == null) throw IllegalStateException("Signer not available")
+        val rawTransaction = evmKit.rawTransaction(transactionData, gasPrice, gasLimit, nonce)
+        val signature = signer.signature(rawTransaction)
+        val encoded = TransactionBuilder.encode(rawTransaction, signature, evmKit.chain.id)
+        EvmKitManager.SignedTx(hex = encoded.toHexString(), txHash = CryptoUtils.sha3(encoded).toHexString())
     }
 }
 
@@ -318,6 +321,7 @@ object EvmKitManagerRegistry {
         BlockchainType.Optimism -> Chain.Optimism
         BlockchainType.Base -> Chain.Base
         BlockchainType.ZkSync -> Chain.ZkSync
+        BlockchainType.RobinhoodChain -> Chain.RobinhoodChain
         BlockchainType.ArbitrumOne -> Chain.ArbitrumOne
         BlockchainType.Gnosis -> Chain.Gnosis
         BlockchainType.Fantom -> Chain.Fantom

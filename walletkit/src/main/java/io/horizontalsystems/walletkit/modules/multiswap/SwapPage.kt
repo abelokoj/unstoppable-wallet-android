@@ -2,6 +2,7 @@ package io.horizontalsystems.walletkit.modules.multiswap
 
 import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -113,6 +114,7 @@ import io.horizontalsystems.walletkit.uiv3.components.controls.HSIconButton
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
@@ -208,25 +210,51 @@ fun SwapScreen(
     ) {
         if (it.accepted) navigateToSwapConfirm()
     }
+    // startProceed() is asynchronous on both of its paths — the no-precheck path only emits on the
+    // view model scope and sets no state at all — so the Proceed button stays live after the first
+    // tap. A second tap emits a second Proceed and pushes a second confirmation page. Latch in the
+    // same frame as the tap and hand the button back on whatever outcome comes back.
+    var proceeding by remember { mutableStateOf(false) }
+
+    val startProceed = {
+        if (!proceeding) {
+            // Latch on whether the flow actually started: startProceed() bails out when there is
+            // no quote yet, and that path emits no event, so latching unconditionally would leave
+            // the button disabled with nothing to release it.
+            proceeding = viewModel.startProceed()
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.amlCheckEventFlow.collect { event ->
-            when (event) {
-                AmlCheckEvent.Proceed -> {
-                    if (viewModel.uiState.needToAcceptTerms) {
-                        forResultSwapTerms()
-                    } else {
-                        navigateToSwapConfirm()
+            proceeding = false
+
+            // A throw here would end the collect and take the whole flow down with it: no later
+            // AML result would be handled, and since the latch is only released here, the next tap
+            // would disable Proceed for good. Keep the collector alive instead.
+            try {
+                when (event) {
+                    AmlCheckEvent.Proceed -> {
+                        if (viewModel.uiState.needToAcceptTerms) {
+                            forResultSwapTerms()
+                        } else {
+                            navigateToSwapConfirm()
+                        }
+                    }
+                    AmlCheckEvent.RiskDetected -> {
+                        showAmlRiskSheet = true
+                    }
+                    is AmlCheckEvent.Error -> {
+                        showAmlErrorSheet = true
+                    }
+                    AmlCheckEvent.RiskUnknown -> {
+                        showAmlUnknownSheet = true
                     }
                 }
-                AmlCheckEvent.RiskDetected -> {
-                    showAmlRiskSheet = true
-                }
-                is AmlCheckEvent.Error -> {
-                    showAmlErrorSheet = true
-                }
-                AmlCheckEvent.RiskUnknown -> {
-                    showAmlUnknownSheet = true
-                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                Log.e("SwapPage", "Handling AML check event failed", e)
             }
         }
     }
@@ -259,7 +287,7 @@ fun SwapScreen(
             onDismiss = { showAmlErrorSheet = false },
             onRetry = {
                 showAmlErrorSheet = false
-                viewModel.startProceed()
+                startProceed()
             },
         )
     }
@@ -308,7 +336,8 @@ fun SwapScreen(
 
             stat(page = StatPage.Swap, event = StatEvent.Open(StatPage.SwapProvider))
         },
-        onClickNext = viewModel::startProceed,
+        onClickNext = startProceed,
+        proceedEnabled = !proceeding,
         onActionStarted = {
             viewModel.onActionStarted(uiState.quote)
         },
@@ -335,6 +364,7 @@ private fun SwapScreenInner(
     onEnterAmountPercentage: (Int) -> Unit,
     onClickProvider: () -> Unit,
     onClickNext: () -> Unit,
+    proceedEnabled: Boolean,
     onActionStarted: () -> Unit,
     onActionCompleted: () -> Unit,
     navigation: HSNavigation,
@@ -407,6 +437,7 @@ private fun SwapScreenInner(
                     switchPairsEnabled = !uiState.externalRecipientRequired,
                     amountOut = quote?.amountOut,
                     fiatAmountOut = uiState.fiatAmountOut,
+                    hasRateOut = uiState.hasRateOut,
                     fiatPriceImpact = uiState.fiatPriceImpact,
                     fiatPriceImpactLevel = uiState.fiatPriceImpactLevel,
                     onValueChange = onEnterAmount,
@@ -578,6 +609,7 @@ private fun SwapScreenInner(
                                     .padding(horizontal = 16.dp)
                                     .fillMaxWidth(),
                                 title = stringResource(R.string.Swap_Proceed),
+                                enabled = proceedEnabled,
                                 onClick = onClickNext
                             )
                         }
@@ -587,6 +619,7 @@ private fun SwapScreenInner(
                             uiState.availableBalance != null && uiState.availableBalance > BigDecimal.ZERO
                         VSpacer(height = 16.dp)
                         SuggestionsBar(
+                            percents = uiState.percentOptions,
                             onDelete = {
                                 onEnterAmount.invoke(null)
                             },
@@ -822,6 +855,7 @@ private fun SwapInput(
     switchPairsEnabled: Boolean,
     amountOut: BigDecimal?,
     fiatAmountOut: BigDecimal?,
+    hasRateOut: Boolean,
     fiatPriceImpact: BigDecimal?,
     fiatPriceImpactLevel: PriceImpactLevel?,
     onValueChange: (BigDecimal?) -> Unit,
@@ -853,6 +887,7 @@ private fun SwapInput(
             SwapCoinInputTo(
                 coinAmount = amountOut,
                 fiatAmount = fiatAmountOut,
+                hasRate = hasRateOut,
                 fiatPriceImpact = fiatPriceImpact,
                 fiatPriceImpactLevel = fiatPriceImpactLevel,
                 currency = currency,
@@ -902,13 +937,15 @@ private fun SwapCoinInputIn(
                 onValueChange = onValueChange,
                 focusRequester = focusRequester
             )
-            VSpacer(height = 3.dp)
-            FiatAmountInput(
-                value = fiatAmount,
-                currency = currency,
-                onValueChange = onFiatValueChange,
-                enabled = fiatAmountInputEnabled
-            )
+            if (fiatAmountInputEnabled || fiatAmount != null) {
+                VSpacer(height = 3.dp)
+                FiatAmountInput(
+                    value = fiatAmount,
+                    currency = currency,
+                    onValueChange = onFiatValueChange,
+                    enabled = fiatAmountInputEnabled
+                )
+            }
         }
         HSpacer(width = 8.dp)
         CoinSelector(token, onClickCoin)
@@ -919,6 +956,7 @@ private fun SwapCoinInputIn(
 private fun SwapCoinInputTo(
     coinAmount: BigDecimal?,
     fiatAmount: BigDecimal?,
+    hasRate: Boolean,
     fiatPriceImpact: BigDecimal?,
     fiatPriceImpactLevel: PriceImpactLevel?,
     currency: Currency,
@@ -943,10 +981,11 @@ private fun SwapCoinInputTo(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            VSpacer(height = 3.dp)
-            if (fiatAmount == null) {
+            if (hasRate && fiatAmount == null) {
+                VSpacer(height = 3.dp)
                 body_grey(text = "${currency.symbol}0")
-            } else {
+            } else if (fiatAmount != null) {
+                VSpacer(height = 3.dp)
                 Row {
                     body_grey(text = "${currency.symbol}${fiatAmount.toPlainString()}")
                     fiatPriceImpact?.let { diff ->

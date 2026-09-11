@@ -7,6 +7,7 @@ import io.horizontalsystems.walletkit.core.IAccountManager
 import io.horizontalsystems.walletkit.core.IBackupManager
 import io.horizontalsystems.walletkit.core.ITermsManager
 import io.horizontalsystems.walletkit.core.ViewModelUiState
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.providers.IAppConfigProvider
 import io.horizontalsystems.walletkit.modules.settings.main.MainSettingsModule.CounterType
 import io.horizontalsystems.walletkit.modules.walletconnect.WCManager
@@ -14,7 +15,6 @@ import io.horizontalsystems.walletkit.modules.walletconnect.WCSessionManager
 import io.horizontalsystems.subscriptions.core.AdvancedSearch
 import io.horizontalsystems.subscriptions.core.UserSubscriptionManager
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 
 class MainSettingsViewModel(
     private val backupManager: IBackupManager,
@@ -71,7 +71,7 @@ class MainSettingsViewModel(
 
     init {
         viewModelScope.launch {
-            backupManager.allBackedUpFlowable.asFlow().collect {
+            backupManager.allBackedUpFlow.collectSafely {
                 emitState()
             }
         }

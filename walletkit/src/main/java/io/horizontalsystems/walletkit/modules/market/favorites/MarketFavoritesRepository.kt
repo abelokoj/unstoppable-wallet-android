@@ -5,13 +5,12 @@ import io.horizontalsystems.walletkit.core.managers.MarketKitWrapper
 import io.horizontalsystems.walletkit.entities.Currency
 import io.horizontalsystems.walletkit.modules.market.MarketItem
 import io.horizontalsystems.walletkit.modules.market.filters.TimePeriod
-import kotlinx.coroutines.rx2.await
 
 class MarketFavoritesRepository(
     private val marketKit: MarketKitWrapper,
     private val manager: MarketFavoritesManager
 ) {
-    val dataUpdatedObservable by manager::dataUpdatedAsync
+    val dataUpdatedFlow by manager::dataUpdatedFlow
 
     private suspend fun getFavorites(
         currency: Currency,
@@ -22,7 +21,7 @@ class MarketFavoritesRepository(
 
         val favoriteCoinUids = favoriteCoins.map { it.coinUid }
         return marketKit
-            .marketInfosSingle(favoriteCoinUids, currency.code).await()
+            .marketInfosSingle(favoriteCoinUids, currency.code)
             .map { marketInfo ->
                 MarketItem.createFromCoinMarket(
                     marketInfo = marketInfo,
@@ -32,7 +31,7 @@ class MarketFavoritesRepository(
             }
     }
 
-    fun getSignals(uids: List<String>) = marketKit.getCoinSignalsSingle(uids)
+    suspend fun getSignals(uids: List<String>) = marketKit.getCoinSignalsSingle(uids)
 
     suspend fun get(period: TimePeriod, currency: Currency): List<MarketItem> {
         return getFavorites(currency, period)

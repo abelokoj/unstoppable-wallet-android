@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.walletconnect
 
 import io.horizontalsystems.walletkit.core.IAccountManager
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.managers.ActiveAccountState
 import io.horizontalsystems.walletkit.modules.walletconnect.storage.WCSessionStorage
 import io.horizontalsystems.walletkit.modules.walletconnect.storage.WalletConnectV2Session
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 
 class WCSessionManager(
     private val accountManager: IAccountManager,
@@ -55,7 +55,7 @@ class WCSessionManager(
         }
 
         coroutineScope.launch {
-            accountManager.accountsDeletedFlowable.asFlow().collect {
+            accountManager.accountsDeletedFlow.collectSafely {
                 handleDeletedAccount()
             }
         }

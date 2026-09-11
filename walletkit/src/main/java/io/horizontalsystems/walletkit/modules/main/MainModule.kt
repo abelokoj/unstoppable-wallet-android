@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.managers.ActionCompletedDelegate
@@ -14,6 +15,10 @@ import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.walletconnect.WCManager
 
 object MainModule {
+
+    /** The activity-scoped [MainViewModel]; created on first use. */
+    fun viewModel(owner: ViewModelStoreOwner): MainViewModel =
+        ViewModelProvider(owner, Factory())[MainViewModel::class.java]
 
     class Factory : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -30,7 +35,8 @@ object MainModule {
                 App.wcSessionManager,
                 App.wcManager,
                 App.networkManager,
-                ActionCompletedDelegate
+                ActionCompletedDelegate,
+                App.lockGate,
             ) as T
         }
     }
@@ -101,7 +107,11 @@ object MainModule {
         val torEnabled: Boolean,
         val wcSupportState: WCManager.SupportState?,
         val openSend: OpenSendTokenSelect?,
-        val selectedTabItem: MainNavigation
+        val selectedTabItem: MainNavigation,
+        // Render this tab change without animation. Travels in the same state emission as
+        // selectedTabItem so the decision cannot race the lock state: a crossfade after the
+        // lock fallback would keep the outgoing wallet tab composed while locked.
+        val snapTabSwitch: Boolean = false,
     )
 }
 

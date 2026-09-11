@@ -3,6 +3,8 @@ package io.horizontalsystems.walletkit.core.chain
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.marketkit.models.Blockchain
+import io.horizontalsystems.walletkit.core.AdapterState
+import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.IAdapter
 import io.horizontalsystems.walletkit.core.ITransactionsAdapter
 import io.horizontalsystems.walletkit.modules.addtoken.AddTokenModule
@@ -16,6 +18,7 @@ import androidx.compose.runtime.Composable
 import io.horizontalsystems.walletkit.entities.Address
 import io.horizontalsystems.walletkit.modules.address.IAddressHandler
 import io.horizontalsystems.walletkit.modules.amount.AmountInputModeViewModel
+import io.horizontalsystems.walletkit.modules.balance.BalanceModule
 import io.horizontalsystems.walletkit.modules.blockchainsettings.BlockchainSettingsModule
 import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderAction
 import io.horizontalsystems.walletkit.modules.multiswap.providers.IMultiSwapProvider
@@ -122,6 +125,9 @@ interface ChainPlugin {
     /** Kit status details for the App Status debug screen. */
     fun statusInfo(): Map<String, Any>? = null
 
+    /** Chain-specific warning for a wallet's balance row (e.g. inactive Tron account). */
+    suspend fun balanceWarning(wallet: Wallet): BalanceModule.BalanceWarning? = null
+
     /** Refreshes the chain's kit on user-initiated refresh, if one is running. */
     suspend fun refreshKit() = Unit
 
@@ -133,7 +139,7 @@ interface ChainPlugin {
     fun SendScreen(args: ChainSendScreenArgs) = Unit
 
     /** Row shown in Settings > Blockchain Settings, or null to omit the chain there. */
-    fun blockchainSettingsItem(): BlockchainSettingsModule.BlockchainItem.Chain? = null
+    fun blockchainSettingsItem(): BlockchainSettingsModule.BlockchainItem? = null
 
     /**
      * Derives the account's receive address for swap destinations without requiring an
@@ -147,8 +153,39 @@ interface ChainPlugin {
     /** Startup work after core managers are ready (e.g. Monero fastest-node auto-select). */
     suspend fun onAppStart() = Unit
 
-    /** Deletes the chain's locally stored data for a removed account. */
-    fun clearAccountData(accountId: String) = Unit
+    /**
+     * Work when the app returns to the foreground. Runs on every foreground transition,
+     * including the first one after launch, so implementations must be idempotent and cheap
+     * when there is nothing to do (e.g. Auto-Select only re-picks a node when one has died).
+     */
+    suspend fun onEnterForeground() = Unit
+
+    /**
+     * Work when this chain's sync has been stalled for a while, foreground or background.
+     * Called on a backoff by StalledSyncWatcher, so implementations need not rate-limit
+     * themselves, but must tolerate being called while a previous attempt is still running.
+     */
+    suspend fun onSyncStalled() = Unit
+
+    /**
+     * True when an active wallet of this chain has an adapter reporting [AdapterState.NotSynced].
+     *
+     * Deliberately narrower than "not Synced": Syncing/Connecting are healthy progress, and a
+     * chain with no adapter yet (creation deferred, wallet disabled) reports false.
+     */
+    fun hasUnsyncedWallet(): Boolean =
+        App.walletManager.activeWallets
+            .filter { it.token.blockchainType == blockchainType }
+            .any { App.adapterManager.getBalanceAdapterForWallet(it)?.balanceState is AdapterState.NotSynced }
+
+    /**
+     * Deletes the chain's locally stored data for a removed account.
+     *
+     * Deliberately without a default: this used to be a no-op that plugins inherited silently, and
+     * five of them did, so deleting an account left their databases behind. A chain with nothing
+     * to delete should say so with an empty body rather than by omission.
+     */
+    fun clearAccountData(accountId: String)
 
     /** Dedicated transactions adapter, or null when the balance adapter serves both roles. */
     fun createTransactionsAdapter(source: TransactionSource): ITransactionsAdapter? = null
@@ -226,7 +263,7 @@ interface ChainPlugin {
     suspend fun eip20Allowance(token: Token, spenderAddress: String): BigDecimal? = null
 
     /** Approve/revoke action required before swapping, or null when none is needed. */
-    fun eip20ApproveAction(
+    suspend fun eip20ApproveAction(
         allowance: BigDecimal?,
         amountIn: BigDecimal,
         spenderAddress: String,
@@ -256,6 +293,17 @@ interface ChainPlugin {
 
     /** Send-transaction service used by multiswap/OpenCryptoPay confirm flows. */
     fun sendTransactionService(token: Token): AbstractSendTransactionService? = null
+
+    /**
+     * A plain transfer of [amount] to [address] as SendTransactionData, for flows that build a
+     * deposit themselves (private send). Most chains are built kit-free by the caller; EVM
+     * needs the kit for ERC20 transfer calldata, so its plugin overrides this.
+     */
+    fun depositTransferData(
+        token: Token,
+        amount: BigDecimal,
+        address: String,
+    ): io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData? = null
 }
 
 /** A row on the manage-account private/public keys screens, navigating to a chain page. */

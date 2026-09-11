@@ -26,7 +26,6 @@ class AddTokenService(
     private val blockchainTypes = listOf(
         BlockchainType.Ethereum,
         BlockchainType.BinanceSmartChain,
-        BlockchainType.Tron,
         BlockchainType.Polygon,
         BlockchainType.Avalanche,
         BlockchainType.Gnosis,
@@ -35,6 +34,7 @@ class AddTokenService(
         BlockchainType.Optimism,
         BlockchainType.Base,
         BlockchainType.ZkSync,
+        BlockchainType.RobinhoodChain,
     ) + ChainRegistry.all.filter { it.supportsCustomTokens }.map { it.blockchainType }
 
     val blockchains = marketKit
@@ -46,13 +46,8 @@ class AddTokenService(
     suspend fun tokenInfo(blockchain: Blockchain, reference: String): TokenInfo? {
         if (reference.isEmpty()) return null
 
-        val blockchainService = when (blockchain.type) {
-            BlockchainType.Tron -> {
-                AddTronTokenBlockchainService.getInstance(blockchain)
-            }
-            else -> ChainRegistry[blockchain.type]?.addTokenBlockchainService(blockchain)
-                ?: throw TokenError.InvalidReference
-        }
+        val blockchainService = ChainRegistry[blockchain.type]?.addTokenBlockchainService(blockchain)
+            ?: throw TokenError.InvalidReference
 
         if (!blockchainService.isValid(reference)) throw TokenError.InvalidReference
 

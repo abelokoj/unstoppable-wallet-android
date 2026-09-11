@@ -25,9 +25,9 @@ android {
         applicationId = "money.openswap.wallet"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
-        versionCode = 179
-        // Open Swap fork: upstream 0.50.1 plus fork changes
-        versionName = "0.50.3"
+        versionCode = 180
+        // Open Swap fork: upstream 0.51.0 plus fork changes
+        versionName = "0.51.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         resourceConfigurations += listOf("de", "es", "en", "fa", "fr", "ko", "pt", "pt-rBR", "ru", "tr", "zh")
@@ -137,7 +137,7 @@ android {
             buildConfigFieldString("TWITTER_BEARER_TOKEN", "AAAAAAAAAAAAAAAAAAAAAJgeNwEAAAAA6xVpR6xLKTrxIA3kkSyRA92LDpA%3Da6auybDwcymUyh2BcS6zZwicUdxGtrzJC0qvOSdRwKLeqBGhwB")
             buildConfigFieldString("ETHERSCAN_KEY", "GKNHXT22ED7PRVCKZATFZQD1YI7FK9AAYE")
             buildConfigFieldString("BSCSCAN_KEY", "R396MSJNCKX2YK4EIMP3EWYAW21NSVMXRN")
-            buildConfigFieldString("OTHER_SCAN_KEY", "FU7CYEXQEUSMXJJF8MZR6BNRMP9XT8S9CP")
+            buildConfigFieldString("BLOCKSCOUT_KEY", "proapi_fzFc5CuNP9f9h2ah6k3Z7kcb6bKKcHUL6M2DfBWmgILHPDFrPMyNdlLfjjnjsMm7K_b9AqMj")
             buildConfigFieldString("GUIDES_URL", "https://raw.githubusercontent.com/horizontalsystems/blockchain-crypto-guides/v1.2/index.json")
             buildConfigFieldString("EDU_URL", "https://raw.githubusercontent.com/horizontalsystems/unstoppable.money/refs/heads/main/edu.json")
             buildConfigFieldString("FAQ_URL", "https://raw.githubusercontent.com/horizontalsystems/unstoppable.money/refs/heads/main/faq.json")
@@ -147,12 +147,12 @@ android {
             buildConfigFieldString("MARKET_API_KEY", "IQf1uAjkthZp1i2pYzkXFDom")
             buildConfigFieldString("OPEN_SEA_API_KEY", "bfbd6061a33e455c8581b594774fecb3")
             buildConfigFieldString("WALLET_CONNECT_V2_KEY", "8b4f41c60880a3e3ad57d82fddb30568")
-            buildConfigFieldString("SOLANA_ALCHEMY_API_KEY", "PKgWxOMarrHgyMESGjIkJ,BOlzgqJUeGYe5E7K613Fm")
+            buildConfigFieldString("ALCHEMY_API_KEY", "PKgWxOMarrHgyMESGjIkJ,BOlzgqJUeGYe5E7K613Fm")
             buildConfigFieldString("SOLANA_JUPITER_API_KEY", "ec901a97-0375-45b1-8b7d-da1ea9934cb0")
             buildConfigFieldString("TRONGRID_API_KEYS", "33374494-8060-447e-8367-90c5efd4ed95")
             buildConfigFieldString("UDN_API_KEY", "r2phzgatt_zt9-hd_wyvdjrdsrimnxgokm7knyag1malzgcz")
             buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
-            buildConfigFieldString("BLOCKS_DECODED_ETHEREUM_RPC", "https://api-dev.blocksdecoded.com/v1/ethereum-rpc/mainnet")
+            buildConfigFieldString("BLOCKS_DECODED_ETHEREUM_RPC", "https://ethereum-rpc.unstoppable.money")
             buildConfigFieldString("CHAINALYSIS_BASE_URL", "https://public.chainalysis.com/api/v1/")
             buildConfigFieldString("CHAINALYSIS_API_KEY", "928bb256db73f1cb93e1b3366a145d9fbe06e28581c8b665b82ad70bbfef1db4")
             buildConfigFieldString("HASH_DIT_BASE_URL", "https://service.hashdit.io/v2/hashdit/")
@@ -172,7 +172,7 @@ android {
             buildConfigFieldString("TWITTER_BEARER_TOKEN", "AAAAAAAAAAAAAAAAAAAAAJgeNwEAAAAA6xVpR6xLKTrxIA3kkSyRA92LDpA%3Da6auybDwcymUyh2BcS6zZwicUdxGtrzJC0qvOSdRwKLeqBGhwB")
             buildConfigFieldString("ETHERSCAN_KEY", "IEXTB9RE7MUV2UQ9X238RP146IEJB1J5HS,27S4V3GYJGMCPWQZ2T4SF9355QBQYQ3FI7,YK4KEA3TANM8KZ5J6E2Q1ZIM6YDM8TEABM,FU7CYEXQEUSMXJJF8MZR6BNRMP9XT8S9CP")
             buildConfigFieldString("BSCSCAN_KEY", "FQ2HSNNEHVG71U96P1TF3WF9RTF6AF5MRA,G6K8VZDWYSJHTCRURRITFZ2ZWV48GRGTZQ,R396MSJNCKX2YK4EIMP3EWYAW21NSVMXRN,8QW2JNMPHPUPAACFGXZ3A5PVQY6PBCJPEG")
-            buildConfigFieldString("OTHER_SCAN_KEY", "Y855XHV4XKUC9DTRM2ZQG8XAQ96EJV221Q,43DEJEEMA1P81YAU555A1TECRY5FPIWCFH")
+            buildConfigFieldString("BLOCKSCOUT_KEY", "proapi_fzFc5CuNP9f9h2ah6k3Z7kcb6bKKcHUL6M2DfBWmgILHPDFrPMyNdlLfjjnjsMm7K_b9AqMj")
             buildConfigFieldString("GUIDES_URL", "https://raw.githubusercontent.com/horizontalsystems/blockchain-crypto-guides/v1.2/index.json")
             buildConfigFieldString("EDU_URL", "https://raw.githubusercontent.com/horizontalsystems/unstoppable.money/refs/heads/main/edu.json")
             buildConfigFieldString("FAQ_URL", "https://raw.githubusercontent.com/horizontalsystems/unstoppable.money/refs/heads/main/faq.json")
@@ -182,12 +182,12 @@ android {
             buildConfigFieldString("MARKET_API_KEY", "IQf1uAjkthZp1i2pYzkXFDom")
             buildConfigFieldString("OPEN_SEA_API_KEY", "bfbd6061a33e455c8581b594774fecb3")
             buildConfigFieldString("WALLET_CONNECT_V2_KEY", "0c5ca155c2f165a7d0c88686f2113a72")
-            buildConfigFieldString("SOLANA_ALCHEMY_API_KEY", "BOlzgqJUeGYe5E7K613Fm,Vmt7ucAGIMEux_c43Qqqf,uCordWq3EOD800awDx1kb,1uAryzn6DOEVs5PIugeoR,PKgWxOMarrHgyMESGjIkJ")
+            buildConfigFieldString("ALCHEMY_API_KEY", "BOlzgqJUeGYe5E7K613Fm,Vmt7ucAGIMEux_c43Qqqf,uCordWq3EOD800awDx1kb,1uAryzn6DOEVs5PIugeoR,PKgWxOMarrHgyMESGjIkJ")
             buildConfigFieldString("SOLANA_JUPITER_API_KEY", "ec901a97-0375-45b1-8b7d-da1ea9934cb0")
             buildConfigFieldString("TRONGRID_API_KEYS", "8f5ae2c8-8012-42a8-b0ca-ffc2741f6a29,578aa64f-a79f-4ee8-86e9-e9860e2d050a,1e92f1fc-41f8-401f-a7f6-5b719b6f1280,d1511874-1547-48df-9536-a32cc85949ac")
             buildConfigFieldString("UDN_API_KEY", "r2phzgatt_zt9-hd_wyvdjrdsrimnxgokm7knyag1malzgcz")
             buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
-            buildConfigFieldString("BLOCKS_DECODED_ETHEREUM_RPC", "https://api.blocksdecoded.com/v1/ethereum-rpc/mainnet")
+            buildConfigFieldString("BLOCKS_DECODED_ETHEREUM_RPC", "https://ethereum-rpc.unstoppable.money")
             buildConfigFieldString("CHAINALYSIS_BASE_URL", "https://public.chainalysis.com/api/v1/")
             buildConfigFieldString("CHAINALYSIS_API_KEY", "928bb256db73f1cb93e1b3366a145d9fbe06e28581c8b665b82ad70bbfef1db4")
             buildConfigFieldString("HASH_DIT_BASE_URL", "https://service.hashdit.io/v2/hashdit/")
@@ -267,6 +267,7 @@ dependencies {
     implementation(project(":walletkit-chain-solana"))
     implementation(project(":walletkit-chain-stellar"))
     implementation(project(":walletkit-chain-ton"))
+    implementation(project(":walletkit-chain-tron"))
     implementation(project(":walletkit-chain-thorchain"))
     implementation(project(":walletkit-chain-bitcoin"))
     implementation(project(":walletkit-chain-evm"))
@@ -284,6 +285,8 @@ dependencies {
 
     // UI Tests
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    // Supplies the ComponentActivity that Compose UI tests are hosted in
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.test.runner)
     androidTestImplementation(libs.espresso.core)
 

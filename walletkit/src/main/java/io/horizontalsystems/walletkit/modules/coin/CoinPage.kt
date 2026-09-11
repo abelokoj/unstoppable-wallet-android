@@ -21,7 +21,9 @@ import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CoinPage(val input: Input) : HSPage() {
+data class CoinPage(val input: Input) : HSPage(accessibleWhileLocked = true) {
+
+    override fun contentKey() = "${super.contentKey()}-${input.coinUid}"
 
     @Composable
     override fun GetContent(navigation: HSNavigation) {

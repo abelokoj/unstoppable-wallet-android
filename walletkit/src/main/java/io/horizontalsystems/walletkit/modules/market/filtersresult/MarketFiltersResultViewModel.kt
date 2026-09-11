@@ -2,13 +2,13 @@ package io.horizontalsystems.walletkit.modules.market.filtersresult
 
 import androidx.lifecycle.viewModelScope
 import io.horizontalsystems.walletkit.core.ViewModelUiState
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.entities.ViewState
 import io.horizontalsystems.walletkit.modules.market.MarketViewItem
 import io.horizontalsystems.walletkit.modules.market.SortingField
 import io.horizontalsystems.walletkit.modules.market.favorites.MarketItemWrapper
 import io.horizontalsystems.walletkit.ui.compose.Select
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 
 class MarketFiltersResultViewModel(
     private val service: MarketFiltersResultService,
@@ -20,7 +20,7 @@ class MarketFiltersResultViewModel(
 
     init {
         viewModelScope.launch {
-            service.stateObservable.asFlow().collect { state ->
+            service.stateFlow.collectSafely { state ->
                 state.viewState?.let {
                     viewState = it
                     emitState()
