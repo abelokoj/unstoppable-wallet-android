@@ -387,6 +387,26 @@ class SwapViewModel(
         quoteService.setAmount(amount)
     }
 
+    // Custom percentage entered by the user. Unlike the fixed chips this accepts 100 for
+    // every token type, including assets that pay their own network fee - selling the
+    // entire balance of such an asset leaves nothing for gas and will fail at
+    // confirmation, but the choice is the user's to make deliberately.
+    fun onEnterAmountPercentageExact(percentage: BigDecimal) {
+        val tokenIn = quoteState.tokenIn ?: return
+        val availableBalance = balanceState.balance ?: return
+
+        val clamped = percentage.coerceIn(BigDecimal.ZERO, BigDecimal(100))
+        if (clamped <= BigDecimal.ZERO) return
+
+        val amount = availableBalance
+            .multiply(clamped)
+            .divide(BigDecimal(100), tokenIn.decimals, RoundingMode.DOWN)
+            .stripTrailingZeros()
+
+        if (amount <= BigDecimal.ZERO) return
+        quoteService.setAmount(amount)
+    }
+
     fun onSelectTokenIn(token: Token) {
         tokensManuallySet = true
         quoteService.setTokenIn(token)

@@ -330,6 +330,7 @@ fun SwapScreen(
         onSwitchPairs = viewModel::onSwitchPairs,
         onEnterAmount = viewModel::onEnterAmount,
         onEnterAmountPercentage = viewModel::onEnterAmountPercentage,
+        onEnterAmountPercentageExact = viewModel::onEnterAmountPercentageExact,
         onEnterFiatAmount = viewModel::onEnterFiatAmount,
         onClickProvider = {
             navigation.slideFromBottom(SwapSelectProviderPage(parentScreenContentKey))
@@ -362,6 +363,7 @@ private fun SwapScreenInner(
     onEnterAmount: (BigDecimal?) -> Unit,
     onEnterFiatAmount: (BigDecimal?) -> Unit,
     onEnterAmountPercentage: (Int) -> Unit,
+    onEnterAmountPercentageExact: (java.math.BigDecimal) -> Unit,
     onClickProvider: () -> Unit,
     onClickNext: () -> Unit,
     proceedEnabled: Boolean,
@@ -413,6 +415,9 @@ private fun SwapScreenInner(
     ) {
         val keyboardState by observeKeyboardState()
         var amountInputHasFocus by remember { mutableStateOf(false) }
+        // The custom percent field steals focus from the amount input. Without tracking it
+        // here the suggestions bar unmounts the moment the field is tapped.
+        var percentInputHasFocus by remember { mutableStateOf(false) }
         val amountInputFocusRequester = remember { FocusRequester() }
 
         // Show the keyboard only when the user navigates to this screen — not when it is
@@ -614,7 +619,7 @@ private fun SwapScreenInner(
                             )
                         }
                     }
-                    if (amountInputHasFocus && keyboardState == Keyboard.Opened) {
+                    if ((amountInputHasFocus || percentInputHasFocus) && keyboardState == Keyboard.Opened) {
                         val hasNonZeroBalance =
                             uiState.availableBalance != null && uiState.availableBalance > BigDecimal.ZERO
                         VSpacer(height = 16.dp)
@@ -627,6 +632,11 @@ private fun SwapScreenInner(
                                 focusManager.clearFocus()
                                 onEnterAmountPercentage.invoke(it)
                             },
+                            onSelectExact = {
+                                focusManager.clearFocus()
+                                onEnterAmountPercentageExact.invoke(it)
+                            },
+                            onCustomFocusChanged = { percentInputHasFocus = it },
                             selectEnabled = hasNonZeroBalance,
                             deleteEnabled = uiState.amountIn != null,
                         )
