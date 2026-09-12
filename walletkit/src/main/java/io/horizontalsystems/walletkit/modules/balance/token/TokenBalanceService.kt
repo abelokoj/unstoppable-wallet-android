@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.balance.token
 
 import io.horizontalsystems.walletkit.core.Clearable
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.entities.Wallet
 import io.horizontalsystems.walletkit.modules.balance.BalanceAdapterRepository
 import io.horizontalsystems.walletkit.modules.balance.BalanceModule
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 
 class TokenBalanceService(
     private val wallet: Wallet,
@@ -53,17 +53,17 @@ class TokenBalanceService(
             )
         }
         coroutineScope.launch {
-            xRateRepository.itemObservable.asFlow().collect {
+            xRateRepository.itemObservable.collectSafely {
                 handleXRateUpdate(it)
             }
         }
         coroutineScope.launch {
-            balanceAdapterRepository.readyObservable.asFlow().collect {
+            balanceAdapterRepository.readyFlow.collectSafely {
                 handleAdapterUpdate()
             }
         }
         coroutineScope.launch {
-            balanceAdapterRepository.updatesObservable.asFlow().collect {
+            balanceAdapterRepository.updatesFlow.collectSafely {
                 handleAdapterUpdate()
             }
         }

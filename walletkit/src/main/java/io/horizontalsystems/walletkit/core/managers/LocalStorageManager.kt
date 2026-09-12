@@ -103,6 +103,8 @@ class LocalStorageManager(
     private val ENABLED_PAID_ACTIONS = "enabled_paid_actions"
     private val USWAP_SUSPENSIONS = "uswap_suspensions"
     private val USWAP_SUSPENSIONS_SYNC_TIME = "uswap_suspensions_sync_time"
+    private val PRIVATE_SEND_PROVIDER_IDS = "private_send_provider_ids"
+    private val PRIVATE_SEND_PROVIDER_IDS_SYNC_TIME = "private_send_provider_ids_sync_time"
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val _utxoExpertModeEnabledFlow = MutableStateFlow(preferences.getBoolean(UTXO_EXPERT_MODE, false))
@@ -172,6 +174,21 @@ class LocalStorageManager(
         get() = preferences.getLong(USWAP_SUSPENSIONS_SYNC_TIME, 0)
         set(value) {
             preferences.edit { putLong(USWAP_SUSPENSIONS_SYNC_TIME, value) }
+        }
+
+    // Confidential provider ids as JSON, cached so a cold launch keeps offering private send
+    // until the next sync. Null means never stored, which is what makes the manager sync
+    // regardless of the interval.
+    override var privateSendProviderIds: String?
+        get() = preferences.getString(PRIVATE_SEND_PROVIDER_IDS, null)
+        set(value) {
+            preferences.edit { putString(PRIVATE_SEND_PROVIDER_IDS, value) }
+        }
+
+    override var privateSendProviderIdsSyncTime: Long
+        get() = preferences.getLong(PRIVATE_SEND_PROVIDER_IDS_SYNC_TIME, 0)
+        set(value) {
+            preferences.edit { putLong(PRIVATE_SEND_PROVIDER_IDS_SYNC_TIME, value) }
         }
 
     override var zcashAccountIds: Set<String>
@@ -611,6 +628,13 @@ class LocalStorageManager(
             balanceTabButtonsEnabledFlow.update { value }
         }
 
+    override var chartButtonEnabled: Boolean
+        get() = preferences.getBoolean("chartButtonEnabled", true)
+        set(value) {
+            preferences.edit { putBoolean("chartButtonEnabled", value) }
+            chartButtonEnabledFlow.update { value }
+        }
+
     override var amountRoundingEnabled: Boolean
         get() = preferences.getBoolean("amountRoundingEnabled", true)
         set(value) {
@@ -619,6 +643,7 @@ class LocalStorageManager(
         }
 
     override val balanceTabButtonsEnabledFlow = MutableStateFlow(balanceTabButtonsEnabled)
+    override val chartButtonEnabledFlow = MutableStateFlow(chartButtonEnabled)
     override val amountRoundingEnabledFlow = MutableStateFlow(amountRoundingEnabled)
 
     override var personalSupportEnabled: Boolean

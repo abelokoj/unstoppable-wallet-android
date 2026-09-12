@@ -12,8 +12,11 @@ import io.horizontalsystems.marketkit.models.CoinCategory
 import io.horizontalsystems.marketkit.models.CoinInvestment
 import io.horizontalsystems.marketkit.models.CoinTreasury
 import io.horizontalsystems.marketkit.models.FullCoin
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import java.util.Optional
+import kotlinx.coroutines.flow.Flow
+import timber.log.Timber
 
 val <T> Optional<T>.orNull: T?
     get() = when {
@@ -158,6 +161,7 @@ val BlockchainType.blockTime : Long?
         BlockchainType.Fantom,
         BlockchainType.Base,
         BlockchainType.ZkSync,
+        BlockchainType.RobinhoodChain,
             -> 2
 
         BlockchainType.Gnosis,
@@ -184,3 +188,27 @@ val BlockchainType.blockTime : Long?
 
         else -> null
     }
+
+/**
+ * Collects the flow, containing non-cancellation failures from both the upstream flow and
+ * the [action] handler, so one bad update or a failing source cannot cancel sibling
+ * coroutines in a shared scope. A handler failure keeps the collector alive; an upstream
+ * failure ends this collector only.
+ */
+suspend fun <T> Flow<T>.collectSafely(action: suspend (T) -> Unit) {
+    try {
+        collect { value ->
+            try {
+                action(value)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "collectSafely: update handler failed")
+            }
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.e(e, "collectSafely: upstream flow failed")
+    }
+}

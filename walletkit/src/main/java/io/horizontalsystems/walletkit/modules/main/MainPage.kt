@@ -1,6 +1,10 @@
 package io.horizontalsystems.walletkit.modules.main
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -27,7 +31,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.managers.RateAppManager
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.core.stats.StatPage
@@ -78,10 +84,20 @@ private fun MainScreen(
     transactionsViewModel: TransactionsViewModel,
     navigation: HSNavigation,
     parentScreenContentKey: String,
-    viewModel: MainViewModel = viewModel(factory = MainModule.Factory())
+    // Activity-scoped so the navigation root (Nav3) can reach it for widget deeplinks
+    // before this screen is composed. EntryPage is never popped, so the lifetime is the same.
+    viewModel: MainViewModel = MainModule.viewModel(LocalActivity.current as ComponentActivity)
 ) {
     val activityIntent by mainActivityViewModel.intentLiveData.observeAsState()
-    LaunchedEffect(activityIntent) {
+    val isLocked by App.pinComponent.isLockedFlow.collectAsStateWithLifecycle()
+    // MainScreen stays composed under the unlock overlay, so without this gate a deeplink opened
+    // while the app is locked would be acted on behind the lock screen — referral registration,
+    // TonConnect links, prefilled send flows, the WalletConnect list. The intent is deliberately
+    // left unconsumed (no intentHandled() call) so this effect re-runs when isLocked flips back.
+    // Market deeplinks (widget taps) never get here: Nav3 opens them at the navigation root.
+    LaunchedEffect(activityIntent, isLocked) {
+        if (isLocked) return@LaunchedEffect
+
         activityIntent?.data?.let {
             delay(1000)
             viewModel.handleDeepLink(it)
@@ -149,7 +165,14 @@ private fun MainScreen(
         }
     ) { paddingValues ->
         Column {
-            Crossfade(uiState.selectedTabItem) { navItem ->
+            Crossfade(
+                targetState = uiState.selectedTabItem,
+                // snapTabSwitch arrives in the same UiState emission as the tab itself, so a
+                // locked-time switch (lock fallback, widget deeplink) can never start animating
+                // before the lock state reaches this composition. isLocked stays as
+                // belt-and-braces: snapping while locked is always safe.
+                animationSpec = if (uiState.snapTabSwitch || isLocked) snap() else tween()
+            ) { navItem ->
                 when (navItem) {
                     MainNavigation.Market -> MarketScreen(navigation)
                     MainNavigation.Balance -> BalanceScreen(navigation)

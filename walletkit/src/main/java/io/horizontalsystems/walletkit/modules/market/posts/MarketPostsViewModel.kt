@@ -4,11 +4,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.entities.ViewState
 import io.horizontalsystems.walletkit.helpers.DateHelper
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 
 class MarketPostsViewModel(private val service: MarketPostService) : ViewModel() {
 
@@ -34,7 +34,7 @@ class MarketPostsViewModel(private val service: MarketPostService) : ViewModel()
 
     init {
         viewModelScope.launch {
-            service.stateObservable.asFlow().collect { state ->
+            service.stateFlow.collectSafely { state ->
                 isRefreshingLiveData.postValue(false)
 
                 state.dataOrNull?.let { posts ->

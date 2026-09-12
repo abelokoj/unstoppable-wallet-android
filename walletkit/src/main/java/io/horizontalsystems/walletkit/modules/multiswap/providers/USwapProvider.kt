@@ -21,8 +21,7 @@ import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.marketkit.models.TokenQuery
 import io.horizontalsystems.marketkit.models.TokenType
-import io.horizontalsystems.tronkit.hexStringToByteArray
-import io.horizontalsystems.tronkit.network.CreatedTransaction
+import io.horizontalsystems.walletkit.core.hexStringToByteArray
 import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderAction
 import kotlinx.coroutines.CancellationException
 import org.json.JSONObject
@@ -69,30 +68,7 @@ class USwapProvider(
         mapOf("x-api-key" to App.appConfigProvider.uswapApiKey)
     ).create(UnstoppableAPI::class.java)
 
-    private val blockchainTypes = mapOf(
-        "43114" to BlockchainType.Avalanche,
-        "10" to BlockchainType.Optimism,
-        "8453" to BlockchainType.Base,
-        "728126428" to BlockchainType.Tron,
-        "42161" to BlockchainType.ArbitrumOne,
-        "56" to BlockchainType.BinanceSmartChain,
-        "solana" to BlockchainType.Solana,
-        "137" to BlockchainType.Polygon,
-        "bitcoin" to BlockchainType.Bitcoin,
-        "1" to BlockchainType.Ethereum,
-        "zcash" to BlockchainType.Zcash,
-        "bitcoincash" to BlockchainType.BitcoinCash,
-        "litecoin" to BlockchainType.Litecoin,
-        "stellar" to BlockchainType.Stellar,
-        "ton" to BlockchainType.Ton,
-        "dash" to BlockchainType.Dash,
-        "ecash" to BlockchainType.ECash,
-        "monero" to BlockchainType.Monero,
-        "zano" to BlockchainType.Zano,
-        "100" to BlockchainType.Gnosis,
-//        "" to BlockchainType.Fantom,
-//        "" to BlockchainType.ZkSync,
-    )
+    private val blockchainTypes = chainIdBlockchainTypes
 
     private val chainIdByBlockchainType = blockchainTypes.entries.associate { (k, v) -> v to k }
 
@@ -156,6 +132,7 @@ class USwapProvider(
                 BlockchainType.Fantom,
                 BlockchainType.Gnosis,
                 BlockchainType.ZkSync,
+                BlockchainType.RobinhoodChain,
                     -> {
                     val tokenType = if (!token.address.isNullOrBlank()) {
                         TokenType.Eip20(token.address)
@@ -344,20 +321,9 @@ class USwapProvider(
 
         val approvalAddress = bestRoute.approvalSpenderOrExecution
         val actionRequired = approvalAddress?.let { approvalAddress ->
-            when {
-                tokenIn.blockchainType.isEvm -> {
-                    val plugin = ChainRegistry[tokenIn.blockchainType]
-                    val allowance = plugin?.eip20Allowance(tokenIn, approvalAddress)
-                    plugin?.eip20ApproveAction(allowance, amountIn, approvalAddress, tokenIn)
-                }
-
-                tokenIn.blockchainType == BlockchainType.Tron -> {
-                    val allowance = SwapHelper.getAllowanceTrc20(tokenIn, approvalAddress)
-                    SwapHelper.actionApproveTrc20(allowance, amountIn, approvalAddress, tokenIn)
-                }
-
-                else -> null
-            }
+            val plugin = ChainRegistry[tokenIn.blockchainType]
+            val allowance = plugin?.eip20Allowance(tokenIn, approvalAddress)
+            plugin?.eip20ApproveAction(allowance, amountIn, approvalAddress, tokenIn)
         }
 
         return SwapQuote(
@@ -470,6 +436,71 @@ class USwapProvider(
         return unstoppableAPI.checkAddresses(addresses.joinToString(",")).passedAmlCheck
     }
 
+    // ----- Private send (same-asset confidential transfer) -----
+
+    // The server-side id ("NEAR_CONFIDENTIAL"), matched against GET /providers by the
+    // private send stack. `id` is the app-side "u_…" form used in swap records.
+    val serverProviderId: String get() = provider.id
+
+    fun supportsPrivateSend(token: Token) = supports(token, token)
+
+    // /v2/rate in exact-output mode: same asset on both sides, buyAmount = what the recipient
+    // must receive. Returns the whole response so the caller can read providerErrors when no
+    // route comes back.
+    suspend fun privateSendRate(
+        token: Token,
+        amountOut: BigDecimal,
+        slippage: BigDecimal,
+    ): UnstoppableAPI.Response.Rate {
+        val asset = assetsMap[token] ?: deriveIdentifier(token) ?: throw IllegalStateException("No identifier for token")
+        val chainId = if (assetsMap.isEmpty()) chainIdByBlockchainType[token.blockchainType] else null
+
+        return unstoppableAPI.rate(
+            UnstoppableAPI.Request.Rate(
+                sellAsset = asset,
+                buyAsset = asset,
+                slippage = slippage,
+                providers = setOf(provider.id),
+                chainId = chainId,
+                buyAmount = amountOut.toPlainString(),
+            )
+        )
+    }
+
+    // /v2/swap in exact-output mode. `sourceAddress` is deliberately never sent: it is optional
+    // for transfer providers, and handing the provider the sender's address defeats the point
+    // of a private send. The committed route's execution then carries the deposit address and
+    // the exact amount to transfer.
+    suspend fun privateSendCommit(
+        token: Token,
+        amountOut: BigDecimal,
+        destinationAddress: String,
+        refundAddress: String,
+        slippage: BigDecimal,
+    ): UnstoppableAPI.Response.Route {
+        val asset = assetsMap[token] ?: deriveIdentifier(token) ?: throw IllegalStateException("No identifier for token")
+        val chainId = if (assetsMap.isEmpty()) chainIdByBlockchainType[token.blockchainType] else null
+
+        val route = unstoppableAPI.swap(
+            UnstoppableAPI.Request.Swap(
+                sellAsset = asset,
+                buyAsset = asset,
+                slippage = slippage,
+                provider = provider.id,
+                destinationAddress = destinationAddress,
+                refundAddress = refundAddress,
+                chainId = chainId,
+                buyAmount = amountOut.toPlainString(),
+            )
+        )
+
+        if (route.uuid.isNullOrEmpty()) {
+            throw IllegalStateException("Swap is not trackable (no uuid)")
+        }
+
+        return route
+    }
+
     override suspend fun fetchFinalQuote(
         tokenIn: Token,
         tokenOut: Token,
@@ -556,6 +587,21 @@ class USwapProvider(
         )
     }
 
+    // A deposit attachment the chain cannot deliver readably must fail the route rather than
+    // be silently kept local (Monero user note) or sent encrypted (Zano comment, shielded
+    // Zcash memo): the provider matches the incoming deposit to its order by this identifier,
+    // and a deposit it cannot match is typically unrecoverable.
+    private fun resolvedDeliverableMemo(
+        execution: UnstoppableAPI.Response.Execution,
+        blockchainType: BlockchainType,
+    ): String? {
+        val memo = execution.resolvedMemo() ?: return null
+        if (!blockchainType.memoDelivery.deliversAttachment) {
+            throw IllegalStateException("Deposit attachment cannot be delivered on $blockchainType")
+        }
+        return memo
+    }
+
     private fun getSendTransactionData(
         tokenIn: Token,
         amountIn: BigDecimal,
@@ -605,7 +651,8 @@ class USwapProvider(
 
                 return SendTransactionData.Btc(
                     address = execution.resolvedDepositAddress() ?: throw IllegalStateException("No deposit address"),
-                    memo = execution.resolvedMemo(),
+                    // Deliverable here: the memo becomes an OP_RETURN output the provider can read.
+                    memo = resolvedDeliverableMemo(execution, blockchainType),
                     amount = amountIn,
                     recommendedGasRate = null,
                     minimumSendAmount = null,
@@ -639,8 +686,7 @@ class USwapProvider(
                     throw IllegalStateException("No tron tx found")
                 }
 
-                val rawTransaction = APIClient.gson.fromJson(tx, CreatedTransaction::class.java)
-                return SendTransactionData.Tron.WithCreateTransaction(rawTransaction)
+                return SendTransactionData.Tron.WithCreateTransaction(tx.toString())
             }
 
             BlockchainType.Stellar -> {
@@ -651,7 +697,9 @@ class USwapProvider(
                     return SendTransactionData.Stellar.WithTransactionEnvelope(xdr)
                 }
 
-                val memo = execution.resolvedMemo()
+                // Deliverable here: a Stellar text memo is a plain, publicly readable field of
+                // the payment transaction.
+                val memo = resolvedDeliverableMemo(execution, blockchainType)
                     ?: throw IllegalStateException("No memo found")
 
                 return SendTransactionData.Stellar.Regular(
@@ -673,10 +721,14 @@ class USwapProvider(
                     throw IllegalStateException("Only simple ZEC tx providers are supported")
                 }
 
+                // Throws on any attachment: the memo would ride shielded (encrypted, unverifiable
+                // that the provider reads it) or not at all on a transparent address. Neither
+                // delivers the crediting identifier, and a deposit the provider cannot match is
+                // unrecoverable.
                 return SendTransactionData.Zcash.Regular(
                     address = execution.resolvedDepositAddress() ?: throw IllegalStateException("No deposit address"),
                     amount = amountIn,
-                    memo = execution.resolvedMemo() ?: ""
+                    memo = resolvedDeliverableMemo(execution, blockchainType) ?: ""
                 )
             }
 
@@ -685,10 +737,13 @@ class USwapProvider(
                     throw IllegalStateException("Only simple XMR tx providers are supported")
                 }
 
+                // Throws on any attachment: a Monero memo never leaves this device — the adapter
+                // stores it as a wallet user note against the tx id, so the provider can never
+                // read the identifier it needs to match this deposit.
                 return SendTransactionData.Monero(
                     address = execution.resolvedDepositAddress() ?: throw IllegalStateException("No deposit address"),
                     amount = amountIn,
-                    memo = execution.resolvedMemo()
+                    memo = resolvedDeliverableMemo(execution, blockchainType)
                 )
             }
 
@@ -697,10 +752,13 @@ class USwapProvider(
                     throw IllegalStateException("Only simple ZANO tx providers are supported")
                 }
 
+                // Throws on any attachment: the adapter passes a Zano memo as the transfer's
+                // "comment", which travels encrypted on-chain — whether the provider decrypts
+                // and reads it is unverifiable from here, and the failure mode is lost funds.
                 return SendTransactionData.Zano(
                     address = execution.resolvedDepositAddress() ?: throw IllegalStateException("No deposit address"),
                     amount = amountIn,
-                    memo = execution.resolvedMemo()
+                    memo = resolvedDeliverableMemo(execution, blockchainType)
                 )
             }
 
@@ -711,6 +769,36 @@ class USwapProvider(
     }
 
     companion object {
+        // The server's chain identifiers. Shared: instances resolve tokens through it, and the
+        // private send stack uses it to recognise a committed route's execution.chain — which is
+        // sometimes a chain id ("56") and sometimes a name ("bsc"), so only a recognised chain
+        // resolving to a DIFFERENT blockchain counts as a mismatch there.
+        val chainIdBlockchainTypes = mapOf(
+            "43114" to BlockchainType.Avalanche,
+            "10" to BlockchainType.Optimism,
+            "8453" to BlockchainType.Base,
+            "728126428" to BlockchainType.Tron,
+            "42161" to BlockchainType.ArbitrumOne,
+            "56" to BlockchainType.BinanceSmartChain,
+            "solana" to BlockchainType.Solana,
+            "137" to BlockchainType.Polygon,
+            "bitcoin" to BlockchainType.Bitcoin,
+            "1" to BlockchainType.Ethereum,
+            "zcash" to BlockchainType.Zcash,
+            "bitcoincash" to BlockchainType.BitcoinCash,
+            "litecoin" to BlockchainType.Litecoin,
+            "stellar" to BlockchainType.Stellar,
+            "ton" to BlockchainType.Ton,
+            "dash" to BlockchainType.Dash,
+            "ecash" to BlockchainType.ECash,
+            "monero" to BlockchainType.Monero,
+            "zano" to BlockchainType.Zano,
+            "100" to BlockchainType.Gnosis,
+            "4663" to BlockchainType.RobinhoodChain,
+//            "" to BlockchainType.Fantom,
+//            "" to BlockchainType.ZkSync,
+        )
+
         // Exolix's shielded Zcash route. Internal routing detail — the app always quotes ZEC.ZEC
         // and lets the server expand it into this shielded variant.
         private const val ZCASH_SHIELDED_ASSET = "ZEC.ZECSHIELDED"
@@ -731,6 +819,7 @@ class USwapProvider(
             BlockchainType.Base to "BASE",
             BlockchainType.Avalanche to "AVAX",
             BlockchainType.BinanceSmartChain to "BSC",
+            BlockchainType.RobinhoodChain to "ROBINHOOD",
         )
     }
 
@@ -787,28 +876,33 @@ interface UnstoppableAPI {
 
     object Request {
         // /v2/rate request — compare routes; narrow the fan-out to a single provider.
+        // Exactly one of sellAmount / buyAmount must be set — neither or both is a 400.
+        // buyAmount asks the route to price backwards from an exact output.
         data class Rate(
             val sellAsset: String,
             val buyAsset: String,
-            val sellAmount: String,
+            val sellAmount: String? = null,
             val slippage: BigDecimal,
             val providers: Set<String>,
             val chainId: String? = null,
+            val buyAmount: String? = null,
         )
 
         // /v2/swap request — commit with the single provider. `sourceAddress` is the build
         // signal: supply it and the server returns a ready-to-sign tx; omit it and we build
-        // the tx ourselves (UTXO/Zcash/Monero/Zano/Stellar).
+        // the tx ourselves (UTXO/Zcash/Monero/Zano/Stellar). Same one-of contract for
+        // sellAmount / buyAmount as on Rate.
         data class Swap(
             val sellAsset: String,
             val buyAsset: String,
-            val sellAmount: String,
+            val sellAmount: String? = null,
             val slippage: BigDecimal,
             val provider: String,
             val destinationAddress: String,
             val refundAddress: String? = null,
             val sourceAddress: String? = null,
             val chainId: String? = null,
+            val buyAmount: String? = null,
         )
 
         data class Track(
@@ -842,6 +936,16 @@ interface UnstoppableAPI {
             val contacts: Contacts? = null,
             // Whole-provider kill switch.
             val suspended: Boolean = false,
+            // How this provider's routes execute: signed_transaction | transfer | …
+            // Read by the private send stack, which only accepts plain-transfer providers.
+            val executionType: String? = null,
+            // Marks a provider routing through a confidential rail; such providers are never
+            // offered on the ordinary swap screen. The live server sends a string level
+            // ("none", "basic"); the originally documented shape was an object
+            // ({"confidential": true}). Modeled as a JsonElement and interpreted in
+            // [isConfidential] so either wire form works and neither can break the shared
+            // /providers parse (this DTO also serves the suspensions sync).
+            val privacy: JsonElement? = null,
             // Scoped restrictions — asset, chain or directed pair. See SwapSuspension. Nullable
             // because the field is absent for the many providers that carry no rules, and Gson
             // fills absent fields with null rather than the declared default.
@@ -853,6 +957,26 @@ interface UnstoppableAPI {
                 val twitter: String? = null,
                 val website: String? = null,
             )
+
+            // Any privacy level other than "none" marks the rail as confidential; the object
+            // form reports it explicitly.
+            val isConfidential: Boolean
+                get() {
+                    val privacy = privacy ?: return false
+                    return when {
+                        privacy.isJsonPrimitive ->
+                            privacy.asJsonPrimitive.isString &&
+                                    privacy.asString.isNotEmpty() &&
+                                    privacy.asString != "none"
+
+                        privacy.isJsonObject ->
+                            privacy.asJsonObject.get("confidential")
+                                ?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isBoolean }
+                                ?.asBoolean == true
+
+                        else -> false
+                    }
+                }
         }
 
         data class Tokens(
@@ -872,9 +996,33 @@ interface UnstoppableAPI {
 
         // /v2/rate response — a list of routes to compare. Each route carries economics
         // only (no execution, no uuid — those appear after committing with /v2/swap).
+        // A provider that declined to route lands in providerErrors instead of routes.
         data class Rate(
-            val routes: List<Route>
+            val routes: List<Route>,
+            val providerErrors: List<ProviderError>? = null,
         )
+
+        // A per-provider refusal. A failed /v2/rate answers 200 with { routes, providerErrors };
+        // a failed /v2/swap answers a non-2xx with this same field set as the body itself
+        // ({ error, provider, errorCode?, minimumAmount?, maximumAmount? }). Tracking /
+        // diagnostics only — never shown in the UI verbatim.
+        data class ProviderError(
+            val provider: String? = null,
+            val providerId: String? = null,
+            // The documented key is "error" on both surfaces; "message" is what some
+            // providers actually send, so both are accepted.
+            val message: String? = null,
+            val error: String? = null,
+            val errorCode: String? = null,
+            val minimumAmount: BigDecimal? = null,
+            val maximumAmount: BigDecimal? = null,
+        ) {
+            val resolvedProviderId: String?
+                get() = provider ?: providerId
+
+            val resolvedMessage: String?
+                get() = message ?: error
+        }
 
         // A single route. From /rate it is economics-only; from /swap it additionally
         // carries an `execution` block and a top-level `uuid` tracking handle.
@@ -898,6 +1046,10 @@ interface UnstoppableAPI {
             // carries exactly one — how a multi-provider request (StellarSwapProvider's
             // waterfall) knows which provider to commit with.
             val providers: List<String>? = null,
+            // In exact-output mode this is the answer: the amount to deposit, carrying the
+            // slippage buffer over meta.near.minSellAmount.
+            val sellAmount: BigDecimal? = null,
+            val meta: Meta? = null,
         ) {
             // should be getter, otherwise it will be null when restored from json
             val expectedBuyAmountOrZero: BigDecimal
@@ -913,6 +1065,20 @@ interface UnstoppableAPI {
             data class EstimatedTime(
                 val total: Long
             )
+
+            // Exact-output metadata. minSellAmount is the floor below which the deposit is
+            // refunded whole and no swap happens.
+            data class Meta(
+                val near: Near? = null,
+            ) {
+                data class Near(
+                    val minSellAmount: BigDecimal? = null,
+                    val exactOutput: Boolean? = null,
+                )
+            }
+
+            val minSellAmount: BigDecimal?
+                get() = meta?.near?.minSellAmount
         }
 
         // /v2 `execution` discriminated union — switch on `method`. Modeled as one flat

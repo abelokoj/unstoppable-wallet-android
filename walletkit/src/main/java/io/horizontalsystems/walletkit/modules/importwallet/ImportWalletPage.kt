@@ -32,6 +32,7 @@ import androidx.credentials.exceptions.NoCredentialException
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.Caution
+import io.horizontalsystems.walletkit.core.launchSafe
 import io.horizontalsystems.walletkit.core.NavigationType
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.core.stats.StatPage
@@ -90,8 +91,10 @@ private fun ImportWalletScreen(
 
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { uriNonNull ->
-            context.contentResolver.openInputStream(uriNonNull)?.use { inputStream ->
-                try {
+            // openInputStream itself can throw (picked file deleted, cloud
+            // provider failed to stream) — keep it inside the try.
+            try {
+                (context.contentResolver.openInputStream(uriNonNull) ?: error("Unable to open file")).use { inputStream ->
                     inputStream.bufferedReader().use { br ->
                         val jsonString = br.readText()
                         //validate json format
@@ -113,13 +116,13 @@ private fun ImportWalletScreen(
                             statPageTo = StatPage.ImportWalletFromFiles
                         )
                     }
-                } catch (e: Throwable) {
-                    Log.e("TAG", "ImportWalletScreen: ", e)
-                    //show json parsing error
-                    scope.launch {
-                        delay(300)
-                        showBottomSheet = true
-                    }
+                }
+            } catch (e: Throwable) {
+                Log.e("TAG", "ImportWalletScreen: ", e)
+                //show json parsing error
+                scope.launch {
+                    delay(300)
+                    showBottomSheet = true
                 }
             }
         }
@@ -218,7 +221,7 @@ private fun ImportWalletScreen(
                     subtitle = stringResource(R.string.ImportWallet_BackupFile_Description).hs,
                     borderTop = true
                 ) {
-                    restoreLauncher.launch(arrayOf("application/json"))
+                    restoreLauncher.launchSafe(arrayOf("application/json"), view)
                 }
             }
         }
@@ -238,7 +241,7 @@ private fun ImportWalletScreen(
                     cautionType = Caution.Type.Warning,
                     cancelText = stringResource(R.string.Button_Cancel),
                     onConfirm = {
-                        restoreLauncher.launch(arrayOf("application/json"))
+                        restoreLauncher.launchSafe(arrayOf("application/json"), view)
                         scope.launch {
                             sheetState.hide()
                             showBottomSheet = false

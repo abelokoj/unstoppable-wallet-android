@@ -11,3 +11,5 @@
 keystore.properties
 *.keystore
 !app/test.keystore
+.kotlin/
+gradle/gradle-daemon-jvm.properties

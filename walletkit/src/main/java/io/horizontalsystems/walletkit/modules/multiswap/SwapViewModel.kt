@@ -7,6 +7,7 @@ import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.IAccountManager
 import io.horizontalsystems.walletkit.core.IAdapterManager
 import io.horizontalsystems.walletkit.core.ViewModelUiState
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.managers.CurrencyManager
 import io.horizontalsystems.walletkit.core.managers.MarketKitWrapper
 import io.horizontalsystems.walletkit.core.managers.SwapTermsManager
@@ -31,7 +32,6 @@ import io.horizontalsystems.marketkit.models.TokenType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -70,6 +70,7 @@ class SwapViewModel(
     private var fiatAmountIn: BigDecimal? = null
     private var fiatAmountOut: BigDecimal? = null
     private var fiatAmountInputEnabled = false
+    private var hasRateOut = false
     private var currency = currencyManager.baseCurrency
     private var requoteOnTimeout = true
     private var swapTermsAccepted = swapTermsManager.swapTermsAcceptedStateFlow.value
@@ -127,6 +128,7 @@ class SwapViewModel(
         viewModelScope.launch {
             fiatServiceOut.stateFlow.collect {
                 fiatAmountOut = it.fiatAmount
+                hasRateOut = it.coinPrice != null && !it.coinPrice.expired
 
                 priceImpactService.setAmountOut(fiatAmountOut)
 
@@ -151,7 +153,7 @@ class SwapViewModel(
         }
 
         viewModelScope.launch {
-            adapterManager.adaptersReadyObservable.asFlow().collect {
+            adapterManager.adaptersReadyFlow.collectSafely {
                 balanceService.refresh()
             }
         }
@@ -272,6 +274,7 @@ class SwapViewModel(
         fiatAmountOut = fiatAmountOut,
         currency = currency,
         fiatAmountInputEnabled = fiatAmountInputEnabled,
+        hasRateOut = hasRateOut,
         needToAcceptTerms = !swapTermsAccepted && quoteState.quote?.provider?.requireTerms == true,
         amlChecking = amlChecking,
         initialShowRegularPrice = initialShowRegularPrice,
@@ -281,7 +284,23 @@ class SwapViewModel(
         ),
         allowanceActionSuppressed = allowanceActionSuppressed(),
         externalRecipientRequired = externalRecipientRequired(quoteState.tokenOut),
+        percentOptions = percentOptions(quoteState.tokenIn),
     )
+
+    // The network fee is only estimated on the confirmation screen, so 100% of an asset
+    // that also pays its own fee always ends in an insufficient balance error. Offer it
+    // only for tokens whose fee is paid with a separate native asset.
+    private fun percentOptions(tokenIn: Token?): List<Int> {
+        val feePaidFromAsset = when (tokenIn?.type) {
+            null,
+            TokenType.Native,
+            is TokenType.Derived,
+            is TokenType.AddressTyped,
+            is TokenType.Unsupported -> true
+            else -> false
+        }
+        return if (feePaidFromAsset) listOf(25, 50, 75) else listOf(25, 50, 75, 100)
+    }
 
     // tokenOut the account can't hold: the swap is deliverable only to an external
     // address, which the user is asked for before the confirmation screen
@@ -402,14 +421,19 @@ class SwapViewModel(
     fun onActionStarted(quote: SwapProviderQuote?) = quoteService.onActionStarted(quote)
     fun onActionCompleted() = quoteService.onActionCompleted()
 
-    fun startProceed() {
-        val provider = quoteState.quote?.provider ?: return
-        val tokenIn = quoteState.tokenIn ?: return
-        val amountIn = quoteState.amountIn ?: return
+    /**
+     * Returns whether the proceed flow actually started. The caller latches its button on the
+     * result, so a call that bails out early — no quote yet, no amount — must not leave the button
+     * disabled with no event ever coming back to release it.
+     */
+    fun startProceed(): Boolean {
+        val provider = quoteState.quote?.provider ?: return false
+        val tokenIn = quoteState.tokenIn ?: return false
+        val amountIn = quoteState.amountIn ?: return false
 
         if (!provider.amlPrecheck) {
             viewModelScope.launch { amlCheckEventFlow.emit(AmlCheckEvent.Proceed) }
-            return
+            return true
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -434,6 +458,8 @@ class SwapViewModel(
                 emitState()
             }
         }
+
+        return true
     }
 
     fun getCurrentQuote() = quoteState.quote
@@ -502,6 +528,7 @@ data class SwapUiState(
     val fiatPriceImpact: BigDecimal?,
     val currency: Currency,
     val fiatAmountInputEnabled: Boolean,
+    val hasRateOut: Boolean,
     val fiatPriceImpactLevel: PriceImpactLevel?,
     val needToAcceptTerms: Boolean,
     val amlChecking: Boolean,
@@ -509,6 +536,7 @@ data class SwapUiState(
     val swapTimeStatus: SwapTimeStatus,
     val allowanceActionSuppressed: Boolean = false,
     val externalRecipientRequired: Boolean = false,
+    val percentOptions: List<Int> = listOf(25, 50, 75, 100),
 ) {
     val currentStep: SwapStep = when {
         quoting -> SwapStep.Quoting

@@ -30,6 +30,7 @@ import io.horizontalsystems.marketkit.models.FullCoin
 import io.horizontalsystems.marketkit.models.LinkType
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.alternativeImageUrl
 import io.horizontalsystems.walletkit.core.iconPlaceholder
 import io.horizontalsystems.walletkit.core.imageUrl
@@ -175,6 +176,7 @@ fun CoinOverviewScreen(
                                             if (chartIndicatorsState.hasActiveSubscription) {
                                                 if (chartIndicatorsState.enabled) {
                                                     ButtonSecondaryDefault(
+                                                        modifier = Modifier.height(28.dp),
                                                         title = stringResource(id = R.string.Button_Hide),
                                                         onClick = {
                                                             viewModel.disableChartIndicators()
@@ -242,21 +244,27 @@ fun CoinOverviewScreen(
                                         Spacer(modifier = Modifier.height(24.dp))
                                         TokenVariants(
                                             tokenVariants = tokenVariants,
-                                            onClickAddToWallet = {
-                                                manageWalletsViewModel.enable(it)
+                                            // The page is browsable while locked; changing the
+                                            // wallet is not.
+                                            onClickAddToWallet = { token ->
+                                                App.lockGate.requireUnlocked {
+                                                    manageWalletsViewModel.enable(token)
 
-                                                stat(
-                                                    page = StatPage.CoinOverview,
-                                                    event = StatEvent.AddToWallet
-                                                )
+                                                    stat(
+                                                        page = StatPage.CoinOverview,
+                                                        event = StatEvent.AddToWallet
+                                                    )
+                                                }
                                             },
-                                            onClickRemoveWallet = {
-                                                manageWalletsViewModel.disable(it)
+                                            onClickRemoveWallet = { token ->
+                                                App.lockGate.requireUnlocked {
+                                                    manageWalletsViewModel.disable(token)
 
-                                                stat(
-                                                    page = StatPage.CoinOverview,
-                                                    event = StatEvent.RemoveFromWallet
-                                                )
+                                                    stat(
+                                                        page = StatPage.CoinOverview,
+                                                        event = StatEvent.RemoveFromWallet
+                                                    )
+                                                }
                                             },
                                             onClickCopy = {
                                                 TextHelper.copyText(it)

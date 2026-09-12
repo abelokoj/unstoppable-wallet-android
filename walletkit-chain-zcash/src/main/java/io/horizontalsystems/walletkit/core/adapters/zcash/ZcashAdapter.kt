@@ -49,15 +49,13 @@ import io.horizontalsystems.walletkit.modules.transactions.FilterTransactionType
 import io.horizontalsystems.walletkit.core.toRawHexString
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
-import io.reactivex.BackpressureStrategy
-import io.reactivex.Flowable
-import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Instant
 import java.math.BigDecimal
@@ -93,9 +91,9 @@ class ZcashAdapter(
     private val synchronizer: CloseableSynchronizer
     private val transactionsProvider: ZcashTransactionsProvider
 
-    private val adapterStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
-    private val lastBlockUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
-    private val balanceUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
+    private val _adapterStateUpdatedFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _lastBlockUpdatedFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _balanceUpdatedFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private val accountType = (wallet.account.type as? AccountType.Mnemonic) ?: throw UnsupportedAccountException()
     private val seed = accountType.seed
@@ -115,7 +113,7 @@ class ZcashAdapter(
         set(value) {
             if (value != field) {
                 field = value
-                adapterStateUpdatedSubject.onNext(Unit)
+                _adapterStateUpdatedFlow.tryEmit(Unit)
             }
         }
 
@@ -125,8 +123,8 @@ class ZcashAdapter(
     override val balanceState: AdapterState
         get() = syncState
 
-    override val balanceStateUpdatedFlowable: Flowable<Unit>
-        get() = adapterStateUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER)
+    override val balanceStateUpdatedFlow: Flow<Unit>
+        get() = _adapterStateUpdatedFlow
 
     override var balanceData: BalanceData? = null
 
@@ -162,8 +160,8 @@ class ZcashAdapter(
             return statusInfo
         }
 
-    override val balanceUpdatedFlowable: Flowable<Unit>
-        get() = balanceUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER)
+    override val balanceUpdatedFlow: Flow<Unit>
+        get() = _balanceUpdatedFlow
 
     override val explorerTitle: String
         get() = "blockchair.com"
@@ -171,14 +169,14 @@ class ZcashAdapter(
     override val transactionsState: AdapterState
         get() = syncState
 
-    override val transactionsStateUpdatedFlowable: Flowable<Unit>
-        get() = adapterStateUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER)
+    override val transactionsStateUpdatedFlow: Flow<Unit>
+        get() = _adapterStateUpdatedFlow
 
     override val lastBlockInfo: LastBlockInfo?
         get() = synchronizer.latestHeight?.value?.toInt()?.let { LastBlockInfo(it) }
 
-    override val lastBlockUpdatedFlowable: Flowable<Unit>
-        get() = lastBlockUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER)
+    override val lastBlockUpdatedFlow: Flow<Unit>
+        get() = _lastBlockUpdatedFlow
 
     init {
         val walletInitMode = if (existingWallet) {
@@ -237,7 +235,7 @@ class ZcashAdapter(
 
         synchronizer.onProcessorErrorHandler = ::onProcessorError
         synchronizer.onProcessorErrorResolved = {
-            lastProcessorError = null
+            synchronized(syncStateLock) { lastProcessorError = null }
             Log.e("ZcashAdapter", "Processor error resolved")
         }
         synchronizer.onChainErrorHandler = ::onChainError
@@ -278,8 +276,7 @@ class ZcashAdapter(
         transactionType: FilterTransactionType,
         address: String?,
     ): Flow<List<TransactionRecord>> {
-        return transactionsProvider.getNewTransactionsFlowable(transactionType, address)
-            .asFlow()
+        return transactionsProvider.getNewTransactionsFlow(transactionType, address)
             .map { transactions ->
                 transactions.map { getTransactionRecord(it) }
             }
@@ -524,7 +521,9 @@ class ZcashAdapter(
 
     private fun onProcessorError(error: Throwable?): Boolean {
         Log.e("ZcashAdapter", "Processor error", error)
-        lastProcessorError = error
+        // Under the lock so a concurrent STOPPED status publishes this error rather than
+        // racing past it to the generic fallback message.
+        synchronized(syncStateLock) { lastProcessorError = error }
         return true
     }
 
@@ -533,16 +532,14 @@ class ZcashAdapter(
         Log.e("ZcashAdapter", "Chain error errorHeight = $errorHeight, rewindHeight = $rewindHeight")
     }
 
+    // Status and progress collectors run on separate coroutines; the lock keeps their
+    // check-then-write on syncState atomic (see ZcashSyncState for why ordering matters).
+    private val syncStateLock = Any()
+
     private fun onStatus(status: Synchronizer.Status) {
-        syncState = when (status) {
-            Synchronizer.Status.STOPPED -> AdapterState.Syncing()
-            Synchronizer.Status.DISCONNECTED -> AdapterState.NotSynced(lastProcessorError ?: Exception("Disconnected"))
-            Synchronizer.Status.SYNCING -> AdapterState.Syncing()
-            Synchronizer.Status.SYNCED -> {
-                lastProcessorError = null
-                AdapterState.Synced
-            }
-            Synchronizer.Status.INITIALIZING -> AdapterState.Syncing()
+        synchronized(syncStateLock) {
+            if (status == Synchronizer.Status.SYNCED) lastProcessorError = null
+            syncState = ZcashSyncState.fromStatus(status, lastProcessorError)
         }
     }
 
@@ -551,17 +548,16 @@ class ZcashAdapter(
         val blocksRemaining = calculateBlocksRemaining()
         val progressPercent = progress.toPercentage().coerceIn(0, 100)
 
-        if (blocksRemaining == null) return
-
-        syncState = AdapterState.Syncing(
-            progress = progressPercent,
-            blocksRemained = blocksRemaining
-        )
+        synchronized(syncStateLock) {
+            ZcashSyncState.fromProgress(syncState, progressPercent, blocksRemaining)?.let {
+                syncState = it
+            }
+        }
     }
 
     @Suppress("UNUSED_PARAMETER")
     private fun onProcessorInfo(processorInfo: CompactBlockProcessor.ProcessorInfo) {
-        lastBlockUpdatedSubject.onNext(Unit)
+        _lastBlockUpdatedFlow.tryEmit(Unit)
     }
 
     private fun calculateBlocksRemaining(): Long? {
@@ -585,7 +581,7 @@ class ZcashAdapter(
             unshielded = balanceUnshielded
         )
 
-        balanceUpdatedSubject.onNext(Unit)
+        _balanceUpdatedFlow.tryEmit(Unit)
     }
 
     private fun getTransactionRecord(transaction: ZcashTransaction): TransactionRecord {

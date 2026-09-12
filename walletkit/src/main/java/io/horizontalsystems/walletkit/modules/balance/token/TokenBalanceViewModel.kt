@@ -32,7 +32,6 @@ import io.horizontalsystems.marketkit.models.TokenType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 import java.math.BigDecimal
 
 class TokenBalanceViewModel(
@@ -61,9 +60,18 @@ class TokenBalanceViewModel(
     private var alertUnshieldedBalance: BigDecimal? = null
     private var attentionIcon: AttentionIcon? = null
     private var showTronNotActiveAlert: Boolean? = null
+    private var showSyncErrorAlert: Boolean? = null
     private var zcashMigrationRequiredAmount: String? = null
+    private var chartButtonEnabled = localStorage.chartButtonEnabledFlow.value
 
     init {
+        viewModelScope.launch {
+            localStorage.chartButtonEnabledFlow.collect {
+                chartButtonEnabled = it
+                emitState()
+            }
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             balanceService.balanceItemFlow.collect { balanceItem ->
                 balanceItem?.let {
@@ -83,7 +91,7 @@ class TokenBalanceViewModel(
         }
 
         viewModelScope.launch {
-            transactionsService.itemsObservable.asFlow().collect {
+            transactionsService.itemsFlow.collect {
                 updateTransactions(it)
             }
         }
@@ -120,7 +128,9 @@ class TokenBalanceViewModel(
         alertUnshieldedBalance = alertUnshieldedBalance,
         attentionIcon = attentionIcon,
         showTronNotActiveAlert = showTronNotActiveAlert ?: false,
+        showSyncErrorAlert = showSyncErrorAlert ?: false,
         zcashMigrationRequiredAmount = zcashMigrationRequiredAmount,
+        chartButtonEnabled = chartButtonEnabled,
     )
 
     private fun setReceiveAddressForWatchAccount() {
@@ -171,6 +181,10 @@ class TokenBalanceViewModel(
 
         if (balanceViewItem.attentionIcon?.type == AttentionIconType.TronNotActive && showTronNotActiveAlert == null) {
             showTronNotActiveAlert = true
+        }
+
+        if (balanceViewItem.attentionIcon?.type == AttentionIconType.SyncError && showSyncErrorAlert == null) {
+            showSyncErrorAlert = true
         }
 
         updateErrorState()
@@ -260,6 +274,11 @@ class TokenBalanceViewModel(
 
     fun hideTronNotActiveAlert() {
         showTronNotActiveAlert = false
+        emitState()
+    }
+
+    fun hideSyncErrorAlert() {
+        showSyncErrorAlert = false
         emitState()
     }
 

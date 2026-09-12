@@ -26,11 +26,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 import java.util.concurrent.Executors
@@ -51,8 +47,7 @@ class EvmAccountManager(
 
     init {
         singleDispatcherCoroutineScope.launch {
-            evmKitManager.kitStartedObservable
-                .asFlow()
+            evmKitManager.kitStartedFlow
                 .collect { started ->
                     handleStarted(started)
                 }
@@ -79,12 +74,25 @@ class EvmAccountManager(
         val evmKitWrapper = evmKitManager.evmKitWrapper ?: return
         val account = accountManager.activeAccount ?: return
 
+        // kitStartedFlow is a StateFlow and may conflate a rapid false -> true, so the
+        // collector for the previous wrapper has to be dropped here, not only on `false`.
+        transactionSubscriptionJob?.cancel()
         transactionSubscriptionJob = coroutineScope.launch {
-            evmKitWrapper.evmKit.allTransactionsFlowable.asFlow().cancellable()
+            evmKitWrapper.evmKit.allTransactionsFlow
                 .collect { (fullTransactions, initial) ->
                     handle(fullTransactions, account, evmKitWrapper, initial)
                 }
         }
+    }
+
+    // ZkSync reports plain ETH movements as ERC-20 transfers of the L2 ETH system
+    // contract. It is not a real ERC-20 (every eth_call on it reverts since protocol
+    // upgrade v24), so auto-enabling it creates a permanently unsyncable duplicate of
+    // the native ETH wallet.
+    private fun isBlockedTokenType(tokenType: TokenType): Boolean {
+        if (blockchainType != BlockchainType.ZkSync) return false
+        val address = (tokenType as? TokenType.Eip20)?.address ?: return false
+        return address.equals(ZKSYNC_L2_ETH_ADDRESS, ignoreCase = true)
     }
 
     private fun handle(fullTransactions: List<FullTransaction>, account: Account, evmKitWrapper: EvmKitWrapper, initial: Boolean) {
@@ -156,8 +164,8 @@ class EvmAccountManager(
         }
 
         handle(
-            foundTokens = foundTokens.toList(),
-            suspiciousTokenTypes = suspiciousTokenTypes.minus(foundTokens.map { it.tokenType }.toSet()).toList(),
+            foundTokens = foundTokens.filterNot { isBlockedTokenType(it.tokenType) },
+            suspiciousTokenTypes = suspiciousTokenTypes.minus(foundTokens.map { it.tokenType }.toSet()).filterNot(::isBlockedTokenType),
             account = account,
             evmKit = evmKitWrapper.evmKit
         )
@@ -238,6 +246,7 @@ class EvmAccountManager(
     }
 
     private suspend fun handle(tokenInfos: List<TokenInfo>, account: Account, evmKit: EthereumKit) = withContext(Dispatchers.IO) {
+        if (!tokenAutoEnableManager.autoEnableTokensOnReceive) return@withContext
 //        Log.e("AAA", "handle tokens ${tokenInfos.size} \n ${tokenInfos.joinToString(separator = " ") { it.type.id }}")
 
         val existingWallets = walletManager.activeWallets
@@ -263,7 +272,7 @@ class EvmAccountManager(
             async {
                 if (contractAddress != null) {
                     val balance = try {
-                        dataProvider.getBalance(contractAddress, userAddress).await()
+                        dataProvider.getBalance(contractAddress, userAddress)
                     } catch (error: Throwable) {
                         null
                     }
@@ -293,6 +302,10 @@ class EvmAccountManager(
         if (enabledWallets.isNotEmpty()) {
             walletManager.saveEnabledWallets(enabledWallets)
         }
+    }
+
+    companion object {
+        private const val ZKSYNC_L2_ETH_ADDRESS = "0x000000000000000000000000000000000000800a"
     }
 
     data class TokenInfo(

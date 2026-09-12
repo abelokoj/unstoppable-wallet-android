@@ -37,7 +37,8 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
     override val twitterBearerToken = BuildConfig.TWITTER_BEARER_TOKEN
     override val etherscanApiKey = BuildConfig.ETHERSCAN_KEY.split(",")
     override val bscscanApiKey = BuildConfig.BSCSCAN_KEY.split(",")
-    override val otherScanApiKey = BuildConfig.OTHER_SCAN_KEY.split(",")
+    override val blockscoutApiKey = BuildConfig.BLOCKSCOUT_KEY.split(",")
+    override val alchemyApiKey = BuildConfig.ALCHEMY_API_KEY.split(",")
     override val guidesUrl = BuildConfig.GUIDES_URL
     override val eduUrl = BuildConfig.EDU_URL
     override val faqUrl = BuildConfig.FAQ_URL
@@ -96,6 +97,7 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
                 BlockchainType.Optimism to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
                 BlockchainType.Base to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
                 BlockchainType.ZkSync to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
+                BlockchainType.RobinhoodChain to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
                 BlockchainType.ArbitrumOne to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
                 BlockchainType.Solana to "EKQVqxaXVJf1QaVUeNynKkJC7rT4abMnWtg5TtqY2S5F",
                 BlockchainType.Gnosis to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
@@ -119,6 +121,7 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
                 BlockchainType.Optimism to "0x731352dcF66014156B1560B832B56069e7b38ab1",
                 BlockchainType.Base to "0x731352dcF66014156B1560B832B56069e7b38ab1",
                 BlockchainType.ZkSync to "0x731352dcF66014156B1560B832B56069e7b38ab1",
+                BlockchainType.RobinhoodChain to "0x731352dcF66014156B1560B832B56069e7b38ab1",
                 BlockchainType.ArbitrumOne to "0x731352dcF66014156B1560B832B56069e7b38ab1",
                 BlockchainType.Solana to "ELFQmFXqdS6C1zVqZifs7WAmLKovdEPbWSnqomhZoK3B",
                 BlockchainType.Gnosis to "0x731352dcF66014156B1560B832B56069e7b38ab1",
@@ -145,7 +148,7 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
         "ETH" to BigDecimal("0.0005"),
         "POL" to BigDecimal("1"),
         "BNB" to BigDecimal("0.0002"),
-        "SOL" to BigDecimal("0.000001"),
+        "SOL" to BigDecimal("0.0001"),
     )
 
     override val chainalysisBaseUrl = BuildConfig.CHAINALYSIS_BASE_URL

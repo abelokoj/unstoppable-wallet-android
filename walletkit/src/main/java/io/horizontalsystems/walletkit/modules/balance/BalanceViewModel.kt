@@ -57,6 +57,10 @@ class BalanceViewModel(
     private var balanceItems = service.balanceItemsFlow.value
     private var balanceViewType = balanceViewTypeManager.balanceViewTypeFlow.value
     private var viewState: ViewState? = null
+    // Volatile: written on Dispatchers.Default (refreshViewItems), iterated on the
+    // main thread in createState; without safe publication the iterator can observe
+    // a partially constructed list -> ConcurrentModificationException.
+    @Volatile
     private var balanceViewItems = listOf<BalanceViewItem2>()
     private var isRefreshing = false
     private var openSendTokenSelect: OpenSendTokenSelect? = null
@@ -418,8 +422,11 @@ class BalanceViewModel(
     }
 
     fun connectWC(uri: String) {
-        DAppManager.pair(
-            uri = uri.trim(),
+        // The QR scanner is its own activity, so it isn't covered by the unlock overlay and can
+        // still be scanning when the app locks. Deferring keeps a scanned `wc:` code from pairing
+        // behind the lock screen.
+        wCManager.pairOrDefer(
+            uri = uri,
             onSuccess = { connectionResult = null },
             onError = { connectionResult = WalletConnectListViewModel.ConnectionResult.Error }
         )

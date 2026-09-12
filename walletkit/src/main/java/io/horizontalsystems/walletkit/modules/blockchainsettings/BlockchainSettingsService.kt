@@ -6,16 +6,16 @@ import io.horizontalsystems.walletkit.core.managers.MarketKitWrapper
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
 import io.horizontalsystems.walletkit.modules.blockchainsettings.BlockchainSettingsModule.BlockchainItem
 import io.horizontalsystems.marketkit.models.BlockchainType
-import io.reactivex.Observable
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.catch
 import timber.log.Timber
-import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -29,17 +29,17 @@ class BlockchainSettingsService(
     var blockchainItems: List<BlockchainItem> = listOf()
         private set(value) {
             field = value
-            blockchainItemsSubject.onNext(value)
+            _blockchainItemsFlow.tryEmit(value)
         }
 
-    private val blockchainItemsSubject = BehaviorSubject.create<List<BlockchainItem>>()
-    val blockchainItemsObservable: Observable<List<BlockchainItem>>
-        get() = blockchainItemsSubject
+    private val _blockchainItemsFlow = MutableSharedFlow<List<BlockchainItem>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val blockchainItemsFlow: Flow<List<BlockchainItem>>
+        get() = _blockchainItemsFlow
 
 
     fun start() {
         coroutineScope.launch {
-            evmSyncSourceManager.syncSourceObservable.asFlow().collect {
+            evmSyncSourceManager.syncSourceFlow.collect {
                 syncBlockchainItems()
             }
         }
@@ -80,15 +80,9 @@ class BlockchainSettingsService(
             BlockchainItem.Evm(blockchain, syncSource)
         }
 
-        val tronBlockchainItems = mutableListOf<BlockchainItem>()
-        marketKit.blockchain(BlockchainType.Tron.uid)?.let { blockchain ->
-            val syncSource = evmSyncSourceManager.getSyncSource(BlockchainType.Tron)
-            tronBlockchainItems.add(BlockchainItem.Evm(blockchain, syncSource))
-        }
-
         val chainBlockchainItems = ChainRegistry.all.mapNotNull { it.blockchainSettingsItem() }
 
-        blockchainItems = (evmBlockchainItems + tronBlockchainItems + chainBlockchainItems).sortedBy { it.order }
+        blockchainItems = (evmBlockchainItems + chainBlockchainItems).sortedBy { it.order }
     }
 
 }

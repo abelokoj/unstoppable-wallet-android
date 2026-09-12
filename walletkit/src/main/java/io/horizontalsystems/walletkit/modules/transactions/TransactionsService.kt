@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.transactions
 
 import io.horizontalsystems.walletkit.core.Clearable
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.core.managers.SpamManager
 import io.horizontalsystems.walletkit.entities.CurrencyValue
 import io.horizontalsystems.walletkit.entities.LastBlockInfo
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 
@@ -34,7 +34,7 @@ class TransactionsService(
     private val _itemsFlow = MutableStateFlow<List<TransactionItem>>(listOf())
     val itemsFlow get() = _itemsFlow.asStateFlow()
 
-    val syncingObservable get() = transactionSyncStateRepository.syncingObservable
+    val syncingFlow get() = transactionSyncStateRepository.syncingFlow
 
     private val transactionItems = CopyOnWriteArrayList<TransactionItem>()
 
@@ -42,33 +42,33 @@ class TransactionsService(
 
     fun start() {
         coroutineScope.launch {
-            transactionRecordRepository.itemsObservable.asFlow().collect {
+            transactionRecordRepository.itemsFlow.collectSafely {
                 handleUpdatedRecords(it)
             }
         }
         coroutineScope.launch {
-            rateRepository.dataExpiredObservable.asFlow().collect {
+            rateRepository.dataExpiredObservable.collectSafely {
                 handleUpdatedHistoricalRates()
             }
         }
         coroutineScope.launch {
-            rateRepository.historicalRateObservable.asFlow().collect {
+            rateRepository.historicalRateObservable.collectSafely {
                 handleUpdatedHistoricalRate(it.first, it.second)
             }
         }
         coroutineScope.launch {
-            transactionSyncStateRepository.lastBlockInfoObservable.asFlow()
-                .collect { (source, lastBlockInfo) ->
+            transactionSyncStateRepository.lastBlockInfoFlow
+                .collectSafely { (source, lastBlockInfo) ->
                     handleLastBlockInfo(source, lastBlockInfo)
                 }
         }
         coroutineScope.launch {
-            nftMetadataService.assetsBriefMetadataFlow.collect {
+            nftMetadataService.assetsBriefMetadataFlow.collectSafely {
                 handle(it)
             }
         }
         coroutineScope.launch {
-            contactsRepository.contactsFlow.collect {
+            contactsRepository.contactsFlow.collectSafely {
                 handleContactsUpdate()
             }
         }

@@ -5,15 +5,21 @@ import io.horizontalsystems.walletkit.core.storage.ZcashEndpointStorage
 import io.horizontalsystems.walletkit.entities.ZcashEndpointRecord
 import io.horizontalsystems.marketkit.models.Blockchain
 import io.horizontalsystems.marketkit.models.BlockchainType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.seconds
 
 class ZcashLightWalletEndpointManager(
     private val blockchainSettingsStorage: BlockchainSettingsStorage,
     private val endpointStorage: ZcashEndpointStorage,
     private val marketKitWrapper: MarketKitWrapper,
 ) {
+    private val reselectMutex = Mutex()
+
     private val _currentEndpointUpdatedFlow = MutableSharedFlow<String>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val currentEndpointUpdatedFlow = _currentEndpointUpdatedFlow.asSharedFlow()
 
@@ -28,8 +34,6 @@ class ZcashLightWalletEndpointManager(
         ZcashEndpoint("https://ap.zec.rocks:443", "ap.zec.rocks"),
         ZcashEndpoint("https://us.zec.stardust.rest:443", "us.zec.stardust.rest"),
         ZcashEndpoint("https://eu.zec.stardust.rest:443", "eu.zec.stardust.rest"),
-        ZcashEndpoint("https://eu2.zec.stardust.rest:443", "eu2.zec.stardust.rest"),
-        ZcashEndpoint("https://jp.zec.stardust.rest:443", "jp.zec.stardust.rest"),
     )
 
     val defaultEndpoints: List<ZcashEndpoint> get() = defaultEndpointsInitial
@@ -51,12 +55,101 @@ class ZcashLightWalletEndpointManager(
             return allEndpoints.firstOrNull { it.url == url } ?: defaultEndpoints.first()
         }
 
+    var autoSelectEnabled: Boolean
+        get() = blockchainSettingsStorage.zcashAutoSelect()
+        set(value) {
+            blockchainSettingsStorage.saveZcashAutoSelect(value)
+        }
+
+    /**
+     * Pings lightwalletd endpoints and reports reachability/latency. Supplied by the Zcash chain
+     * plugin (the implementation lives in walletkit-chain-zcash); null while the module is absent.
+     */
+    @Volatile
+    var endpointPinger: (suspend (urls: List<String>) -> List<EndpointPingResult>)? = null
+
+    suspend fun pingEndpoints(urls: List<String>): List<EndpointPingResult> =
+        endpointPinger?.invoke(urls) ?: emptyList()
+
+    suspend fun autoSelectFastestEndpointOnStartup() {
+        if (!autoSelectEnabled || endpointPinger == null) return
+
+        try {
+            // The adapter starts on the stored endpoint right away — deferring its creation until
+            // the probe finished left wallet rows interactive with no adapter behind them, which
+            // crashed the send/shield/migration screens. Capped so a slow gRPC/TLS handshake
+            // cannot stall the startup gate.
+            withTimeoutOrNull(STARTUP_PING_TIMEOUT) {
+                val fastest = pickFastest() ?: return@withTimeoutOrNull
+                // save() emits, so a change rebuilds the adapter once onto the winner; when the
+                // stored endpoint is still the fastest nothing is emitted and nothing reconnects.
+                if (fastest.url != currentEndpoint.url) save(fastest)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // keep the stored endpoint on any ping failure
+        }
+    }
+
+    /**
+     * Re-runs the probe and switches to the fastest reachable endpoint, for when the current one
+     * has died while the app was running. Unlike the startup path this emits, so the adapter is
+     * rebuilt on the new endpoint.
+     *
+     * @return true when the endpoint actually changed.
+     */
+    suspend fun reselectFastestEndpoint(): Boolean {
+        if (!autoSelectEnabled || endpointPinger == null) return false
+        if (!reselectMutex.tryLock()) return false // a probe is already in flight
+
+        return try {
+            val fastest = withTimeoutOrNull(STARTUP_PING_TIMEOUT) { pickFastest() } ?: return false
+            // Every endpoint failing means the device has no usable network, not that the current
+            // one is bad — pickFastest returns null there, so nothing is switched.
+            if (fastest.url == currentEndpoint.url) return false
+            save(fastest)
+            true
+        } finally {
+            reselectMutex.unlock()
+        }
+    }
+
+    /**
+     * Re-emits the current endpoint so the wallet reload rebuilds the adapter on it. For a stalled
+     * sync where reselection found nothing better — the current server may answer pings yet fail
+     * block downloads, leaving the synchronizer terminally STOPPED — a fresh synchronizer is the
+     * only recovery.
+     */
+    fun retryCurrentEndpoint() {
+        _currentEndpointUpdatedFlow.tryEmit(currentEndpoint.url)
+    }
+
+    /** Pings every endpoint and returns the fastest valid one, or null if none responded. */
+    private suspend fun pickFastest(): ZcashEndpoint? {
+        val endpoints = allEndpoints
+        val results = pingEndpoints(endpoints.map { it.url }).associateBy { it.url }
+
+        return endpoints
+            .mapNotNull { endpoint ->
+                results[endpoint.url]
+                    ?.takeIf { it.isValid && it.responseTime < Double.MAX_VALUE }
+                    ?.let { endpoint to it.responseTime }
+            }
+            .minByOrNull { it.second }
+            ?.first
+    }
+
     val blockchain: Blockchain?
         get() = marketKitWrapper.blockchain(BlockchainType.Zcash.uid)
 
     fun save(endpoint: ZcashEndpoint) {
-        blockchainSettingsStorage.saveZcashEndpoint(endpoint.url)
+        persist(endpoint)
         _currentEndpointUpdatedFlow.tryEmit(endpoint.url)
+    }
+
+    private fun persist(endpoint: ZcashEndpoint) {
+        blockchainSettingsStorage.saveZcashEndpoint(endpoint.url)
     }
 
     fun addCustomEndpoint(url: String) {
@@ -74,6 +167,16 @@ class ZcashLightWalletEndpointManager(
         _endpointsUpdatedFlow.tryEmit(endpoint.url)
     }
 
+    data class EndpointPingResult(
+        val url: String,
+        val isValid: Boolean,
+        val responseTime: Double,
+    )
+
     data class ZcashEndpoint(val url: String, val name: String) {
+    }
+
+    companion object {
+        private val STARTUP_PING_TIMEOUT = 8.seconds
     }
 }

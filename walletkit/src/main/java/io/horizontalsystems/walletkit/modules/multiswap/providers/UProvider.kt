@@ -33,6 +33,20 @@ enum class UProvider(
         supportsSimpleUtxoTransactions = true,
         icon = R.drawable.swap_provider_near
     ),
+    // Confidential rail behind private send. Registered so tracking and history rendering
+    // resolve it by id, but kept off the ordinary swap screen — see MultiSwapProviderRegistry.
+    NearConfidential(
+        "NEAR_CONFIDENTIAL",
+        "Near Confidential",
+        SwapProviderType.DEX,
+        false,
+        false,
+        true,
+        RiskLevel.FAIR,
+        isEvm = false,
+        isSingleTransactionSwap = false,
+        supportsSimpleUtxoTransactions = true
+    ),
     QuickEx(
         "QUICKEX",
         "QuickEx",

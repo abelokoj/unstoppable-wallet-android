@@ -2,6 +2,8 @@ package io.horizontalsystems.walletkit.core.adapters
 
 import io.horizontalsystems.walletkit.core.AdapterState
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.managers.EvmKitManagerRegistry
+import io.horizontalsystems.walletkit.core.managers.EvmBlockchainManager
 import io.horizontalsystems.walletkit.core.BalanceData
 import io.horizontalsystems.walletkit.core.ICoinManager
 import io.horizontalsystems.walletkit.core.managers.EvmKitWrapper
@@ -9,7 +11,8 @@ import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.TransactionData
-import io.reactivex.Flowable
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 
 class EvmAdapter(evmKitWrapper: EvmKitWrapper, coinManager: ICoinManager) :
@@ -34,14 +37,14 @@ class EvmAdapter(evmKitWrapper: EvmKitWrapper, coinManager: ICoinManager) :
     override val balanceState: AdapterState
         get() = convertToAdapterState(evmKit.syncState)
 
-    override val balanceStateUpdatedFlowable: Flowable<Unit>
-        get() = evmKit.syncStateFlowable.map {}
+    override val balanceStateUpdatedFlow: Flow<Unit>
+        get() = evmKit.syncStateFlow.map { }
 
     override val balanceData: BalanceData
         get() = BalanceData(balanceInBigDecimal(evmKit.accountState?.balance, decimal))
 
-    override val balanceUpdatedFlowable: Flowable<Unit>
-        get() = evmKit.accountStateFlowable.map { }
+    override val balanceUpdatedFlow: Flow<Unit>
+        get() = evmKit.accountStateFlow.map { }
 
     private fun convertToAdapterState(syncState: EthereumKit.SyncState): AdapterState =
         when (syncState) {
@@ -61,17 +64,11 @@ class EvmAdapter(evmKitWrapper: EvmKitWrapper, coinManager: ICoinManager) :
         const val decimal = 18
 
         fun clear(walletId: String) {
-            val networkTypes = listOf(
-                Chain.Ethereum,
-                Chain.BinanceSmartChain,
-                Chain.Polygon,
-                Chain.Avalanche,
-                Chain.Optimism,
-                Chain.ArbitrumOne,
-                Chain.Gnosis,
-            )
-            networkTypes.forEach {
-                EthereumKit.clear(App.instance, it, walletId)
+            // Driven by the canonical list rather than a copy of it: the copy that used to live
+            // here was written when there were seven EVM chains and never grew, so deleting an
+            // account left the Base, ZkSync and Fantom databases behind forever.
+            EvmBlockchainManager.blockchainTypes.forEach { blockchainType ->
+                EthereumKit.clear(App.instance, EvmKitManagerRegistry.getChain(blockchainType), walletId)
             }
         }
     }

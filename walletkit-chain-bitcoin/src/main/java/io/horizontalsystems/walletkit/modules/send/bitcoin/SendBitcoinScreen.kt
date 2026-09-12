@@ -37,6 +37,12 @@ import io.horizontalsystems.walletkit.modules.memo.HSMemoInput
 import io.horizontalsystems.walletkit.modules.memo.MemoVisibility
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
+import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.modules.privatesend.PrivateSendBtcParams
+import io.horizontalsystems.walletkit.modules.privatesend.PrivateSendToggleSection
+import io.horizontalsystems.walletkit.modules.privatesend.PrivateSendViewModel
+import io.horizontalsystems.walletkit.modules.privatesend.privateSendViewModel
+import io.horizontalsystems.walletkit.modules.send.bitcoin.SendBitcoinModule.rbfSupported
 import io.horizontalsystems.walletkit.modules.send.AddressRiskySheet
 import io.horizontalsystems.walletkit.modules.send.SendPage
 import io.horizontalsystems.walletkit.modules.send.bitcoin.advanced.BtcTransactionInputSortInfoScreen
@@ -64,10 +70,14 @@ data object SendBtcAdvancedSettingsPage : HSPage() {
     override fun GetContent(navigation: HSNavigation) {
         val viewModel = navigation.viewModelForScreen<SendBitcoinViewModel>(SendPage::class)
         val amountInputModeViewModel = navigation.viewModelForScreen<AmountInputModeViewModel>(SendPage::class)
+        val privateSendViewModel = navigation.viewModelForScreen<PrivateSendViewModel>(SendPage::class)
         SendBtcAdvancedSettingsScreen(
             navigation = navigation,
             sendBitcoinViewModel = viewModel,
             amountInputType = amountInputModeViewModel.inputType,
+            // A timelock cannot apply to a private send: the deposit must be spendable by
+            // the provider immediately.
+            timeLockActive = !privateSendViewModel.isEnabled,
         )
     }
 }
@@ -127,6 +137,8 @@ fun SendBitcoinScreen(
     )
     val amountUnique = paymentAddressViewModel.amountUnique
 
+    val privateSendViewModel = privateSendViewModel(wallet.token)
+
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -175,6 +187,7 @@ fun SendBitcoinScreen(
                 },
                 onValueChange = {
                     viewModel.onEnterAmount(it)
+                    privateSendViewModel.onEnterAmount(it)
                 },
                 inputType = amountInputType,
                 rate = rate,
@@ -191,8 +204,22 @@ fun SendBitcoinScreen(
                 rate = rate
             )
 
+            //Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            //    PrivateSendToggleSection(privateSendViewModel, navigation)
+            //}
+
             VSpacer(16.dp)
-            HSMemoInput(maxLength = 120, visibility = MemoVisibility.Public) {
+            // Stays editable under Private send but warns that the memo cannot travel:
+            // the deposit's memo slot belongs to the provider's crediting identifier.
+            HSMemoInput(
+                maxLength = 120,
+                visibility = MemoVisibility.Public,
+                warningCaution = if (privateSendViewModel.isEnabled) {
+                    stringResource(R.string.PrivateSend_NotAvailable)
+                } else {
+                    null
+                },
+            ) {
                 viewModel.onEnterMemo(it)
             }
 
@@ -241,7 +268,7 @@ fun SendBitcoinScreen(
                     )
                 }
             ) {
-                openConfirm(navigation, sendEntryPointDestId)
+                openConfirm(viewModel, privateSendViewModel, navigation, sendEntryPointDestId)
             }
 
             ButtonPrimaryYellow(
@@ -254,7 +281,7 @@ fun SendBitcoinScreen(
                         keyboardController?.hide()
                         forResult()
                     } else {
-                        openConfirm(navigation, sendEntryPointDestId)
+                        openConfirm(viewModel, privateSendViewModel, navigation, sendEntryPointDestId)
                     }
                 },
                 enabled = proceedEnabled
@@ -265,9 +292,27 @@ fun SendBitcoinScreen(
 }
 
 private fun openConfirm(
+    viewModel: SendBitcoinViewModel,
+    privateSendViewModel: PrivateSendViewModel,
     navigation: HSNavigation,
     sendEntryPointDestId: KClass<out HSPage>
 ) {
+    // The send screen's settings travel with the deposit build. Timelock is deliberately
+    // absent: the deposit must be spendable by the provider immediately, so that setting is
+    // disabled while the toggle is on.
+    privateSendViewModel.setBtcDepositParams(
+        PrivateSendBtcParams(
+            feeRate = viewModel.uiState.feeRate,
+            unspentOutputs = viewModel.customUnspentOutputs,
+            transactionSorting = App.btcBlockchainManager.transactionSortMode(viewModel.blockchainType),
+            rbfEnabled = viewModel.blockchainType.rbfSupported && App.localStorage.rbfEnabled,
+        )
+    )
+
+    if (privateSendViewModel.openConfirmationIfEnabled(navigation, viewModel.wallet, viewModel.uiState.address.hex, sendEntryPointDestId)) {
+        return
+    }
+
     navigation.slideFromRight(SendBitcoinConfirmationPage(sendEntryPointDestId))
 }
 

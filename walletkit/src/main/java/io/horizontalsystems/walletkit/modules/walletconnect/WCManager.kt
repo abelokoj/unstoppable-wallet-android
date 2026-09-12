@@ -1,17 +1,21 @@
 package io.horizontalsystems.walletkit.modules.walletconnect
 
 import android.net.Uri
+import android.util.Log
+import io.horizontalsystems.walletkit.IPinComponent
 import io.horizontalsystems.walletkit.core.IAccountManager
 import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.modules.walletconnect.handler.IWCHandler
 import io.horizontalsystems.walletkit.modules.walletconnect.handler.MethodData
 import io.horizontalsystems.walletkit.modules.walletconnect.request.AbstractWCAction
 import io.horizontalsystems.walletkit.modules.walletconnect.session.ValidationError
+import io.horizontalsystems.dapp.core.DAppManager
 import io.horizontalsystems.dapp.core.HSDAppNamespaceSession
 import io.horizontalsystems.dapp.core.HSDAppRequest
 
 class WCManager(
     private val accountManager: IAccountManager,
+    private val pinComponent: IPinComponent,
 ) {
     sealed class SupportState {
         object Supported : SupportState()
@@ -20,6 +24,50 @@ class WCManager(
     }
 
     private val handlersMap = mutableMapOf<String, IWCHandler>()
+
+    // A `wc:` URI that arrived (deeplink or QR scan) while the app was locked. Pairing is an
+    // active network handshake with a dApp, so it must not run behind the lock screen: it would
+    // let anyone holding an OS-unlocked device establish a session the owner never saw, and the
+    // proposal sheet then pops up on their next unlock looking self-inflicted. The URI is kept
+    // here and paired by flushPendingPairing() once unlocked.
+    private var pendingPairingUri: String? = null
+
+    /**
+     * Pairs with [uri], or holds it until the app is unlocked. Callbacks apply to the immediate
+     * path only — a deferred pairing reports through the usual WC event stream instead.
+     */
+    fun pairOrDefer(
+        uri: String,
+        onSuccess: () -> Unit = {},
+        onError: (Throwable) -> Unit = {},
+    ) {
+        val trimmed = uri.trim()
+        if (pinComponent.isLocked) {
+            pendingPairingUri = trimmed
+            return
+        }
+        DAppManager.pair(trimmed, onSuccess, onError)
+    }
+
+    /** Pairs with the URI held by [pairOrDefer] while locked, if any. Call after unlocking. */
+    fun flushPendingPairing() {
+        val uri = pendingPairingUri ?: return
+        pendingPairingUri = null
+        if (!DAppManager.isAvailable) return
+
+        // Pairing reports asynchronously through the WC delegate (which surfaces errors as an
+        // HSDAppEvent.Error hud), but an unusable SDK throws straight away. This runs from a
+        // LaunchedEffect on the main dispatcher, where an escaping exception would take the
+        // process down and skip the pending-event replay that follows it — so it stops here.
+        try {
+            DAppManager.pair(
+                uri = uri,
+                onError = { Log.e("WCManager", "Deferred WalletConnect pairing failed", it) }
+            )
+        } catch (e: Exception) {
+            Log.e("WCManager", "Deferred WalletConnect pairing failed", e)
+        }
+    }
 
     fun addWcHandler(wcHandler: IWCHandler) {
         handlersMap[wcHandler.chainNamespace] = wcHandler
@@ -47,7 +95,17 @@ class WCManager(
 
         val handler = handlersMap[chainNamespace] ?: return null
 
-        return handler.getAction(request, chainInternalId)
+        return try {
+            handler.getAction(request, chainInternalId)
+        } catch (e: Exception) {
+            // A handler can't always build an action — e.g. the active account was switched to one
+            // that can't sign for this chain (an unsupported account type, watch-only), or the
+            // method is unsupported. Return null so the request screen shows an error state instead
+            // of crashing WCRequestPreViewModel construction (getAction() must return non-null, so it
+            // can only signal these cases by throwing).
+            Log.e("WCManager", "Building WalletConnect action failed", e)
+            null
+        }
     }
 
     // WalletConnect can arrive either as a raw `wc:` URI (QR scan / clipboard) or wrapped in the

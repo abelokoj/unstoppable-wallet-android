@@ -32,12 +32,16 @@ import io.horizontalsystems.walletkit.modules.zcashnetwork.ZcashNetworkPage
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
 import co.electriccoin.lightwallet.client.model.LightWalletEndpoint
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Date
@@ -50,6 +54,8 @@ class ZcashChainPlugin(
     private val endpointManager: () -> ZcashLightWalletEndpointManager,
     private val localStorage: () -> ILocalStorage,
 ) : ChainPlugin {
+
+    private val reselectScope = CoroutineScope(Dispatchers.Default)
 
     override val blockchainType: BlockchainType = BlockchainType.Zcash
 
@@ -70,6 +76,54 @@ class ZcashChainPlugin(
             localStorage(),
             endpointManager().currentEndpoint.toLightWalletEndpoint(),
         )
+
+    override suspend fun onAppStart() {
+        val manager = endpointManager()
+        manager.endpointPinger = { urls ->
+            ZcashEndpointPinger.ping(context(), urls) { url ->
+                ZcashLightWalletEndpointManager.ZcashEndpoint(url, url).toLightWalletEndpoint()
+            }
+        }
+        manager.autoSelectFastestEndpointOnStartup()
+    }
+
+    override suspend fun onEnterForeground() = reselectFastestIfUnsynced(retryIfNoSwitch = false)
+
+    override suspend fun refreshKit() = reselectFastestIfUnsynced(retryIfNoSwitch = false)
+
+    // The watcher's two-strike gate means the stall is persistent, so when no better server
+    // exists the adapter is rebuilt on the current one — a terminally stopped sync only
+    // recovers with a fresh start. Foreground/refresh skip that: they can fire on a
+    // transient blip where a forced rebuild would churn.
+    override suspend fun onSyncStalled() = reselectFastestIfUnsynced(retryIfNoSwitch = true)
+
+    /**
+     * Switches to the fastest reachable endpoint when the current one has stopped working.
+     *
+     * Gated on an unsynced wallet so a healthy connection is never churned, and on connectivity
+     * so a dead phone network is not mistaken for a dead server.
+     */
+    private fun reselectFastestIfUnsynced(retryIfNoSwitch: Boolean) {
+        if (!App.connectivityManager.isConnected) return
+        if (!hasUnsyncedWallet()) return
+
+        // Launched rather than awaited: the probe can take seconds and both callers are latency
+        // sensitive — refreshKit() is awaited by the balance pull-to-refresh spinner, and the
+        // foreground hook runs plugins one after another. The switch lands asynchronously through
+        // walletReloadTrigger. The manager guards with a mutex, so overlapping calls collapse.
+        reselectScope.launch {
+            try {
+                val switched = endpointManager().reselectFastestEndpoint()
+                if (!switched && retryIfNoSwitch && hasUnsyncedWallet()) {
+                    endpointManager().retryCurrentEndpoint()
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                Timber.e(e, "Zcash endpoint reselect failed")
+            }
+        }
+    }
 
     override fun clearAccountData(accountId: String) {
         ZcashAdapter.clear(accountId)

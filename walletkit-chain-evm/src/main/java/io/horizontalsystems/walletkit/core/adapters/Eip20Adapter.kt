@@ -5,6 +5,8 @@ import io.horizontalsystems.walletkit.core.IEip20ApproveAdapter
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.EvmTransactionData
 import io.horizontalsystems.walletkit.core.AdapterState
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.managers.EvmKitManagerRegistry
+import io.horizontalsystems.walletkit.core.managers.EvmBlockchainManager
 import io.horizontalsystems.walletkit.core.BalanceData
 import io.horizontalsystems.walletkit.core.ICoinManager
 import io.horizontalsystems.walletkit.core.managers.EvmKitWrapper
@@ -18,8 +20,8 @@ import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.DefaultBlockParameter
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.marketkit.models.Token
-import io.reactivex.Flowable
-import io.reactivex.Single
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -71,14 +73,14 @@ class Eip20Adapter(
     override val balanceState: AdapterState
         get() = convertToAdapterState(eip20Kit.syncState)
 
-    override val balanceStateUpdatedFlowable: Flowable<Unit>
-        get() = eip20Kit.syncStateFlowable.map { }
+    override val balanceStateUpdatedFlow: Flow<Unit>
+        get() = eip20Kit.syncStateFlow.map { }
 
     override val balanceData: BalanceData
         get() = BalanceData(balanceInBigDecimal(eip20Kit.balance, decimal))
 
-    override val balanceUpdatedFlowable: Flowable<Unit>
-        get() = eip20Kit.balanceFlowable.map { Unit }
+    override val balanceUpdatedFlow: Flow<Unit>
+        get() = eip20Kit.balanceFlow.map { }
 
     // ISendEthereumAdapter
 
@@ -93,11 +95,9 @@ class Eip20Adapter(
         is SyncState.Syncing -> AdapterState.Syncing()
     }
 
-    fun allowance(spenderAddress: Address, defaultBlockParameter: DefaultBlockParameter): Single<BigDecimal> {
-        return eip20Kit.getAllowanceAsync(spenderAddress, defaultBlockParameter)
-                .map {
-                    scaleDown(it.toBigDecimal())
-                }
+    suspend fun allowance(spenderAddress: Address, defaultBlockParameter: DefaultBlockParameter): BigDecimal {
+        val allowance = eip20Kit.getAllowanceAsync(spenderAddress, defaultBlockParameter)
+        return scaleDown(allowance.toBigDecimal())
     }
 
     fun buildRevokeTransactionData(spenderAddress: Address): TransactionData {
@@ -116,18 +116,9 @@ class Eip20Adapter(
 
     companion object {
         fun clear(walletId: String) {
-            val networkTypes = listOf(
-                Chain.Ethereum,
-                Chain.BinanceSmartChain,
-                Chain.Polygon,
-                Chain.Avalanche,
-                Chain.Optimism,
-                Chain.ArbitrumOne,
-                Chain.Gnosis,
-            )
-
-            networkTypes.forEach {
-                Erc20Kit.clear(App.instance, it, walletId)
+            // Same canonical list as EvmAdapter.clear — see the note there.
+            EvmBlockchainManager.blockchainTypes.forEach { blockchainType ->
+                Erc20Kit.clear(App.instance, EvmKitManagerRegistry.getChain(blockchainType), walletId)
             }
         }
     }

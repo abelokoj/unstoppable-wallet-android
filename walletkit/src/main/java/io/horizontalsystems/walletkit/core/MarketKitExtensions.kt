@@ -51,6 +51,7 @@ val Token.iconPlaceholder: Int
         else -> R.drawable.coin_placeholder
     }
 
+// Short label for token badges; the full chain name stays in `BlockchainType.title`.
 val TokenQuery.protocolType: String?
     get() = when (tokenType) {
         is TokenType.Native -> {
@@ -60,6 +61,7 @@ val TokenQuery.protocolType: String?
                 BlockchainType.Tron,
                 BlockchainType.Ton -> null
 
+                BlockchainType.RobinhoodChain -> "Robinhood"
                 else -> blockchainType.title
             }
         }
@@ -69,6 +71,7 @@ val TokenQuery.protocolType: String?
                 BlockchainType.Ethereum -> "ERC20"
                 BlockchainType.BinanceSmartChain -> "BEP20"
                 BlockchainType.Tron -> "TRC20"
+                BlockchainType.RobinhoodChain -> "Robinhood"
                 else -> blockchainType.title
             }
         }
@@ -103,6 +106,7 @@ val TokenQuery.isSupported: Boolean
         BlockchainType.Optimism,
         BlockchainType.Base,
         BlockchainType.ZkSync,
+        BlockchainType.RobinhoodChain,
         BlockchainType.ArbitrumOne,
         BlockchainType.Gnosis,
         BlockchainType.Fantom,
@@ -151,6 +155,7 @@ val Blockchain.description: String
         BlockchainType.Optimism -> "L2 chain"
         BlockchainType.Base -> "L2 chain"
         BlockchainType.ZkSync -> "L2 chain"
+        BlockchainType.RobinhoodChain -> "L2 chain"
         BlockchainType.ArbitrumOne -> "L2 chain"
         BlockchainType.Solana -> "SOL, SPL tokens"
         BlockchainType.Gnosis -> "xDAI, ERC20 tokens"
@@ -206,6 +211,7 @@ private val blockchainOrderMap: Map<BlockchainType, Int> by lazy {
         BlockchainType.Ton,
         BlockchainType.ECash,
         BlockchainType.ZkSync,
+        BlockchainType.RobinhoodChain,
         BlockchainType.Gnosis,
         BlockchainType.Fantom,
     ).forEachIndexed { index, blockchainType ->
@@ -226,6 +232,7 @@ val BlockchainType.tokenIconPlaceholder: Int
         BlockchainType.Optimism -> R.drawable.optimism_erc20
         BlockchainType.Base -> R.drawable.base_erc20
         BlockchainType.ZkSync -> R.drawable.zksync_erc20
+        BlockchainType.RobinhoodChain -> R.drawable.robinhood_chain
         BlockchainType.ArbitrumOne -> R.drawable.arbitrum_erc20
         BlockchainType.Gnosis -> R.drawable.gnosis_erc20
         BlockchainType.Fantom -> R.drawable.fantom_erc20
@@ -251,6 +258,7 @@ val BlockchainType.title: String
     BlockchainType.Optimism -> "Optimism"
     BlockchainType.Base -> "Base"
     BlockchainType.ZkSync -> "ZKsync"
+    BlockchainType.RobinhoodChain -> "Robinhood Chain"
     BlockchainType.Solana -> "Solana"
     BlockchainType.Gnosis -> "Gnosis"
     BlockchainType.Fantom -> "Fantom"
@@ -274,6 +282,7 @@ val BlockchainType.brandColor: Color?
         BlockchainType.Optimism -> Color(0xFFEB3431)
         BlockchainType.Base -> Color(0xFF2759F6)
         BlockchainType.ZkSync -> Color(0xFF8D8FF0)
+        BlockchainType.RobinhoodChain -> Color(0xFF00C805)
         BlockchainType.ArbitrumOne -> Color(0xFF96BEDC)
         else -> null
     }
@@ -303,6 +312,7 @@ private val chainIdBlockchainTypeMap: Map<Long, BlockchainType> = mapOf(
     250L to BlockchainType.Fantom,
     8453L to BlockchainType.Base,
     324L to BlockchainType.ZkSync,
+    4663L to BlockchainType.RobinhoodChain,
 )
 
 val BlockchainType.isEvm: Boolean
@@ -317,6 +327,7 @@ val BlockchainType.isEvm: Boolean
         BlockchainType.Optimism,
         BlockchainType.Polygon,
         BlockchainType.ZkSync,
+        BlockchainType.RobinhoodChain,
             -> true
 
         BlockchainType.Bitcoin,
@@ -364,7 +375,8 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
                 BlockchainType.Ton,
                 BlockchainType.Tron,
                 BlockchainType.Zcash,
-                BlockchainType.ZkSync -> true
+                BlockchainType.ZkSync,
+                BlockchainType.RobinhoodChain -> true
                 is BlockchainType.Unsupported -> false
             }
         }
@@ -392,6 +404,7 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
                     || this == BlockchainType.Optimism
                     || this == BlockchainType.Base
                     || this == BlockchainType.ZkSync
+                    || this == BlockchainType.RobinhoodChain
                     || this == BlockchainType.ArbitrumOne
                     || this == BlockchainType.Gnosis
                     || this == BlockchainType.Fantom
@@ -403,6 +416,7 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
                     || this == BlockchainType.Optimism
                     || this == BlockchainType.Base
                     || this == BlockchainType.ZkSync
+                    || this == BlockchainType.RobinhoodChain
                     || this == BlockchainType.ArbitrumOne
                     || this == BlockchainType.Gnosis
                     || this == BlockchainType.Fantom
@@ -657,10 +671,10 @@ val BlockchainType.Companion.supported: List<BlockchainType>
         BlockchainType.Optimism,
         BlockchainType.Base,
         BlockchainType.ZkSync,
+        BlockchainType.RobinhoodChain,
         BlockchainType.ArbitrumOne,
         BlockchainType.Gnosis,
         BlockchainType.Fantom,
-        BlockchainType.Tron,
     ) + ChainRegistry.all.map { it.blockchainType }
 
 val CoinPrice.diff: BigDecimal?
