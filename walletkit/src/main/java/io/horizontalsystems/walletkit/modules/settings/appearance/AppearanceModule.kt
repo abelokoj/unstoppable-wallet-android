@@ -11,6 +11,8 @@ import io.horizontalsystems.walletkit.ui.compose.TranslatableString
 import io.horizontalsystems.walletkit.ui.compose.WithTranslatableTitle
 import io.horizontalsystems.walletkit.ui.compose.manropeFont
 import io.horizontalsystems.walletkit.ui.compose.pretendardStdFont
+import io.horizontalsystems.walletkit.ui.compose.publicSansFont
+import io.horizontalsystems.walletkit.ui.compose.sourceSans3Font
 
 object AppearanceModule {
 
@@ -36,7 +38,7 @@ object AppearanceModule {
 
 /**
  * App-wide typeface preference. Keeping the mapping here means the custom-font feature can be
- * removed by deleting this enum, its four font resources and the single theme parameter without
+ * removed by deleting this enum, its custom font resources and the single theme parameter without
  * touching individual text components.
  */
 enum class AppFont(
@@ -46,7 +48,9 @@ enum class AppFont(
 ) : WithTranslatableTitle {
     Default("default", TranslatableString.ResString(R.string.Appearance_Font_Default), manropeFont),
     System("system", TranslatableString.ResString(R.string.Appearance_Font_System), FontFamily.Default),
-    Pretendard("pretendard", TranslatableString.ResString(R.string.Appearance_Font_Pretendard), pretendardStdFont);
+    Pretendard("pretendard", TranslatableString.ResString(R.string.Appearance_Font_Pretendard), pretendardStdFont),
+    SourceSans3("source_sans_3", TranslatableString.ResString(R.string.Appearance_Font_SourceSans3), sourceSans3Font),
+    PublicSans("public_sans", TranslatableString.ResString(R.string.Appearance_Font_PublicSans), publicSansFont);
 
     companion object {
         fun fromRaw(raw: String): AppFont? = entries.find { it.raw == raw }

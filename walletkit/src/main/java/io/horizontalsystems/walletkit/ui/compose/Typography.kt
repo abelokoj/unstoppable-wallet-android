@@ -170,3 +170,19 @@ val pretendardStdFont = FontFamily(
     Font(R.font.pretendard_std_semibold, FontWeight.SemiBold),
     Font(R.font.pretendard_std_bold, FontWeight.Bold),
 )
+
+// Unmodified static TTFs from adobe-fonts/source-sans at 87b37a2daaed80fcb8e8ccb0085c4d72ddade12e.
+val sourceSans3Font = FontFamily(
+    Font(R.font.source_sans_3_regular, FontWeight.Normal),
+    Font(R.font.source_sans_3_medium, FontWeight.Medium),
+    Font(R.font.source_sans_3_semibold, FontWeight.SemiBold),
+    Font(R.font.source_sans_3_bold, FontWeight.Bold),
+)
+
+// Unmodified static TTFs from uswds/public-sans at 62058987ce57f64e39a30adc8a512998a3110c70.
+val publicSansFont = FontFamily(
+    Font(R.font.public_sans_regular, FontWeight.Normal),
+    Font(R.font.public_sans_medium, FontWeight.Medium),
+    Font(R.font.public_sans_semibold, FontWeight.SemiBold),
+    Font(R.font.public_sans_bold, FontWeight.Bold),
+)

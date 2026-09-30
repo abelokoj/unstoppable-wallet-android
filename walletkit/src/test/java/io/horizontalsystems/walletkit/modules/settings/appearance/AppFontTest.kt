@@ -19,6 +19,16 @@ class AppFontTest {
     }
 
     @Test
+    fun `font options retain existing keys and include the two new families`() {
+        assertEquals(AppFont.Default, AppFont.fromRaw("default"))
+        assertEquals(AppFont.System, AppFont.fromRaw("system"))
+        assertEquals(AppFont.Pretendard, AppFont.fromRaw("pretendard"))
+        assertEquals(AppFont.SourceSans3, AppFont.fromRaw("source_sans_3"))
+        assertEquals(AppFont.PublicSans, AppFont.fromRaw("public_sans"))
+        assertEquals(5, AppFont.entries.size)
+    }
+
+    @Test
     fun `stored font-size values round trip through stable raw keys`() {
         (AppFontSize.MIN_PERCENT..AppFontSize.MAX_PERCENT).forEach { percentage ->
             val size = AppFontSize.fromPercentage(percentage)!!

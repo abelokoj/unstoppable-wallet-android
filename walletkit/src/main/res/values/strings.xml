@@ -1266,6 +1266,8 @@
     <string name="Appearance_Font_Default">Default (Manrope)</string>
     <string name="Appearance_Font_System">System</string>
     <string name="Appearance_Font_Pretendard" translatable="false">Pretendard</string>
+    <string name="Appearance_Font_SourceSans3" translatable="false">Source Sans 3</string>
+    <string name="Appearance_Font_PublicSans" translatable="false">Public Sans</string>
     <string name="Appearance_FontSize">Font Size</string>
     <string name="Appearance_FontSize_Decrease">Decrease font size</string>
     <string name="Appearance_FontSize_Increase">Increase font size</string>

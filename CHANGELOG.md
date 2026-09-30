@@ -16,6 +16,23 @@ Both kit forks branch from the **commit the wallet pins**, not `master`. Upstrea
 
 ---
 
+# Release notes updated - 2026-09-30T08:54:00-04:00
+
+- Updated the existing `0.51.2` public release notes' appearance section to include Source Sans 3 and Public Sans and identify Default as Manrope. Kept the other release notes and historical changelog entries unchanged.
+- Recording time for local publication preparation. The new fonts and notes are being committed for GitHub publication; build and test results are recorded below. Validation: patch whitespace check passed. No new build or device installation needed for this documentation-only update.
+
+---
+
+# Unreleased - 2026-09-30T08:51:13-04:00
+
+- Added Source Sans 3 and Public Sans to Appearance > App Font, each with bundled Regular (400), Medium (500), SemiBold (600) and Bold (700) static TTFs. They use the existing theme, persistence and font-size controls; existing font choices and saved keys are unchanged. Fonts work offline without external font requests.
+- Bundled unmodified fonts and redistribution licenses from pinned official upstream commits: `adobe-fonts/source-sans@87b37a2daaed80fcb8e8ccb0085c4d72ddade12e` and `uswds/public-sans@62058987ce57f64e39a30adc8a512998a3110c70`. Preserved full character sets rather than introducing language subsets.
+- Size measurement: eight TTFs total 2,048,592 bytes uncompressed; packaged fonts and licenses occupy 982,347 compressed bytes (about 0.98 MB, 0.7% of the development APK, excluding ZIP entry overhead). The whole Base development APK changed from 140,996,132 to 140,997,882 bytes, a net increase of 1,750 bytes; other generated content offset most of the added font assets, so this net difference should not be treated as their standalone overhead. Release/store download and installed size were not measured.
+- Validation: all eight focused `AppFontTest` tests passed; `:app:assembleBaseDebug` succeeded; checked TTF headers, embedded weight metadata, packaged resources/licenses and patch whitespace. Existing Gradle deprecation and Room index warnings remain. The mobile audit script matched no Kotlin files and provides no coverage for this change. No device font-rendering review, installation or GitHub push performed in this batch.
+- Timestamp is the recording time for local, uncommitted work.
+
+---
+
 # Unreleased - 2026-09-30T08:22:08-04:00
 
 - Renamed the Default app-font option to `Default (Manrope)` so users can identify the bundled typeface. The selected-value label and font picker share this resource; font rendering and saved preferences are unchanged.
