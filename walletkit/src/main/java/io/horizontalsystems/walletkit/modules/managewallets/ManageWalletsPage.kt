@@ -6,9 +6,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,9 +38,11 @@ import io.horizontalsystems.walletkit.modules.tokenselect.SelectChainTab
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.TranslatableString
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
+import io.horizontalsystems.walletkit.ui.compose.components.HSCircularProgressIndicator
 import io.horizontalsystems.walletkit.ui.compose.components.ListEmptyView
 import io.horizontalsystems.walletkit.ui.compose.components.MenuItem
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
+import io.horizontalsystems.walletkit.ui.compose.components.subhead2_leah
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
 import io.horizontalsystems.walletkit.uiv3.components.bottom.BottomSearchBar
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftImage
@@ -47,6 +51,7 @@ import io.horizontalsystems.walletkit.uiv3.components.cell.CellPrimary
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellRightControlsSwitcher
 import io.horizontalsystems.walletkit.uiv3.components.cell.ImageType
 import io.horizontalsystems.walletkit.uiv3.components.cell.hs
+import io.horizontalsystems.walletkit.uiv3.components.section.SectionHeaderColored
 import io.horizontalsystems.walletkit.uiv3.components.tabs.TabItem
 import io.horizontalsystems.walletkit.uiv3.components.tabs.TabsTop
 import io.horizontalsystems.walletkit.uiv3.components.tabs.TabsTopType
@@ -152,7 +157,20 @@ private fun ManageWalletsScreen(
                     .fillMaxSize()
                     .background(ComposeAppTheme.colors.lawrence)
             ) {
-                if (uiState.items.isEmpty()) {
+                if (uiState.discoveryLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 88.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            HSCircularProgressIndicator()
+                            VSpacer(12.dp)
+                            subhead2_leah(text = stringResource(R.string.Swap_SearchingTokenNetworks))
+                        }
+                    }
+                } else if (uiState.items.isEmpty() && uiState.discoveredItems.isEmpty()) {
                     ListEmptyView(
                         text = stringResource(R.string.Search_NotFounded),
                         icon = R.drawable.warning_filled_24
@@ -193,6 +211,37 @@ private fun ManageWalletsScreen(
                                 }
                             )
                             HsDivider()
+                        }
+                        if (uiState.discoveredItems.isNotEmpty()) {
+                            item {
+                                SectionHeaderColored(title = stringResource(R.string.Swap_DiscoveredTokens))
+                            }
+                            items(uiState.discoveredItems) { viewItem ->
+                                CoinCell(
+                                    viewItem = viewItem,
+                                    onItemClick = {
+                                        viewModel.setDiscoveredTokenEnabled(
+                                            viewItem.item,
+                                            !viewItem.enabled,
+                                        )
+
+                                        stat(
+                                            page = StatPage.CoinManager,
+                                            event = if (viewItem.enabled) {
+                                                StatEvent.DisableToken(viewItem.item)
+                                            } else {
+                                                StatEvent.EnableToken(viewItem.item)
+                                            },
+                                        )
+                                    },
+                                    onInfoClick = {
+                                        navigation.slideFromBottom(
+                                            ConfiguredTokenInfoSheet(viewItem.item)
+                                        )
+                                    },
+                                )
+                                HsDivider()
+                            }
                         }
                         item {
                             VSpacer(88.dp)

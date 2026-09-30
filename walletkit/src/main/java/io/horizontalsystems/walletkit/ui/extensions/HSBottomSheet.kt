@@ -47,6 +47,8 @@ fun BottomSheetHeader(
     iconPainter: Painter,
     title: String,
     onCloseClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    scrollable: Boolean = true,
     titleColor: Color = ComposeAppTheme.colors.leah,
     iconTint: ColorFilter? = null,
     content: @Composable() (ColumnScope.() -> Unit),
@@ -66,6 +68,8 @@ fun BottomSheetHeader(
             )
         },
         onCloseClick = onCloseClick,
+        modifier = modifier,
+        scrollable = scrollable,
         iconTint = iconTint,
         content = content
     )
@@ -77,6 +81,8 @@ fun BottomSheetHeaderMultiline(
     title: String,
     subtitle: String,
     onCloseClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    scrollable: Boolean = true,
     iconTint: ColorFilter? = null,
     content: @Composable() (ColumnScope.() -> Unit),
 ) {
@@ -101,6 +107,8 @@ fun BottomSheetHeaderMultiline(
             }
         },
         onCloseClick = onCloseClick,
+        modifier = modifier,
+        scrollable = scrollable,
         iconTint = iconTint,
         content = content
     )
@@ -111,14 +119,22 @@ private fun BottomSheetHeader(
     iconPainter: Painter,
     titleContent: @Composable() (RowScope.() -> Unit),
     onCloseClick: () -> Unit,
+    modifier: Modifier,
+    scrollable: Boolean,
     iconTint: ColorFilter?,
     content: @Composable() (ColumnScope.() -> Unit)
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp, 24.dp, 0.dp, 0.dp))
-            .verticalScroll(rememberScrollState())
+            .then(
+                if (scrollable) {
+                    Modifier.verticalScroll(rememberScrollState())
+                } else {
+                    Modifier
+                }
+            )
             .background(color = ComposeAppTheme.colors.lawrence)
     ) {
         Row(
@@ -145,6 +161,7 @@ private fun BottomSheetHeader(
             }
         }
         Column(
+            modifier = if (scrollable) Modifier else Modifier.weight(1f),
             content = content
         )
     }

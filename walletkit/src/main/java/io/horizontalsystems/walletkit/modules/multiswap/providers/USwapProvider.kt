@@ -59,7 +59,8 @@ class USwapProvider(
     override fun isSingleTransactionSwap(tokenInBlockchainTypeUid: String, tokenOutBlockchainTypeUid: String) = when (provider) {
         // LI.FI spans both: a same-chain pair is a plain single-tx DEX swap, a cross-chain
         // pair is deposit → bridge → delivery, so the flag depends on the pair, not the provider.
-        UProvider.Lifi -> tokenInBlockchainTypeUid == tokenOutBlockchainTypeUid
+        UProvider.Lifi,
+        UProvider.Relay -> tokenInBlockchainTypeUid == tokenOutBlockchainTypeUid
         else -> provider.isSingleTransactionSwap
     }
 
@@ -276,12 +277,14 @@ class USwapProvider(
             is TokenType.Spl -> type.address.takeIf { it != WSOL_MINT }
             else -> null
         }
-        // No token list (BARTER-style), but LI.FI is CROSS-CHAIN, so each side must be
+        // No token list (BARTER-style), but cross-chain aggregators need each side to be
         // self-describing — the chain travels with the asset so the server resolves a
         // cross-chain pair without a shared `chainId` hint. EVM token → `<CHAIN>.<contract>`,
         // EVM native → `<CHAIN>.<0xeee…>` sentinel, Solana → `SOL.<mint>` (wSOL = native SOL),
         // Tron → `TRON.TRX` (native) / `TRON.<contract>` (TRC20).
-        UProvider.Lifi -> when (token.blockchainType) {
+        UProvider.Lifi,
+        UProvider.Across,
+        UProvider.Relay -> when (token.blockchainType) {
             BlockchainType.Solana -> when (val type = token.type) {
                 TokenType.Native -> "SOL.$WSOL_MINT"
                 // The wSOL TOKEN is excluded for the same reason as on the JUPITER path above.

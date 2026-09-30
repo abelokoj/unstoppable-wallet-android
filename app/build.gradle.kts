@@ -25,9 +25,9 @@ android {
         applicationId = "money.openswap.wallet"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
-        versionCode = 180
+        versionCode = 182
         // Open Swap fork: upstream 0.51.0 plus fork changes
-        versionName = "0.51.0"
+        versionName = "0.51.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         resourceConfigurations += listOf("de", "es", "en", "fa", "fr", "ko", "pt", "pt-rBR", "ru", "tr", "zh")
@@ -158,8 +158,6 @@ android {
             buildConfigFieldString("HASH_DIT_BASE_URL", "https://service.hashdit.io/v2/hashdit/")
             buildConfigFieldString("HASH_DIT_API_KEY", "aGMkgODYiUFtTYrSRcEZsIfPHeASOlGYXClJZNWF")
             buildConfigFieldString("USWAP_API_BASE_URL", "https://swap-dev.unstoppable.money/api/v2/")
-            // Open Swap fork: affiliate/partner swap fee removed. Was 25 (0.25%), now 0.
-            buildConfigField("int", "SWAP_FEE_BPS", "0")
         }
 
         release {
@@ -193,8 +191,6 @@ android {
             buildConfigFieldString("HASH_DIT_BASE_URL", "https://service.hashdit.io/v2/hashdit/")
             buildConfigFieldString("HASH_DIT_API_KEY", "aGMkgODYiUFtTYrSRcEZsIfPHeASOlGYXClJZNWF")
             buildConfigFieldString("USWAP_API_BASE_URL", "https://swap-api.unstoppable.money/v2/")
-            // Open Swap fork: affiliate/partner swap fee removed. Was 100 (1.00%), now 0.
-            buildConfigField("int", "SWAP_FEE_BPS", "0")
         }
     }
 

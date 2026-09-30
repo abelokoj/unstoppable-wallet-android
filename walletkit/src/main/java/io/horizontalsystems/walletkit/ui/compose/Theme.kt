@@ -10,6 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 
@@ -47,6 +48,8 @@ val darkPalette = Colors(
 @Composable
 fun ComposeAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    fontFamily: FontFamily = manropeFont,
+    fontScale: Float = 1.10f,
     content: @Composable() () -> Unit
 ) {
 
@@ -57,7 +60,7 @@ fun ComposeAppTheme(
     }
 
     //custom styles
-    ProvideLocalAssets(colors = colors, typography = Typography()) {
+    ProvideLocalAssets(colors = colors, typography = Typography(fontFamily), fontScale = fontScale) {
         //material styles
         MaterialTheme(
             content = content
@@ -86,6 +89,7 @@ object ComposeAppTheme {
 fun ProvideLocalAssets(
     colors: Colors,
     typography: Typography,
+    fontScale: Float = 1.10f,
     content: @Composable () -> Unit
 ) {
 
@@ -99,11 +103,9 @@ fun ProvideLocalAssets(
     CompositionLocalProvider(
         LocalColors provides colorPalette,
         LocalTypography provides typography,
-        // Open Swap fork: all text 10% larger. Upstream pins fontScale = 1f, which makes the
-        // app ignore the system font size setting entirely; this keeps that behaviour but at a
-        // larger base. Use currentDensity.fontScale * 1.1f instead to also respect the system
-        // setting, at the cost of layouts reflowing on devices set to very large text.
-        LocalDensity provides Density(currentDensity.density, fontScale = 1.1f),
+        // The app deliberately uses its own persisted scale so typography remains predictable
+        // across screens. AppFontSize.Default preserves the previous 10% enlargement.
+        LocalDensity provides Density(currentDensity.density, fontScale = fontScale),
         content = content
     )
 }

@@ -200,7 +200,8 @@ enum class UProvider(
         riskLevel = RiskLevel.EXCELLENT,
         isEvm = false,
         isSingleTransactionSwap = true,
-        supportsSimpleUtxoTransactions = false
+        supportsSimpleUtxoTransactions = false,
+        icon = R.drawable.swap_provider_jupiter
     ),
     Lifi(
         id = "LIFI",
@@ -216,6 +217,32 @@ enum class UProvider(
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = false,
         icon = R.drawable.swap_provider_lifi
+    ),
+    Across(
+        id = "ACROSS",
+        title = "Across",
+        type = SwapProviderType.DEX,
+        aml = false,
+        amlPrecheck = false,
+        requireTerms = true,
+        riskLevel = RiskLevel.EXCELLENT,
+        isEvm = true,
+        isSingleTransactionSwap = false,
+        supportsSimpleUtxoTransactions = false,
+        icon = R.drawable.swap_provider_across
+    ),
+    Relay(
+        id = "RELAY",
+        title = "Relay",
+        type = SwapProviderType.DEX,
+        aml = false,
+        amlPrecheck = false,
+        requireTerms = true,
+        riskLevel = RiskLevel.FAIR,
+        isEvm = true,
+        isSingleTransactionSwap = false,
+        supportsSimpleUtxoTransactions = false,
+        icon = R.drawable.swap_provider_relay
     ),
     // Same-token 1:1 bridge (not a swap) for XLM and classic SHX between Stellar and
     // Ethereum via Axelar's Interchain Token Service. Both legs are server-built signed

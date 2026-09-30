@@ -11,11 +11,13 @@ class WalletSwitchViewModel(
     private val accountManager: IAccountManager
 ) : ViewModelUiState<WalletSwitchViewModel.UiState>() {
 
+    private var searchQuery = ""
+
     private val wallets: List<Account>
-        get() = accountManager.accounts.filter { !it.isWatchAccount }
+        get() = accountManager.accounts.filter { !it.isWatchAccount && matchesSearch(it) }
 
     private val watchWallets: List<Account>
-        get() = accountManager.accounts.filter { it.isWatchAccount }
+        get() = accountManager.accounts.filter { it.isWatchAccount && matchesSearch(it) }
 
     private val activeWallet: Account?
         get() = accountManager.activeAccount
@@ -29,6 +31,14 @@ class WalletSwitchViewModel(
     fun onSelect(account: Account) {
         accountManager.setActiveAccountId(account.id)
     }
+
+    fun updateFilter(query: String) {
+        searchQuery = query
+        emitState()
+    }
+
+    private fun matchesSearch(account: Account): Boolean =
+        searchQuery.isBlank() || account.name.contains(searchQuery.trim(), ignoreCase = true)
 
     data class UiState(
         val wallets: List<Account>,

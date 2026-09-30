@@ -11,6 +11,7 @@ import io.horizontalsystems.walletkit.entities.SwapRecord
 import io.horizontalsystems.walletkit.modules.multiswap.providers.AllBridgeAPI
 import io.horizontalsystems.walletkit.modules.multiswap.providers.AllBridgeProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.MultiSwapProviderRegistry
+import io.horizontalsystems.walletkit.modules.multiswap.providers.RelayProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.UnstoppableAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +57,10 @@ class SwapSyncService(
 
         if (record.providerId == AllBridgeProvider.id) {
             syncAllBridgeRecord(record)
+            return
+        }
+        if (record.providerId == RelayProvider.id) {
+            syncRelayRecord(record)
             return
         }
         try {
@@ -141,6 +146,34 @@ class SwapSyncService(
             return if (send.confirmations >= send.confirmationsNeeded) SwapStatus.Swapping else SwapStatus.Depositing
         }
         return if (receive.blockTime != null) SwapStatus.Completed else SwapStatus.Sending
+    }
+
+    private suspend fun syncRelayRecord(record: SwapRecord) {
+        try {
+            val requestId = record.providerSwapId ?: return
+            val response = RelayProvider.status(requestId)
+            response.txHashes?.lastOrNull()?.let { outboundHash ->
+                if (outboundHash != record.outboundTransactionHash) {
+                    swapRecordManager.updateOutboundTransactionHash(record.id, outboundHash)
+                }
+            }
+
+            val mappedStatus = when (response.status.lowercase()) {
+                "waiting", "depositing" -> SwapStatus.Depositing
+                "pending", "delayed" -> SwapStatus.Swapping
+                "submitted" -> SwapStatus.Sending
+                "success" -> SwapStatus.Completed
+                "refund" -> SwapStatus.Refunded
+                "failure" -> SwapStatus.Failed
+                else -> null
+            } ?: return
+
+            if (mappedStatus != runCatching { SwapStatus.valueOf(record.status) }.getOrNull()) {
+                swapRecordManager.updateStatus(record.id, mappedStatus, null)
+            }
+        } catch (e: Throwable) {
+            Log.e("SwapSyncService", "Failed to sync Relay record ${record.id}: ${e.message}", e)
+        }
     }
 
     private fun mapStatus(response: UnstoppableAPI.Response.Track): SwapStatus? = when (response.status) {

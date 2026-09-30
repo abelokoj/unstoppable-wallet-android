@@ -15,6 +15,7 @@ import retrofit2.http.Headers
 import retrofit2.http.Query
 import retrofit2.http.Url
 import timber.log.Timber
+import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
 class NetworkManager : INetworkManager {
@@ -151,11 +152,12 @@ object APIClient {
         gsonBuilder.create()
     }
 
-    fun retrofit(apiURL: String, timeout: Long = 60): Retrofit {
+    fun retrofit(apiURL: String, timeout: Long = 60, proxy: Proxy? = null): Retrofit {
 
         val httpClient = okHttpClient.newBuilder()
             .connectTimeout(timeout, TimeUnit.SECONDS)
             .readTimeout(timeout, TimeUnit.SECONDS)
+        proxy?.let(httpClient::proxy)
 
         return Retrofit.Builder()
             .baseUrl(apiURL)

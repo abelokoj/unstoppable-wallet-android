@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -18,8 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,9 +38,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.R
@@ -47,6 +60,7 @@ import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.settings.language.LanguageSettingsPage
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
+import io.horizontalsystems.walletkit.ui.compose.ColoredTextStyle
 import io.horizontalsystems.walletkit.ui.compose.Select
 import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryTransparent
 import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
@@ -64,6 +78,9 @@ import io.horizontalsystems.walletkit.ui.compose.components.subhead2_grey
 import io.horizontalsystems.walletkit.ui.extensions.BottomSheetHeader
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
 import io.horizontalsystems.walletkit.uiv3.components.bottomsheet.BottomSheetContent
+import io.horizontalsystems.walletkit.uiv3.components.controls.ButtonSize
+import io.horizontalsystems.walletkit.uiv3.components.controls.ButtonVariant
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSIconButton
 import io.horizontalsystems.walletkit.uiv3.components.menu.MenuGroup
 import io.horizontalsystems.walletkit.uiv3.components.menu.MenuItemX
 import kotlinx.coroutines.launch
@@ -88,6 +105,7 @@ fun AppearanceScreen(navigation: HSNavigation) {
     var selectedAppIcon by remember { mutableStateOf<AppIcon?>(null) }
 
     var openThemeSelector by rememberSaveable { mutableStateOf(false) }
+    var openFontSelector by rememberSaveable { mutableStateOf(false) }
     var openLaunchPageSelector by rememberSaveable { mutableStateOf(false) }
     var openBalanceValueSelector by rememberSaveable { mutableStateOf(false) }
     var openPriceChangeIntervalSelector by rememberSaveable { mutableStateOf(false) }
@@ -108,13 +126,31 @@ fun AppearanceScreen(navigation: HSNavigation) {
         ) {
             VSpacer(height = 12.dp)
             CellUniversalLawrenceSection(
-                listOf {
-                    MenuItemWithDialog(
-                        R.string.Settings_Theme,
-                        value = uiState.selectedTheme.title.getString(),
-                        onClick = { openThemeSelector = true }
-                    )
-                }
+                listOf(
+                    {
+                        MenuItemWithDialog(
+                            R.string.Settings_Theme,
+                            value = uiState.selectedTheme.title.getString(),
+                            onClick = { openThemeSelector = true }
+                        )
+                    },
+                    {
+                        MenuItemWithDialog(
+                            R.string.Appearance_Font,
+                            value = uiState.appFontOptions.selected.title.getString(),
+                            onClick = { openFontSelector = true }
+                        )
+                    },
+                    {
+                        FontSizeStepper(
+                            value = uiState.appFontSize,
+                            onDecrease = viewModel::decreaseAppFontSize,
+                            onIncrease = viewModel::increaseAppFontSize,
+                            onReset = viewModel::resetAppFontSize,
+                            onValueEntered = viewModel::setAppFontSizePercentage,
+                        )
+                    }
+                )
             )
 
             VSpacer(32.dp)
@@ -325,6 +361,19 @@ fun AppearanceScreen(navigation: HSNavigation) {
                 onSelectItem = { viewModel.onEnterTheme(it) }
             )
         }
+        if (openFontSelector) {
+            MenuGroup(
+                title = stringResource(R.string.Appearance_Font),
+                items = uiState.appFontOptions.options.map {
+                    MenuItemX(it.title.getString(), it == uiState.appFontOptions.selected, it)
+                },
+                onDismissRequest = { openFontSelector = false },
+                onSelectItem = {
+                    viewModel.onEnterAppFont(it)
+                    openFontSelector = false
+                }
+            )
+        }
         if (openLaunchPageSelector) {
             MenuGroup(
                 title = stringResource(R.string.Settings_LaunchScreen),
@@ -379,6 +428,121 @@ fun AppearanceScreen(navigation: HSNavigation) {
                     }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun FontSizeStepper(
+    value: AppFontSize,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
+    onReset: () -> Unit,
+    onValueEntered: (Int) -> Unit,
+) {
+    val focusManager = LocalFocusManager.current
+    var enteredPercentage by rememberSaveable(value.percentage) {
+        mutableStateOf(value.percentage.toString())
+    }
+
+    fun commitEnteredPercentage() {
+        val percentage = enteredPercentage.toIntOrNull()?.coerceIn(
+            AppFontSize.MIN_PERCENT,
+            AppFontSize.MAX_PERCENT,
+        )
+        if (percentage == null) {
+            enteredPercentage = value.percentage.toString()
+        } else {
+            enteredPercentage = percentage.toString()
+            onValueEntered(percentage)
+        }
+    }
+
+    RowUniversal(modifier = Modifier.padding(horizontal = 16.dp)) {
+        body_leah(
+            text = stringResource(R.string.Appearance_FontSize),
+            maxLines = 1,
+            modifier = Modifier.weight(1f),
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HSIconButton(
+                icon = painterResource(R.drawable.ic_minus_20),
+                contentDescription = stringResource(R.string.Appearance_FontSize_Decrease),
+                variant = ButtonVariant.Secondary,
+                size = ButtonSize.Small,
+                enabled = value.percentage > AppFontSize.MIN_PERCENT,
+                onClick = onDecrease,
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(56.dp)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(0.5.dp, ComposeAppTheme.colors.blade, RoundedCornerShape(16.dp))
+                    .background(ComposeAppTheme.colors.tyler),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val valueDescription = stringResource(R.string.Appearance_FontSize_Value)
+                    BasicTextField(
+                        value = enteredPercentage,
+                        onValueChange = { input ->
+                            enteredPercentage = input.filter(Char::isDigit).take(3)
+                            enteredPercentage.toIntOrNull()
+                                ?.takeIf { it in AppFontSize.MIN_PERCENT..AppFontSize.MAX_PERCENT }
+                                ?.let(onValueEntered)
+                        },
+                        modifier = Modifier
+                            .width(32.dp)
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
+                                    commitEnteredPercentage()
+                                }
+                            }
+                            .semantics { contentDescription = valueDescription },
+                        textStyle = ColoredTextStyle(
+                            color = ComposeAppTheme.colors.leah,
+                            textStyle = ComposeAppTheme.typography.subheadSB,
+                        ).copy(textAlign = TextAlign.End),
+                        singleLine = true,
+                        cursorBrush = SolidColor(ComposeAppTheme.colors.leah),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                commitEnteredPercentage()
+                                focusManager.clearFocus()
+                            }
+                        ),
+                    )
+                    subhead1_leah(text = "%")
+                }
+            }
+
+            HSIconButton(
+                icon = painterResource(R.drawable.ic_plus_20),
+                contentDescription = stringResource(R.string.Appearance_FontSize_Increase),
+                variant = ButtonVariant.Secondary,
+                size = ButtonSize.Small,
+                enabled = value.percentage < AppFontSize.MAX_PERCENT,
+                onClick = onIncrease,
+            )
+
+            HSIconButton(
+                icon = painterResource(R.drawable.ic_refresh),
+                contentDescription = stringResource(R.string.Appearance_FontSize_Reset),
+                variant = ButtonVariant.Secondary,
+                size = ButtonSize.Small,
+                enabled = value != AppFontSize.Default,
+                onClick = onReset,
+            )
         }
     }
 }

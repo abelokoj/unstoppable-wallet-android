@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.receive
 
 import io.horizontalsystems.walletkit.core.isCustom
+import io.horizontalsystems.walletkit.core.ICoinManager
 import io.horizontalsystems.walletkit.core.managers.MarketKitWrapper
 import io.horizontalsystems.walletkit.core.nativeTokenQueries
 import io.horizontalsystems.walletkit.core.sortedByFilter
@@ -17,6 +18,7 @@ import io.horizontalsystems.marketkit.models.TokenType
 class FullCoinsProvider(
     private val marketKit: MarketKitWrapper,
     val activeAccount: Account,
+    private val coinManager: ICoinManager,
     // false: offer coins the account can't hold too (swap "You Get" side — such
     // swaps are delivered to an external recipient address)
     private val filterByAccountSupport: Boolean = true,
@@ -40,7 +42,11 @@ class FullCoinsProvider(
             .flatten()
         val supportedNativeTokens = marketKit.tokens(tokenQueries)
         val activeTokens = activeWallets.map { it.token }
-        predefinedTokens = activeTokens + supportedNativeTokens
+        val catalogTokens = coinManager.customTokens.filter {
+            it.blockchainType in allowedBlockchainTypes
+        }
+        predefinedTokens = (activeTokens + supportedNativeTokens + catalogTokens)
+            .distinctBy { it.tokenQuery.id }
     }
 
     fun setQuery(q: String) {

@@ -2,12 +2,15 @@ package io.horizontalsystems.walletkit.modules.settings.appearance
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.compose.ui.text.font.FontFamily
 import com.google.gson.annotations.SerializedName
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.modules.theme.ThemeService
 import io.horizontalsystems.walletkit.ui.compose.TranslatableString
 import io.horizontalsystems.walletkit.ui.compose.WithTranslatableTitle
+import io.horizontalsystems.walletkit.ui.compose.manropeFont
+import io.horizontalsystems.walletkit.ui.compose.pretendardStdFont
 
 object AppearanceModule {
 
@@ -29,6 +32,57 @@ object AppearanceModule {
         }
     }
 
+}
+
+/**
+ * App-wide typeface preference. Keeping the mapping here means the custom-font feature can be
+ * removed by deleting this enum, its four font resources and the single theme parameter without
+ * touching individual text components.
+ */
+enum class AppFont(
+    val raw: String,
+    override val title: TranslatableString,
+    val fontFamily: FontFamily,
+) : WithTranslatableTitle {
+    Default("default", TranslatableString.ResString(R.string.Appearance_Font_Default), manropeFont),
+    System("system", TranslatableString.ResString(R.string.Appearance_Font_System), FontFamily.Default),
+    Pretendard("pretendard", TranslatableString.ResString(R.string.Appearance_Font_Pretendard), pretendardStdFont);
+
+    companion object {
+        fun fromRaw(raw: String): AppFont? = entries.find { it.raw == raw }
+    }
+}
+
+@JvmInline
+value class AppFontSize private constructor(val percentage: Int) {
+    val raw: String
+        get() = percentage.toString()
+
+    val scale: Float
+        get() = percentage / 100f
+
+    fun previous(): AppFontSize = fromPercentage((percentage - 1).coerceAtLeast(MIN_PERCENT))!!
+
+    fun next(): AppFontSize = fromPercentage((percentage + 1).coerceAtMost(MAX_PERCENT))!!
+
+    companion object {
+        const val MIN_PERCENT = 85
+        const val MAX_PERCENT = 140
+        const val DEFAULT_PERCENT = 110
+
+        val Default = AppFontSize(DEFAULT_PERCENT)
+
+        fun fromPercentage(percentage: Int): AppFontSize? =
+            percentage.takeIf { it in MIN_PERCENT..MAX_PERCENT }?.let(::AppFontSize)
+
+        fun fromRaw(raw: String): AppFontSize? = when (raw) {
+            // Migrate the original three-choice setting without changing the user's scale.
+            "small" -> AppFontSize(95)
+            "default" -> Default
+            "large" -> AppFontSize(125)
+            else -> raw.toIntOrNull()?.let(::fromPercentage)
+        }
+    }
 }
 
 enum class AppIcon(val icon: Int, val titleText: String, val isDeprecated: Boolean = false) : WithTranslatableTitle {

@@ -21,6 +21,13 @@ object MultiSwapProviderRegistry {
         USwapProvider(UProvider.Pegasus),
         USwapProvider(UProvider.Jupiter),
         USwapProvider(UProvider.Lifi),
+        USwapProvider(
+            UProvider.Across,
+            // Across currently originates on EVM-compatible chains and TRON. Keep unsupported
+            // source families out of the quote fan-out even if a stale backend catalog lists them.
+            supportsSourceToken = { it.blockchainType.isEvm || it.blockchainType == BlockchainType.Tron },
+        ),
+        RelayProvider,
         // Axelar ITS' Stellar leg is a server-built XDR envelope (signed_transaction), so
         // Stellar joins the default sourceAddress build signal (EVM covers the other leg).
         USwapProvider(

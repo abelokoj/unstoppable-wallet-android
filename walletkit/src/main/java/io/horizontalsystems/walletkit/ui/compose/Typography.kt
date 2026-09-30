@@ -163,3 +163,10 @@ val manropeFont = FontFamily(
     Font(R.font.manrope_semibold, FontWeight.SemiBold),
     Font(R.font.manrope_bold, FontWeight.Bold),
 )
+
+val pretendardStdFont = FontFamily(
+    Font(R.font.pretendard_std_regular, FontWeight.Normal),
+    Font(R.font.pretendard_std_medium, FontWeight.Medium),
+    Font(R.font.pretendard_std_semibold, FontWeight.SemiBold),
+    Font(R.font.pretendard_std_bold, FontWeight.Bold),
+)

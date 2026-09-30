@@ -29,6 +29,8 @@ class AppearanceViewModel(
     private var launchScreenOptions = launchScreenService.optionsFlow.value
     private var appIconOptions = appIconService.optionsFlow.value
     private var themeOptions = themeService.optionsFlow.value
+    private var appFontOptions = Select(localStorage.appFont, AppFont.entries)
+    private var appFontSize = localStorage.appFontSize
     private var marketsTabHidden = !localStorage.marketsTabEnabled
     private var balanceTabButtonsHidden = !localStorage.balanceTabButtonsEnabled
     private var chartButtonEnabled = localStorage.chartButtonEnabled
@@ -81,6 +83,8 @@ class AppearanceViewModel(
         launchScreenOptions = launchScreenOptions,
         appIconOptions = appIconOptions,
         themeOptions = themeOptions,
+        appFontOptions = appFontOptions,
+        appFontSize = appFontSize,
         balanceViewTypeOptions = balanceViewTypeOptions,
         marketsTabHidden = marketsTabHidden,
         balanceTabButtonsHidden = balanceTabButtonsHidden,
@@ -141,6 +145,28 @@ class AppearanceViewModel(
         themeService.setThemeType(themeType)
 
         stat(page = StatPage.Appearance, event = StatEvent.SelectTheme(themeType.statValue))
+    }
+
+    fun onEnterAppFont(appFont: AppFont) {
+        localStorage.appFont = appFont
+        appFontOptions = Select(appFont, AppFont.entries)
+        emitState()
+    }
+
+    private fun setAppFontSize(appFontSize: AppFontSize) {
+        localStorage.appFontSize = appFontSize
+        this.appFontSize = appFontSize
+        emitState()
+    }
+
+    fun decreaseAppFontSize() = setAppFontSize(appFontSize.previous())
+
+    fun increaseAppFontSize() = setAppFontSize(appFontSize.next())
+
+    fun resetAppFontSize() = setAppFontSize(AppFontSize.Default)
+
+    fun setAppFontSizePercentage(percentage: Int) {
+        AppFontSize.fromPercentage(percentage)?.let(::setAppFontSize)
     }
 
     fun onEnterBalanceViewType(viewType: BalanceViewType) {
@@ -209,6 +235,8 @@ data class AppearanceUIState(
     val launchScreenOptions: Select<LaunchPage>,
     val appIconOptions: Select<AppIcon>,
     val themeOptions: Select<ThemeType>,
+    val appFontOptions: Select<AppFont>,
+    val appFontSize: AppFontSize,
     val balanceViewTypeOptions: Select<BalanceViewType>,
     val marketsTabHidden: Boolean,
     val balanceTabButtonsHidden: Boolean,

@@ -7,6 +7,7 @@ import io.horizontalsystems.walletkit.core.shorten
 import io.horizontalsystems.walletkit.modules.contacts.ContactsRepository
 import io.horizontalsystems.walletkit.modules.contacts.Mode
 import io.horizontalsystems.walletkit.modules.contacts.model.Contact
+import io.horizontalsystems.walletkit.modules.contacts.model.addressFor
 import io.horizontalsystems.walletkit.ui.compose.TranslatableString
 import kotlinx.coroutines.launch
 
@@ -55,7 +56,7 @@ class ContactsViewModel(
     }
 
     fun shouldShowReplaceWarning(contact: Contact): Boolean {
-        return mode is Mode.AddAddressToExistingContact && contact.addresses.any { it.blockchain.type == mode.blockchainType }
+        return mode is Mode.AddAddressToExistingContact && contact.addressFor(mode.blockchainType) != null
     }
 
     fun shouldShowRestoreWarning(): Boolean {
@@ -66,8 +67,7 @@ class ContactsViewModel(
         val blockchainType =
             (mode as? Mode.AddAddressToExistingContact)?.blockchainType ?: return null
         val address = (mode as? Mode.AddAddressToExistingContact)?.address ?: return null
-        val oldAddress =
-            contact.addresses.find { it.blockchain.type == blockchainType } ?: return null
+        val oldAddress = contact.addressFor(blockchainType) ?: return null
 
         return TranslatableString.ResString(
             R.string.Contacts_AddAddress_ReplaceWarning,

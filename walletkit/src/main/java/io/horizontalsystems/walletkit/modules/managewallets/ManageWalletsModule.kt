@@ -3,6 +3,7 @@ package io.horizontalsystems.walletkit.modules.managewallets
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.modules.addtoken.AddTokenService
 import io.horizontalsystems.walletkit.modules.balance.BalanceService
 import io.horizontalsystems.walletkit.modules.enablecoin.restoresettings.RestoreSettingsService
 import io.horizontalsystems.walletkit.modules.enablecoin.restoresettings.RestoreSettingsViewModel
@@ -22,10 +23,19 @@ object ManageWalletsModule {
                 App.walletManager,
                 restoreSettingsService,
                 App.accountManager.activeAccount?.let { account ->
-                    FullCoinsProvider(App.marketKit, account)
+                    FullCoinsProvider(App.marketKit, account, App.coinManager)
                 },
                 activeAccount,
                 BalanceService.getInstance("wallet"),
+            )
+        }
+
+        private val addTokenService by lazy {
+            AddTokenService(
+                App.coinManager,
+                App.walletManager,
+                App.accountManager,
+                App.marketKit,
             )
         }
 
@@ -36,7 +46,11 @@ object ManageWalletsModule {
                     RestoreSettingsViewModel(restoreSettingsService, listOf(restoreSettingsService)) as T
                 }
                 ManageWalletsViewModel::class.java -> {
-                    ManageWalletsViewModel(manageWalletsService, listOf(manageWalletsService)) as T
+                    ManageWalletsViewModel(
+                        manageWalletsService,
+                        addTokenService,
+                        listOf(manageWalletsService),
+                    ) as T
                 }
                 else -> throw IllegalArgumentException()
             }

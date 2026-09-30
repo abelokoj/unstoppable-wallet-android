@@ -25,6 +25,8 @@ import io.horizontalsystems.walletkit.modules.market.TimeDuration
 import io.horizontalsystems.walletkit.modules.market.favorites.WatchlistSorting
 import io.horizontalsystems.walletkit.modules.roi.PerformanceCoin
 import io.horizontalsystems.walletkit.modules.settings.appearance.AppIcon
+import io.horizontalsystems.walletkit.modules.settings.appearance.AppFont
+import io.horizontalsystems.walletkit.modules.settings.appearance.AppFontSize
 import io.horizontalsystems.walletkit.modules.settings.appearance.PriceChangeInterval
 import io.horizontalsystems.walletkit.modules.settings.security.autolock.AutoLockInterval
 import io.horizontalsystems.walletkit.modules.theme.ThemeType
@@ -80,6 +82,9 @@ class LocalStorageManager(
     private val IGNORE_ROOTED_DEVICE_WARNING = "ignore_rooted_device_warning"
     private val LAUNCH_PAGE = "launch_page"
     private val APP_ICON = "app_icon"
+    private val APP_FONT = "app_font"
+    private val APP_FONT_SIZE = "app_font_size"
+    private val CUSTOM_TOKEN_CATALOG = "custom_token_catalog"
     private val MAIN_TAB = "main_tab"
     private val MARKET_FAVORITES_SORTING = "market_favorites_sorting"
     private val MARKET_FAVORITES_SHOW_SIGNALS = "market_favorites_show_signals"
@@ -321,6 +326,39 @@ class LocalStorageManager(
             ?: ThemeType.System
         set(themeType) {
             preferences.edit().putString(CURRENT_THEME, themeType.value).apply()
+        }
+
+    private val _appFontFlow = MutableStateFlow(appFont)
+    override val appFontFlow = _appFontFlow.asStateFlow()
+
+    override var appFont: AppFont
+        get() = preferences.getString(APP_FONT, null)
+            ?.let(AppFont::fromRaw)
+            ?: AppFont.Default
+        set(value) {
+            preferences.edit().putString(APP_FONT, value.raw).apply()
+            _appFontFlow.value = value
+        }
+
+    private val _appFontSizeFlow = MutableStateFlow(appFontSize)
+    override val appFontSizeFlow = _appFontSizeFlow.asStateFlow()
+
+    override var appFontSize: AppFontSize
+        get() = preferences.getString(APP_FONT_SIZE, null)
+            ?.let(AppFontSize::fromRaw)
+            ?: AppFontSize.Default
+        set(value) {
+            preferences.edit().putString(APP_FONT_SIZE, value.raw).apply()
+            _appFontSizeFlow.value = value
+        }
+
+    override var customTokenRecords: List<CustomTokenRecord>
+        get() = preferences.getString(CUSTOM_TOKEN_CATALOG, null)?.let { json ->
+            val type = object : TypeToken<ArrayList<CustomTokenRecord>>() {}.type
+            runCatching { gson.fromJson<ArrayList<CustomTokenRecord>>(json, type) }.getOrNull()
+        } ?: emptyList()
+        set(value) {
+            preferences.edit().putString(CUSTOM_TOKEN_CATALOG, gson.toJson(value)).apply()
         }
 
     override var balanceViewType: BalanceViewType?

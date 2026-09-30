@@ -236,7 +236,8 @@ class ReceiveTokenSelectViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val fullCoinsProvider = FullCoinsProvider(
                 App.marketKit,
-                activeAccount
+                activeAccount,
+                App.coinManager,
             )
             return ReceiveTokenSelectViewModel(
                 App.walletManager,

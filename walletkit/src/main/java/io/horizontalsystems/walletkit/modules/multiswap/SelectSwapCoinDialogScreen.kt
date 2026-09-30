@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -39,6 +41,9 @@ import io.horizontalsystems.walletkit.ui.compose.components.HSpacer
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
 import io.horizontalsystems.walletkit.ui.compose.components.HsImage
 import io.horizontalsystems.walletkit.ui.compose.components.ListEmptyView
+import io.horizontalsystems.walletkit.ui.compose.components.HSCircularProgressIndicator
+import io.horizontalsystems.walletkit.ui.compose.components.HsSwitch
+import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.ui.compose.components.subhead2_leah
 import io.horizontalsystems.walletkit.uiv3.components.BoxBordered
@@ -58,6 +63,8 @@ fun SelectSwapCoinDialogScreen(
     onSearchTextChanged: (String) -> Unit,
     onClose: () -> Unit,
     onRecordRecent: (CoinBalanceItem) -> Unit,
+    onSetDiscoveredTokenEnabled: (Token, Boolean) -> Unit,
+    onAddTokenManually: () -> Unit,
     onClickItem: (CoinBalanceItem) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -75,13 +82,20 @@ fun SelectSwapCoinDialogScreen(
             onClickItem(coinItem)
         }
 
-        if (isSearching && uiState.searchResults.isEmpty()) {
+        if (isSearching && uiState.searchResults.isEmpty() && uiState.discoveredTokens.isEmpty() && !uiState.discoveryLoading) {
             ListEmptyView(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(ComposeAppTheme.colors.lawrence),
                 text = stringResource(R.string.EmptyResults),
                 icon = R.drawable.ic_not_available
+            )
+            ManualAddTokenButton(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 88.dp),
+                onClick = onAddTokenManually,
             )
         } else {
             LazyColumn(
@@ -91,8 +105,52 @@ fun SelectSwapCoinDialogScreen(
                     .background(ComposeAppTheme.colors.lawrence)
             ) {
                 if (isSearching) {
-                    itemsIndexed(uiState.searchResults) { index, coinItem ->
-                        CoinCell(coinItem, onClick, top = index == 0)
+                    if (uiState.discoveryLoading) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillParentMaxSize()
+                                    .padding(bottom = 88.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    HSCircularProgressIndicator()
+                                    VSpacer(12.dp)
+                                    subhead2_leah(text = stringResource(R.string.Swap_SearchingTokenNetworks))
+                                }
+                            }
+                        }
+                    } else {
+                        itemsIndexed(uiState.searchResults) { index, coinItem ->
+                            CoinCell(coinItem, onClick, top = index == 0)
+                        }
+                        if (uiState.discoveredTokens.isNotEmpty()) {
+                            item {
+                                SectionHeaderColored(title = stringResource(R.string.Swap_DiscoveredTokens))
+                            }
+                            itemsIndexed(uiState.discoveredTokens) { index, item ->
+                                DiscoveredTokenCell(
+                                    item = item,
+                                    top = index == 0,
+                                    onEnabledChange = { enabled ->
+                                        onSetDiscoveredTokenEnabled(item.token, enabled)
+                                    },
+                                    onClick = {
+                                        if (item.enabled) {
+                                            onClick(CoinBalanceItem(item.token, null, null))
+                                        } else {
+                                            onSetDiscoveredTokenEnabled(item.token, true)
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                        item {
+                            ManualAddTokenButton(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
+                                onClick = onAddTokenManually,
+                            )
+                        }
                     }
                 } else if (isSearchActive) {
                     // Search active with empty input — show recently picked tokens.
@@ -146,6 +204,47 @@ fun SelectSwapCoinDialogScreen(
                 searchQuery = q
                 onSearchTextChanged(q)
             },
+        )
+    }
+}
+
+@Composable
+private fun ManualAddTokenButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    ButtonPrimaryYellow(
+        modifier = modifier.fillMaxWidth(),
+        title = stringResource(R.string.Swap_AddTokenManually),
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun DiscoveredTokenCell(
+    item: DiscoveredSwapToken,
+    top: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onClick: () -> Unit,
+) {
+    BoxBordered(top = top, bottom = true) {
+        CellPrimary(
+            left = {
+                CoinImage(token = item.token, modifier = Modifier.size(IconSizes.Token))
+            },
+            middle = {
+                CellMiddleInfo(
+                    title = item.token.coin.code.hs,
+                    subtitle = "${item.token.coin.name} · ${item.token.blockchain.name}".hs,
+                )
+            },
+            right = {
+                HsSwitch(
+                    checked = item.enabled,
+                    onCheckedChange = onEnabledChange,
+                )
+            },
+            onClick = onClick,
         )
     }
 }

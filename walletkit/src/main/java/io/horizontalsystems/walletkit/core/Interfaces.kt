@@ -3,6 +3,7 @@ package io.horizontalsystems.walletkit.core
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.horizontalsystems.walletkit.core.managers.ActiveAccountState
+import io.horizontalsystems.walletkit.core.managers.CustomTokenRecord
 import io.horizontalsystems.walletkit.core.managers.MiniAppRegisterService.RegisterAppResponse
 import io.horizontalsystems.walletkit.core.managers.ServiceWCWhitelist
 import io.horizontalsystems.walletkit.core.providers.FeeRates
@@ -31,6 +32,8 @@ import io.horizontalsystems.walletkit.modules.market.Value
 import io.horizontalsystems.walletkit.modules.market.favorites.WatchlistSorting
 import io.horizontalsystems.walletkit.modules.roi.PerformanceCoin
 import io.horizontalsystems.walletkit.modules.settings.appearance.AppIcon
+import io.horizontalsystems.walletkit.modules.settings.appearance.AppFont
+import io.horizontalsystems.walletkit.modules.settings.appearance.AppFontSize
 import io.horizontalsystems.walletkit.modules.settings.appearance.PriceChangeInterval
 import io.horizontalsystems.walletkit.modules.settings.privacy.tor.TorStatus
 import io.horizontalsystems.walletkit.modules.settings.security.autolock.AutoLockInterval
@@ -111,6 +114,11 @@ interface ILocalStorage {
     var ignoreRootedDeviceWarning: Boolean
     var launchPage: LaunchPage?
     var appIcon: AppIcon?
+    var appFont: AppFont
+    val appFontFlow: StateFlow<AppFont>
+    var appFontSize: AppFontSize
+    val appFontSizeFlow: StateFlow<AppFontSize>
+    var customTokenRecords: List<CustomTokenRecord>
     var mainTab: MainModule.MainNavigation?
     fun moneroActiveAccount(accountId: String): Int
     fun setMoneroActiveAccount(accountId: String, accountIndex: Int)
@@ -535,6 +543,8 @@ interface IRateAppManager {
 
 interface ICoinManager {
     fun getToken(query: TokenQuery): Token?
+    val customTokens: List<Token>
+    fun saveCustomToken(token: Token)
 }
 
 interface ITermsManager {

@@ -266,6 +266,9 @@
 
     <!--Market Search-->
     <string name="EmptyResults">No results found</string>
+    <string name="Swap_SearchingTokenNetworks">Searching supported networks…</string>
+    <string name="Swap_DiscoveredTokens">DISCOVERED TOKENS</string>
+    <string name="Swap_AddTokenManually">+ Add token manually</string>
     <string name="Market_Filters">Filters</string>
     <string name="Market_AdvancedSearch_Results">Results</string>
     <string name="Market_Search_Hint">Search</string>
@@ -1259,6 +1262,18 @@
     <string name="Appearance_MarketsTab">MARKETS TAB</string>
     <string name="Appearance_BalanceTab">BALANCE TAB</string>
     <string name="Appearance_AppIcon">APP ICON</string>
+    <string name="Appearance_Font">App Font</string>
+    <string name="Appearance_Font_Default">Default (Manrope)</string>
+    <string name="Appearance_Font_System">System</string>
+    <string name="Appearance_Font_Pretendard" translatable="false">Pretendard</string>
+    <string name="Appearance_FontSize">Font Size</string>
+    <string name="Appearance_FontSize_Decrease">Decrease font size</string>
+    <string name="Appearance_FontSize_Increase">Increase font size</string>
+    <string name="Appearance_FontSize_Reset">Reset font size</string>
+    <string name="Appearance_FontSize_Value">Font size percentage</string>
+    <string name="Appearance_FontSize_Small">Small</string>
+    <string name="Appearance_FontSize_Default">Default</string>
+    <string name="Appearance_FontSize_Large">Large</string>
     <string name="Appearance_BalanceValue">Coin Balances</string>
     <string name="Appearance_BalanceValue_Tip">Show balances highlighted in either crypto or fiat.</string>
     <string name="Appearance_Warning_CloseApplication">Changing icon will close application</string>

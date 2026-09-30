@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.nav3.LocalResultEventBus
+import io.horizontalsystems.walletkit.modules.addtoken.AddTokenPage
 import io.horizontalsystems.marketkit.models.Token
 import kotlinx.serialization.Serializable
 
@@ -42,7 +43,9 @@ private fun SwapSelectCoinScreen(
         uiState = uiState,
         onSearchTextChanged = viewModel::setQuery,
         onClose = navigation::removeLastOrNull,
-        onRecordRecent = { viewModel.onRecentTokenSelected(it.token) }
+        onRecordRecent = { viewModel.onRecentTokenSelected(it.token) },
+        onSetDiscoveredTokenEnabled = viewModel::setDiscoveredTokenEnabled,
+        onAddTokenManually = { navigation.slideFromRight(AddTokenPage) },
     ) {
         resultEventBus.sendResult(it.token)
         navigation.removeLastOrNull()

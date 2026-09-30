@@ -7,6 +7,7 @@ import io.horizontalsystems.walletkit.core.ICoinManager
 import io.horizontalsystems.walletkit.core.managers.MarketKitWrapper
 import io.horizontalsystems.walletkit.core.managers.WalletManager
 import io.horizontalsystems.walletkit.core.order
+import io.horizontalsystems.walletkit.core.isCustom
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.core.stats.StatPage
 import io.horizontalsystems.walletkit.core.stats.stat
@@ -15,6 +16,10 @@ import io.horizontalsystems.marketkit.models.Blockchain
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.marketkit.models.TokenType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.supervisorScope
 
 class AddTokenService(
     private val coinManager: ICoinManager,
@@ -51,9 +56,11 @@ class AddTokenService(
 
         if (!blockchainService.isValid(reference)) throw TokenError.InvalidReference
 
-        val token = coinManager.getToken(blockchainService.tokenQuery(reference))
+        val query = blockchainService.tokenQuery(reference)
+        val token = coinManager.getToken(query)
         if (token != null && token.type !is TokenType.Unsupported) {
-            return TokenInfo(token, true)
+            val alreadyEnabled = walletManager.activeWallets.any { it.token.tokenQuery == query }
+            return TokenInfo(token, alreadyEnabled)
         }
 
         try {
@@ -64,10 +71,28 @@ class AddTokenService(
         }
     }
 
+    suspend fun discoverTokenInfos(reference: String): List<TokenInfo> = supervisorScope {
+        if (reference.isBlank()) return@supervisorScope emptyList()
+
+        blockchains.distinctBy { it.type.uid }.map { blockchain ->
+            async(Dispatchers.IO) {
+                runCatching { tokenInfo(blockchain, reference.trim()) }.getOrNull()
+            }
+        }.awaitAll()
+            .filterNotNull()
+            .distinctBy { it.token.tokenQuery.id }
+            .sortedBy { it.token.blockchainType.order }
+    }
+
     fun addToken(token: TokenInfo) {
         val account = accountManager.activeAccount ?: return
+        if (token.token.isCustom) {
+            coinManager.saveCustomToken(token.token)
+        }
         val wallet = Wallet(token.token, account)
-        walletManager.save(listOf(wallet))
+        if (walletManager.activeWallets.none { it.token.tokenQuery == token.token.tokenQuery }) {
+            walletManager.save(listOf(wallet))
+        }
 
         stat(page = StatPage.AddToken, event = StatEvent.AddToken(token.token))
     }

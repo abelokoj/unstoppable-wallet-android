@@ -9,6 +9,8 @@ import io.horizontalsystems.walletkit.modules.contacts.ContactsModule.ContactVal
 import io.horizontalsystems.walletkit.modules.contacts.model.Contact
 import io.horizontalsystems.walletkit.modules.contacts.model.ContactAddress
 import io.horizontalsystems.walletkit.modules.contacts.model.ContactNameAddress
+import io.horizontalsystems.walletkit.modules.contacts.model.addressFor
+import io.horizontalsystems.walletkit.modules.contacts.model.isEvm
 import io.horizontalsystems.marketkit.models.BlockchainType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -60,13 +62,13 @@ class ContactsRepository(
         if (addressQuery != null) {
             criteria.add {
                 it.addresses.any { contactAddress ->
-                    (blockchainType == null || blockchainType == contactAddress.blockchain.type)
+                    (blockchainType == null || contactAddress.isCompatibleWith(blockchainType))
                             && contactAddress.address.equals(addressQuery, true)
                 }
             }
         } else if (blockchainType != null) {
             criteria.add {
-                it.addresses.any { it.blockchain.type == blockchainType }
+                it.addressFor(blockchainType) != null
             }
         }
 
@@ -78,12 +80,11 @@ class ContactsRepository(
     }
 
     fun getContactAddressesByBlockchain(blockchainType: BlockchainType): List<ContactNameAddress> {
-        return contacts.flatMap { contact ->
-            contact.addresses.map {
+        return contacts.mapNotNull { contact ->
+            contact.addressFor(blockchainType)?.let {
                 ContactNameAddress(contact.name, it)
             }
         }
-            .filter { it.contactAddress.blockchain.type == blockchainType }
             .sortedBy { it.name }
     }
 
@@ -102,7 +103,13 @@ class ContactsRepository(
 
     @Throws
     fun validateAddress(contactUid: String?, address: ContactAddress) {
-        val contactWithSameAddress = contacts.find { it.uid != contactUid && it.addresses.contains(address) }
+        val contactWithSameAddress = contacts.find { contact ->
+            contact.uid != contactUid && contact.addresses.any { existingAddress ->
+                existingAddress.address.equals(address.address, ignoreCase = true) &&
+                        (existingAddress.blockchain.type == address.blockchain.type ||
+                                (existingAddress.blockchain.type.isEvm() && address.blockchain.type.isEvm()))
+            }
+        }
 
         if (contactWithSameAddress != null) {
             throw ContactValidationException.DuplicateAddress(contactWithSameAddress)

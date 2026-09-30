@@ -11,20 +11,26 @@ import io.horizontalsystems.walletkit.core.imageUrl
 import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.core.supported
 import io.horizontalsystems.walletkit.core.title
+import io.horizontalsystems.walletkit.modules.addtoken.AddTokenService
 import io.horizontalsystems.walletkit.modules.market.ImageSource
 import io.horizontalsystems.walletkit.modules.restoreaccount.restoreblockchains.CoinViewItem
 import io.horizontalsystems.walletkit.modules.tokenselect.SelectChainTab
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class ManageWalletsViewModel(
     private val service: ManageWalletsService,
+    private val addTokenService: AddTokenService,
     private val clearables: List<Clearable>
 ) : ViewModelUiState<ManageWalletsViewModel.ManageWalletsUiState>() {
 
     private var coinItems: List<CoinViewItem<Token>> = listOf()
     private var searchQuery = ""
+    private var searchJob: Job? = null
+    private var discoveredItems: List<CoinViewItem<Token>> = emptyList()
+    private var discoveryLoading = false
     private val allTab = SelectChainTab(title = Translator.getString(R.string.Market_All), null)
     private var selectedChainTab: SelectChainTab = allTab
     private var availableBlockchainTypes: List<BlockchainType>? = BlockchainType.supported
@@ -42,6 +48,8 @@ class ManageWalletsViewModel(
 
     override fun createState() = ManageWalletsUiState(
         items = coinItems,
+        discoveredItems = discoveredItems,
+        discoveryLoading = discoveryLoading,
         searchQuery = searchQuery,
         selectedTab = selectedChainTab,
         tabs = getTabs()
@@ -98,7 +106,52 @@ class ManageWalletsViewModel(
     }
 
     fun updateFilter(filter: String) {
+        searchQuery = filter
         service.setFilter(filter)
+        searchJob?.cancel()
+        discoveredItems = emptyList()
+        discoveryLoading = false
+
+        if (filter.isBlank() || service.items.isNotEmpty()) {
+            emitState()
+            return
+        }
+
+        searchJob = viewModelScope.launch {
+            discoveryLoading = true
+            emitState()
+            discoveredItems = addTokenService.discoverTokenInfos(filter).map { info ->
+                viewItem(
+                    ManageWalletsService.Item(
+                        token = info.token,
+                        enabled = info.inCoinList,
+                        hasInfo = info.inCoinList,
+                    )
+                )
+            }
+            discoveryLoading = false
+            emitState()
+        }
+    }
+
+    fun setDiscoveredTokenEnabled(token: Token, enabled: Boolean) {
+        if (enabled) {
+            addTokenService.addToken(AddTokenService.TokenInfo(token, false))
+            service.setFilter(searchQuery)
+            discoveredItems = discoveredItems.filterNot {
+                it.item.tokenQuery == token.tokenQuery
+            }
+        } else {
+            service.disable(token)
+            discoveredItems = discoveredItems.map { item ->
+                if (item.item.tokenQuery == token.tokenQuery) {
+                    item.copy(enabled = false, hasInfo = false)
+                } else {
+                    item
+                }
+            }
+        }
+        emitState()
     }
 
     override fun onCleared() {
@@ -107,6 +160,8 @@ class ManageWalletsViewModel(
 
     data class ManageWalletsUiState(
         val items: List<CoinViewItem<Token>>,
+        val discoveredItems: List<CoinViewItem<Token>>,
+        val discoveryLoading: Boolean,
         val searchQuery: String,
         val selectedTab: SelectChainTab,
         val tabs: List<SelectChainTab>,

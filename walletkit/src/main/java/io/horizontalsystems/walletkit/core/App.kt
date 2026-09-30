@@ -306,7 +306,7 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         registerChainPlugins()
         zcashEndpointStorage = ZcashEndpointStorage(appDatabase)
         zcashEndpointManager = ZcashLightWalletEndpointManager(blockchainSettingsStorage, zcashEndpointStorage, marketKit)
-        coinManager = CoinManager(marketKit, walletManager)
+        coinManager = CoinManager(marketKit, walletManager, localStorage)
 
 
 

@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.modules.contacts.model.addressFor
 import io.horizontalsystems.marketkit.models.BlockchainType
 
 class ChooseContactViewModel(
@@ -30,10 +31,11 @@ class ChooseContactViewModel(
 
     private fun rebuildItems() {
         items = repository.getContactsFiltered(blockchainType, query)
-            .map {
+            .mapNotNull { contact ->
+                val address = contact.addressFor(blockchainType) ?: return@mapNotNull null
                 ContactViewItem(
-                    it.name,
-                    it.addresses.first { it.blockchain.type == blockchainType }.address
+                    contact.name,
+                    address.address
                 )
             }
     }

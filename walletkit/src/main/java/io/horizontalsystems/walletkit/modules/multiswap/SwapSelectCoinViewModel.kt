@@ -14,9 +14,11 @@ import io.horizontalsystems.walletkit.core.sorting.TokenSortContext
 import io.horizontalsystems.walletkit.core.supported
 import io.horizontalsystems.walletkit.core.supportedTokens
 import io.horizontalsystems.walletkit.core.supports
+import io.horizontalsystems.walletkit.core.collectSafely
 import io.horizontalsystems.walletkit.entities.CurrencyValue
 import io.horizontalsystems.walletkit.entities.Wallet
 import io.horizontalsystems.walletkit.modules.balance.BalanceSorter
+import io.horizontalsystems.walletkit.modules.addtoken.AddTokenService
 import io.horizontalsystems.walletkit.modules.multiswap.SwapSelectCoinViewModel.Companion.RECENT_LIMIT
 import io.horizontalsystems.walletkit.modules.receive.FullCoinsProvider
 import io.horizontalsystems.marketkit.models.BlockchainType
@@ -25,6 +27,7 @@ import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.marketkit.models.TokenQuery
 import io.horizontalsystems.marketkit.models.TokenType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -43,13 +46,22 @@ class SwapSelectCoinViewModel(
     private val currencyManager = App.currencyManager
     private val marketKit = App.marketKit
     private val localStorage = App.localStorage
+    private val addTokenService = AddTokenService(
+        App.coinManager,
+        App.walletManager,
+        App.accountManager,
+        App.marketKit,
+    )
     private var query = ""
+    private var searchJob: Job? = null
 
     private var popular = listOf<CoinBalanceItem>()
     private var yourTokens = listOf<CoinBalanceItem>()
     private var topTokens = listOf<CoinBalanceItem>()
     private var searchResults = listOf<CoinBalanceItem>()
     private var recent = listOf<CoinBalanceItem>()
+    private var discoveredTokens = listOf<DiscoveredSwapToken>()
+    private var discoveryLoading = false
 
     var uiState by mutableStateOf(
         SwapSelectCoinUiState(
@@ -59,6 +71,8 @@ class SwapSelectCoinViewModel(
             topTokens = topTokens,
             searchResults = searchResults,
             recent = recent,
+            discoveredTokens = discoveredTokens,
+            discoveryLoading = discoveryLoading,
         )
     )
         private set
@@ -67,6 +81,17 @@ class SwapSelectCoinViewModel(
         viewModelScope.launch {
             loadSections()
             emitState()
+        }
+        viewModelScope.launch {
+            App.walletManager.activeWalletsUpdatedFlow.collectSafely { wallets ->
+                currentCoinsProvider()?.apply {
+                    setActiveWallets(wallets)
+                    setQuery(query)
+                }
+                loadSections()
+                if (query.isNotBlank()) setQuery(query)
+                else emitState()
+            }
         }
     }
 
@@ -82,7 +107,12 @@ class SwapSelectCoinViewModel(
             if (cached.activeAccount == account) return cached
         }
 
-        return FullCoinsProvider(App.marketKit, account, filterByAccountSupport = !allowExternalReceive)
+        return FullCoinsProvider(
+            App.marketKit,
+            account,
+            App.coinManager,
+            filterByAccountSupport = !allowExternalReceive,
+        )
             .apply {
                 setActiveWallets(App.walletManager.activeWallets)
                 setQuery(query)
@@ -93,8 +123,49 @@ class SwapSelectCoinViewModel(
     fun setQuery(q: String) {
         query = q
         coinsProvider?.setQuery(q)
-        viewModelScope.launch {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            discoveredTokens = emptyList()
+            discoveryLoading = false
             searchResults = if (q.isBlank()) emptyList() else search(q)
+            if (!allowExternalReceive && searchResults.isNotEmpty()) {
+                val enabledIds = App.walletManager.activeWallets.map { it.token.tokenQuery.id }.toSet()
+                val inactiveResults = searchResults.filter {
+                    it.token.tokenQuery.id !in enabledIds && it.token.type !is TokenType.Native
+                }
+                discoveredTokens = inactiveResults.map { DiscoveredSwapToken(it.token, false) }
+                searchResults = searchResults - inactiveResults.toSet()
+            }
+            if (q.isNotBlank() && searchResults.isEmpty()) {
+                discoveryLoading = true
+                emitState()
+                discoveredTokens = (
+                    discoveredTokens + addTokenService.discoverTokenInfos(q).map { info ->
+                        DiscoveredSwapToken(info.token, info.inCoinList)
+                    }
+                ).distinctBy { it.token.tokenQuery.id }
+                discoveryLoading = false
+            }
+            emitState()
+        }
+    }
+
+    fun setDiscoveredTokenEnabled(token: Token, enabled: Boolean) {
+        val activeAccount = App.accountManager.activeAccount ?: return
+        if (enabled) {
+            addTokenService.addToken(AddTokenService.TokenInfo(token, false))
+        } else {
+            App.walletManager.activeWallets
+                .firstOrNull { it.account == activeAccount && it.token.tokenQuery == token.tokenQuery }
+                ?.let { App.walletManager.delete(listOf(it)) }
+        }
+
+        coinsProvider?.setActiveWallets(App.walletManager.activeWallets)
+        discoveredTokens = discoveredTokens.map {
+            if (it.token.tokenQuery == token.tokenQuery) it.copy(enabled = enabled) else it
+        }
+        viewModelScope.launch {
+            loadSections()
             emitState()
         }
     }
@@ -227,6 +298,8 @@ class SwapSelectCoinViewModel(
                 topTokens = topTokens,
                 searchResults = searchResults,
                 recent = recent,
+                discoveredTokens = discoveredTokens,
+                discoveryLoading = discoveryLoading,
             )
         }
     }
@@ -293,4 +366,11 @@ data class SwapSelectCoinUiState(
     val topTokens: List<CoinBalanceItem>,
     val searchResults: List<CoinBalanceItem>,
     val recent: List<CoinBalanceItem>,
+    val discoveredTokens: List<DiscoveredSwapToken>,
+    val discoveryLoading: Boolean,
+)
+
+data class DiscoveredSwapToken(
+    val token: Token,
+    val enabled: Boolean,
 )
