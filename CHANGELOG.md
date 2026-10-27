@@ -16,6 +16,28 @@ Both kit forks branch from the **commit the wallet pins**, not `master`. Upstrea
 
 ---
 
+# Unreleased - 2026-10-26T22:55:18-04:00
+
+- Fixed `SwapProviderIdMappingTest` by supplementing the captured upstream provider fixture with explicitly synthetic Across and Relay metadata. The upstream snapshot is preserved, and Relay is checked using its actual direct-provider ID, `RELAY`, rather than `u_RELAY`.
+- Added regression coverage confirming that suspension metadata for both fork-specific bridges applies to their runtime provider IDs without suspending unrelated providers. Production provider behavior is unchanged; this resolves the test failure recorded in the preceding entry.
+- Validation: reproduced the original failure, then passed all 137 walletkit and 11 EVM unit tests with zero failures, errors or skipped tests. Test-only change; no APK rebuild, device installation or live bridge swap performed. Synthetic metadata does not establish live backend availability. Recording time for local, uncommitted work; nothing from this batch was published.
+
+---
+
+# Unreleased - 2026-10-26T22:45:00-04:00
+
+- Added a Security Center entry for Revoke Access covering standard ERC-20 allowances, ERC-721 single-NFT approvals and ERC-721/ERC-1155 collection operators. The user selected EVM-only support and existing network providers only; no third-party approval indexer was added.
+- Scanning uses owner-filtered RPC logs and live contract reads, with a manual contract/spender check, explicit incomplete-scan and failed-check states, wallet-change guards, watch-only read access and session-only scan progress. Discovery and permission re-check RPC queries use Tor when enabled, wait for its connection, omit request/body logging and reject redirects. Bounded range retries preserve both older progress and newer blocks after interruptions or RPC limits.
+- Revoke calls are constructed locally with zero native-currency value and only the standard zero-allowance/zero-address/disabled-operator calldata. Confirmation rechecks the permission, uses the existing network-fee and signing services, requests the configured PIN and distinguishes submission from confirmation. Non-standard or malicious contracts can behave differently; the review screen warns users to verify contract addresses.
+- Confirmation and fee-setting state is isolated per wallet, network and permission, including restoration; the manual form uses the existing keyboard-inset pattern and permits copying full addresses for comparison.
+- Validation: all 19 approval tests passed (ABI construction, event parsing, bounded scan continuation/cancellation and confirmation-state isolation), and `:app:assembleBaseDebug` succeeded in the renamed `C:\dev\openswap` repository. A stale dex cache still referenced the old folder; cleaned only the generated app/EVM module outputs and rebuilt without build-cache reuse. The artifact is `money.openswap.wallet.dev`, version `0.51.2 (182)`; version metadata and published releases were not changed. Existing Gradle, native-library and unrelated resource warnings remain.
+- Broader validation found an existing `SwapProviderIdMappingTest` failure: the committed provider fixture does not include `u_ACROSS` and `u_RELAY`. The unrelated provider code/fixture was not changed or the test suppressed. The approval tests and development APK build pass independently of that failure.
+- The Android emulator failed during startup and no phone was connected, so native visual, live-RPC end-to-end and real-device checks remain incomplete. No funded transaction was signed, no device installation was performed, and nothing from this batch was committed or published.
+- Limitations: historical RPC range limits can make discovery slow or incomplete; a scan is not proof that a wallet is safe. This does not invalidate every off-chain permit, smart-account delegation or WalletConnect session, and cannot recover lost funds. Only standard EVM approvals are in scope, not TRON or other chain-specific permissions.
+- Timestamp is the final recording time for local, uncommitted work begun on October 24 and first recorded on October 26 at `22:18:52-04:00`; earlier edit timestamps are not reconstructed.
+
+---
+
 # Release notes updated - 2026-09-30T08:54:00-04:00
 
 - Updated the existing `0.51.2` public release notes' appearance section to include Source Sans 3 and Public Sans and identify Default as Manrope. Kept the other release notes and historical changelog entries unchanged.

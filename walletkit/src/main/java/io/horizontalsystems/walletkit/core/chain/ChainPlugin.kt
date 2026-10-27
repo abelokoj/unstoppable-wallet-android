@@ -262,6 +262,9 @@ interface ChainPlugin {
     /** Current EIP-20 allowance granted to spender, or null when not applicable. */
     suspend fun eip20Allowance(token: Token, spenderAddress: String): BigDecimal? = null
 
+    /** Read-only permission discovery and allowlisted revocation, through this chain's RPC. */
+    fun approvalAccessService(account: Account): io.horizontalsystems.walletkit.modules.approvals.ApprovalAccessService? = null
+
     /** Approve/revoke action required before swapping, or null when none is needed. */
     suspend fun eip20ApproveAction(
         allowance: BigDecimal?,

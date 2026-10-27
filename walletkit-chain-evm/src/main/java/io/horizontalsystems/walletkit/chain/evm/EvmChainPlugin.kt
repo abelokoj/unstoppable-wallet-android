@@ -22,6 +22,8 @@ import io.horizontalsystems.walletkit.core.managers.RestoreSettings
 import io.horizontalsystems.walletkit.core.stats.StatPage
 import io.horizontalsystems.walletkit.core.toRawHexString
 import io.horizontalsystems.walletkit.entities.Account
+import io.horizontalsystems.walletkit.modules.approvals.ApprovalAccessService
+import io.horizontalsystems.walletkit.modules.approvals.EvmApprovalAccessService
 import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.entities.Wallet
 import io.horizontalsystems.walletkit.entities.evmAddress
@@ -81,6 +83,9 @@ import kotlin.reflect.KClass
  * providers, key rows, error conversion) are contributed by the Ethereum instance only.
  */
 class EvmChainPlugin(override val blockchainType: BlockchainType) : ChainPlugin {
+    override fun approvalAccessService(account: Account): ApprovalAccessService? =
+        EvmApprovalAccessService.create(account, blockchainType)
+
 
     private val isFamilyAnchor get() = blockchainType == BlockchainType.Ethereum
 

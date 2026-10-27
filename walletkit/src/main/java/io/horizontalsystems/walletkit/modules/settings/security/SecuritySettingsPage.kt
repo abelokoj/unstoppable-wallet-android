@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
+import io.horizontalsystems.walletkit.modules.approvals.ApprovalAccessPage
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.pin.EditDuressPinPage
 import io.horizontalsystems.walletkit.modules.pin.SetDuressPinIntroPage
@@ -147,6 +148,25 @@ private fun SecurityCenterScreen(
                             }
                         )
                     },
+                )
+            }
+
+            VSpacer(height = 6.dp)
+
+            Column(
+                Modifier.padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(ComposeAppTheme.colors.lawrence)
+            ) {
+                CellPrimary(
+                    middle = {
+                        CellMiddleInfo(
+                            title = stringResource(R.string.ApprovalAccess_Title).hs,
+                            subtitle = stringResource(R.string.ApprovalAccess_SettingsDescription).hs,
+                        )
+                    },
+                    right = { CellRightNavigation() },
+                    onClick = { navigation.slideFromRight(ApprovalAccessPage) },
                 )
             }
 

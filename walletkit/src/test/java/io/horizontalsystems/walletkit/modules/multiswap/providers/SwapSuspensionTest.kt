@@ -182,6 +182,19 @@ class SwapSuspensionTest {
         assertFalse(suspended.isSuspended("uniswap_v3", usdc, eth))
     }
 
+    @Test
+    fun `fork bridge metadata suspends the runtime provider ids`() {
+        mapOf("u_ACROSS" to "ACROSS", "RELAY" to "RELAY").forEach { (appId, metadataId) ->
+            assertEquals(metadataId, SwapSuspensionIndex.serverId(appId))
+            val suspended = SwapSuspensionIndex.from(
+                listOf(UnstoppableAPI.Response.Provider(provider = metadataId, suspended = true)),
+            )
+
+            assertTrue(suspended.isSuspended(appId, usdc, eth))
+            assertFalse(suspended.isSuspended("uniswap_v3", usdc, eth))
+        }
+    }
+
     // --- wire and cache formats ---
 
     @Test
