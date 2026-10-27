@@ -1,8 +1,10 @@
 package io.horizontalsystems.walletkit.chain.bitcoin
 
-import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.modules.privatesend.PrivateSendBtcParams
+import io.horizontalsystems.walletkit.core.chain.SendChainSettings
+import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
+import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.walletkit.core.IAdapter
 import io.horizontalsystems.walletkit.core.ISendBitcoinAdapter
 import io.horizontalsystems.walletkit.core.adapters.BitcoinAdapter
@@ -12,7 +14,6 @@ import io.horizontalsystems.walletkit.core.adapters.ECashAdapter
 import io.horizontalsystems.walletkit.core.adapters.LitecoinAdapter
 import io.horizontalsystems.walletkit.core.chain.ChainKeyRow
 import io.horizontalsystems.walletkit.core.chain.ChainPlugin
-import io.horizontalsystems.walletkit.core.chain.ChainSendScreenArgs
 import io.horizontalsystems.walletkit.core.factories.FeeRateProviderFactory
 import io.horizontalsystems.walletkit.core.managers.RestoreSettings
 import io.horizontalsystems.walletkit.core.managers.syncMode
@@ -36,9 +37,6 @@ import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTran
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.send.address.BitcoinAddressValidator
 import io.horizontalsystems.walletkit.modules.send.address.EnterAddressValidator
-import io.horizontalsystems.walletkit.modules.send.bitcoin.SendBitcoinModule
-import io.horizontalsystems.walletkit.modules.send.bitcoin.SendBitcoinScreen
-import io.horizontalsystems.walletkit.modules.send.bitcoin.SendBitcoinViewModel
 import io.horizontalsystems.walletkit.modules.transactionInfo.options.SpeedUpCancelType
 import io.horizontalsystems.walletkit.modules.transactionInfo.resendbitcoin.ResendBitcoinPage
 import io.horizontalsystems.bitcoincash.MainNetBitcoinCash
@@ -51,13 +49,76 @@ import io.horizontalsystems.hdwalletkit.Mnemonic
 import io.horizontalsystems.litecoinkit.MainNetLitecoin
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.core.chain.SendMemoSupport
+import io.horizontalsystems.walletkit.modules.memo.MemoVisibility
 import io.horizontalsystems.marketkit.models.TokenType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.merge
 import java.math.BigDecimal
+import io.horizontalsystems.walletkit.modules.send.bitcoin.rbfSupported
+import io.horizontalsystems.walletkit.modules.send.bitcoin.v2.SendBtcSettingsPage
+import io.horizontalsystems.walletkit.modules.send.bitcoin.v2.BtcSendSettings
 
 abstract class BitcoinFamilyPlugin : ChainPlugin {
+
+    override fun sendSettingsPage(wallet: Wallet, address: String?): HSPage =
+        SendBtcSettingsPage(wallet, address)
+
+    override fun privateSendBtcParams(token: Token, settings: SendChainSettings?) = PrivateSendBtcParams(
+        // The send service fetches the recommended rate and offers it in its settings.
+        feeRate = null,
+        unspentOutputs = (settings as? BtcSendSettings)?.unspentOutputs,
+        transactionSorting = App.btcBlockchainManager.transactionSortMode(token.blockchainType),
+        rbfEnabled = token.blockchainType.rbfSupported && App.localStorage.rbfEnabled,
+    )
+
+    override fun depositTransactionData(
+        token: Token,
+        data: SendTransactionData,
+        settings: SendChainSettings?,
+    ): SendTransactionData {
+        if (data !is SendTransactionData.Btc) return data
+        return data.copy(
+            unspentOutputs = (settings as? BtcSendSettings)?.unspentOutputs,
+            transactionSorting = App.btcBlockchainManager.transactionSortMode(token.blockchainType),
+            rbfEnabled = token.blockchainType.rbfSupported && App.localStorage.rbfEnabled,
+        )
+    }
+
+    override fun sendAvailableBalance(token: Token, settings: SendChainSettings?): BigDecimal? {
+        val outputs = (settings as? BtcSendSettings)?.unspentOutputs ?: return null
+        return outputs.sumOf { it.value }.toBigDecimal().movePointLeft(token.decimals)
+    }
+
+    override fun sendTransactionData(
+        token: Token,
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        extraInput: String?,
+        settings: SendChainSettings?,
+    ) = SendTransactionData.Btc(
+        address = address,
+        memo = memo,
+        amount = amount,
+        // No fee rate here: the send service fetches the recommended rate and lets the user
+        // adjust it in its settings.
+        recommendedGasRate = null,
+        minimumSendAmount = null,
+        changeToFirstInput = false,
+        utxoFilters = UtxoFilters(),
+        unspentOutputs = (settings as? BtcSendSettings)?.unspentOutputs,
+        pluginData = (settings as? BtcSendSettings)?.pluginData(token.blockchainType, address),
+        transactionSorting = App.btcBlockchainManager.transactionSortMode(token.blockchainType),
+        rbfEnabled = token.blockchainType.rbfSupported && App.localStorage.rbfEnabled,
+    )
+
+    // The memo becomes an OP_RETURN output. 80 bytes of data is what every relay policy still
+    // accepts: Bitcoin Core before 30.0, Knots, Litecoin and Dash cap it there. Bitcoin Cash
+    // and eCash accept 220 and override this.
+    override suspend fun sendMemoSupport(token: Token, address: String?) =
+        SendMemoSupport(maxBytes = 80, visibility = MemoVisibility.Public)
 
     protected val btcBlockchainManager get() = App.btcBlockchainManager
 
@@ -137,20 +198,6 @@ abstract class BitcoinFamilyPlugin : ChainPlugin {
     override fun resendTransactionPage(type: SpeedUpCancelType, transactionHash: String): HSPage =
         ResendBitcoinPage(ResendBitcoinPage.Input(type))
 
-    @Composable
-    override fun SendScreen(args: ChainSendScreenArgs) {
-        val factory = SendBitcoinModule.Factory(args.wallet, args.address, args.hideAddress)
-        val sendBitcoinViewModel = viewModel<SendBitcoinViewModel>(factory = factory)
-        SendBitcoinScreen(
-            args.title,
-            args.navigation,
-            sendBitcoinViewModel,
-            args.amountInputModeViewModel,
-            args.sendEntryPointDestId,
-            args.amount,
-            riskyAddress = args.riskyAddress,
-        )
-    }
 }
 
 class BitcoinChainPlugin : BitcoinFamilyPlugin() {
@@ -243,6 +290,9 @@ class BitcoinChainPlugin : BitcoinFamilyPlugin() {
 class BitcoinCashChainPlugin : BitcoinFamilyPlugin() {
     override val blockchainType: BlockchainType = BlockchainType.BitcoinCash
 
+    override suspend fun sendMemoSupport(token: Token, address: String?) =
+        SendMemoSupport(maxBytes = 220, visibility = MemoVisibility.Public)
+
     override fun addressHandlers(): List<IAddressHandler> {
         val network = MainNetBitcoinCash()
         return listOf(
@@ -257,6 +307,9 @@ class BitcoinCashChainPlugin : BitcoinFamilyPlugin() {
 
 class ECashChainPlugin : BitcoinFamilyPlugin() {
     override val blockchainType: BlockchainType = BlockchainType.ECash
+
+    override suspend fun sendMemoSupport(token: Token, address: String?) =
+        SendMemoSupport(maxBytes = 220, visibility = MemoVisibility.Public)
 
     override fun addressHandlers(): List<IAddressHandler> {
         val network = MainNetECash()

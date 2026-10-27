@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.ui.helpers.SignMessageFormatter
 import io.horizontalsystems.walletkit.ui.helpers.TextHelper
 
 @Composable
@@ -15,7 +16,7 @@ fun MessageToSign(
     onCopy: (String) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val formatted = formatJson(message)
+    val formatted = SignMessageFormatter.format(message)
     val copyMessage = stringResource(R.string.Hud_Text_Copied)
 
     body_leah(
@@ -28,27 +29,4 @@ fun MessageToSign(
         },
         text = formatted
     )
-}
-
-private fun formatJson(text: String): String {
-    val json = StringBuilder()
-    var indentString = ""
-    for (element in text) {
-        when (element) {
-            '{', '[' -> {
-                json.append("\n$indentString$element\n")
-                indentString += "\t"
-                json.append(indentString)
-            }
-
-            '}', ']' -> {
-                indentString = indentString.replaceFirst("\t".toRegex(), "")
-                json.append("\n$indentString$element")
-            }
-
-            ',' -> json.append("$element\n$indentString")
-            else -> json.append(element)
-        }
-    }
-    return json.toString()
 }

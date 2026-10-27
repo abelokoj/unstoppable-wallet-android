@@ -1,3 +1,19 @@
+# Open Swap v0.52.2
+
+- **XRP and Arc:** Added XRP, including trust-line tokens, and Arc with native USDC support.
+- **CrossPay:** Pay with one supported token while the recipient receives another.
+- **A unified Send experience:** Updated sending across networks with shared amount controls, one confirmation screen and automatic network-fee deduction when sending your full balance.
+- **Zcash improvements:** Added Zcash Names and updated the synchronization engine.
+- **Privacy and signing improvements:** Updated Tor routing and recovery, strengthened swap-recipient checks, improved WalletConnect transaction warnings and corrected session handling after wallet deletion.
+- **Backup compatibility:** Corrected private-key exports for consistent restoration across platforms.
+- **Revoke Access:** Review and revoke standard token and NFT approvals on supported EVM networks using the wallet's configured network providers. Historical discovery can be incomplete when providers restrict older logs.
+- **Wallet and history improvements:** Added watch-only THORChain and MayaChain wallets, more detailed Private Send and CrossPay history, and more accurate token transaction history.
+- **Open Swap customization:** Retained Relay, contract-address token discovery, custom tokens across wallets, shared EVM contacts, wallet-switcher search, font options, text sizing and custom swap percentages.
+
+Across support remains in development and is not included as a working direct integration in this release.
+
+---
+
 # Open Swap v0.51.2
 
 - **Relay cross-chain swaps:** Swap between supported EVM networks through Relay, with transaction validation and support for the app's Tor privacy setting.

@@ -37,6 +37,8 @@ import io.horizontalsystems.walletkit.modules.walletconnect.list.WCListPage
 import io.horizontalsystems.marketkit.models.TokenType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -59,6 +61,7 @@ class MainViewModel(
     private var wcPendingRequestsCount = 0
     private var marketsTabEnabled = localStorage.marketsTabEnabledFlow.value
     private var transactionsEnabled = isTransactionsTabEnabled()
+    private var swapTabEnabled = isSwapTabEnabled()
     private var settingsBadge: MainModule.BadgeType? = null
     private val launchPage: LaunchPage
         get() = localStorage.launchPage ?: LaunchPage.Auto
@@ -76,21 +79,16 @@ class MainViewModel(
         }
 
     private val items: List<MainNavigation>
-        get() = if (marketsTabEnabled) {
-            listOf(
-                MainNavigation.Market,
-                MainNavigation.Balance,
-                MainNavigation.Swap,
-//                MainNavigation.Transactions,
-                MainNavigation.Settings,
-            )
-        } else {
-            listOf(
-                MainNavigation.Balance,
-                MainNavigation.Swap,
-//                MainNavigation.Transactions,
-                MainNavigation.Settings,
-            )
+        get() = buildList {
+            if (marketsTabEnabled) {
+                add(MainNavigation.Market)
+            }
+            add(MainNavigation.Balance)
+            if (swapTabEnabled) {
+                add(MainNavigation.Swap)
+            }
+//            add(MainNavigation.Transactions)
+            add(MainNavigation.Settings)
         }
     private val selectedTabItem: MainNavigation
         get() = mainNavItems.firstOrNull { it.selected }?.mainNavItem
@@ -106,6 +104,7 @@ class MainViewModel(
     private var torEnabled = localStorage.torEnabled
     private var openSendTokenSelect: OpenSendTokenSelect? = null
     private var snapTabSwitch = false
+    private var showChangeWalletWarning = false
 
     // App locked while a public screen was showing: fall back to the Market tab so the user
     // keeps browsing instead of getting the keypad. The stored launch tab is left untouched.
@@ -167,6 +166,7 @@ class MainViewModel(
             accountManager.activeAccountStateFlow.collect {
                 if (it is ActiveAccountState.ActiveAccount) {
                     updateTransactionsTabEnabled()
+                    updateSwapTabEnabled()
                 }
             }
         }
@@ -204,9 +204,16 @@ class MainViewModel(
         openSend = openSendTokenSelect,
         selectedTabItem = selectedTabItem,
         snapTabSwitch = snapTabSwitch,
+        showChangeWalletWarning = showChangeWalletWarning,
     )
 
     private fun isTransactionsTabEnabled(): Boolean = !accountManager.isAccountsEmpty
+
+    // Hiding a tab fails open, unlike the deeplink guard, which waits for the account and then
+    // refuses. Accounts load after this view model is built
+    // (App.startTasks -> initDefaultPinLevel), so treating "not loaded yet" as a watch account
+    // would drop the tab from the first frame and shift the bar under the user once it arrives.
+    private fun isSwapTabEnabled(): Boolean = accountManager.activeAccount?.isWatchAccount != true
 
 
     fun whatsNewShown() {
@@ -286,8 +293,18 @@ class MainViewModel(
         syncNavigation()
     }
 
+    private fun updateSwapTabEnabled() {
+        swapTabEnabled = isSwapTabEnabled()
+        syncNavigation()
+    }
+
     fun wcSupportStateHandled() {
         wcSupportState = null
+        emitState()
+    }
+
+    fun changeWalletWarningShown() {
+        showChangeWalletWarning = false
         emitState()
     }
 
@@ -354,7 +371,10 @@ class MainViewModel(
             else -> getLaunchTab()
         }
 
-        return items.indexOf(tab)
+        // The stored tab can be one that is currently hidden — Swap, once the active account
+        // is a watch account — so fall back to Balance rather than leaving nothing selected.
+        val index = items.indexOf(tab)
+        return if (index >= 0) index else items.indexOf(MainNavigation.Balance).coerceAtLeast(0)
     }
 
     private fun getLaunchTab(): MainNavigation = when (launchPage) {
@@ -531,21 +551,38 @@ class MainViewModel(
             || deeplinkString.startsWith("litecoin:")
         ) {
             AddressUriParser.addressUri(deeplinkString)?.let { addressUri ->
-                val allowedBlockchainTypes = addressUri.allowedBlockchainTypes
-                var allowedTokenTypes: List<TokenType>? = null
-                addressUri.value<String>(AddressUri.Field.TokenUid)?.let { uid ->
-                    TokenType.fromId(uid)?.let { tokenType ->
-                        allowedTokenTypes = listOf(tokenType)
-                    }
-                }
+                viewModelScope.launch {
+                    // A payment link normally cold-starts the app, and accounts load after this
+                    // view model is built, so the answer has to be awaited rather than read: a
+                    // not-yet-loaded account would refuse a link it can perfectly well handle.
+                    val account = accountManager.activeAccountStateFlow
+                        .filterIsInstance<ActiveAccountState.ActiveAccount>()
+                        .first()
+                        .account
 
-                openSendTokenSelect = OpenSendTokenSelect(
-                    blockchainTypes = allowedBlockchainTypes,
-                    tokenTypes = allowedTokenTypes,
-                    address = addressUri.address,
-                    amount = addressUri.amount
-                )
-                emitState()
+                    // A payment link asks for a signature, so a watch account must not be taken
+                    // to the send flow. Nothing can be hidden here, so it is told to switch.
+                    if (account == null || account.isWatchAccount) {
+                        showChangeWalletWarning = true
+                        emitState()
+                        return@launch
+                    }
+
+                    var allowedTokenTypes: List<TokenType>? = null
+                    addressUri.value<String>(AddressUri.Field.TokenUid)?.let { uid ->
+                        TokenType.fromId(uid)?.let { tokenType ->
+                            allowedTokenTypes = listOf(tokenType)
+                        }
+                    }
+
+                    openSendTokenSelect = OpenSendTokenSelect(
+                        blockchainTypes = addressUri.allowedBlockchainTypes,
+                        tokenTypes = allowedTokenTypes,
+                        address = addressUri.address,
+                        amount = addressUri.amount
+                    )
+                    emitState()
+                }
                 return
             }
         }

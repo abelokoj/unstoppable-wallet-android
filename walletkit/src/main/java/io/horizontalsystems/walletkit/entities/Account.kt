@@ -10,7 +10,7 @@ import io.horizontalsystems.marketkit.models.TokenType
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.managers.PassphraseValidator
 import io.horizontalsystems.walletkit.core.providers.Translator
-import io.horizontalsystems.walletkit.core.shorten
+import io.horizontalsystems.walletkit.core.title
 import io.horizontalsystems.walletkit.serializers.BigIntegerSerializer
 import kotlinx.serialization.Serializable
 import java.math.BigInteger
@@ -131,6 +131,15 @@ sealed class AccountType {
 
     @Serializable
     data class StellarAddress(val address: String) : AccountType()
+
+    @Serializable
+    data class XrpAddress(val address: String) : AccountType()
+
+    @Serializable
+    data class ThorchainAddress(val address: String) : AccountType()
+
+    @Serializable
+    data class MayachainAddress(val address: String) : AccountType()
 
     @Serializable
     data class BitcoinAddress(
@@ -341,6 +350,9 @@ sealed class AccountType {
             is TronAddress -> "Tron Address"
             is TonAddress -> "Ton Address"
             is StellarAddress -> "Stellar Address"
+            is XrpAddress -> "XRP Address"
+            is ThorchainAddress -> "THORChain Address"
+            is MayachainAddress -> "Maya Address"
             is EvmPrivateKey -> "EVM Private Key"
             is TronPrivateKey -> "TRON Private Key"
             is Passkey -> "Passkey"
@@ -376,15 +388,32 @@ sealed class AccountType {
         get() = false
 
     val detailedDescription: String
+        get() = watchTypeName
+            ?.let { Translator.getString(R.string.WatchWallet_Typed, it) }
+            ?: description
+
+    private val watchTypeName: String?
         get() = when (this) {
-            is EvmAddress -> this.address.shorten()
-            is SolanaAddress -> this.address.shorten()
-            is TronAddress -> this.address.shorten()
-            is TonAddress -> this.address.shorten()
-            is StellarAddress -> this.address.shorten()
-            is BitcoinAddress -> this.address.shorten()
-            is MoneroWatchAccount -> this.address.shorten()
-            else -> this.description
+            is EvmAddress -> "EVM"
+            is SolanaAddress -> "Solana"
+            is TronAddress -> "TRON"
+            is TonAddress -> "TON"
+            is StellarAddress -> "Stellar"
+            is XrpAddress -> "XRP"
+            is ThorchainAddress -> "THORChain"
+            is MayachainAddress -> "Maya"
+            // BitcoinAddress covers every UTXO chain, so the label comes from the address's own chain.
+            is BitcoinAddress -> when (blockchainType) {
+                BlockchainType.Bitcoin -> "BTC"
+                BlockchainType.BitcoinCash -> "BCH"
+                BlockchainType.ECash -> "XEC"
+                BlockchainType.Litecoin -> "LTC"
+                BlockchainType.Dash -> "DASH"
+                else -> blockchainType.title
+            }
+            is MoneroWatchAccount -> "Monero"
+            is HdExtendedKey -> if (hdExtendedKey.isPublic) "HD" else null
+            else -> null
         }
 
     val canAddTokens: Boolean
@@ -406,6 +435,9 @@ sealed class AccountType {
             is TronAddress -> true
             is TonAddress -> true
             is StellarAddress -> true
+            is XrpAddress -> true
+            is ThorchainAddress -> true
+            is MayachainAddress -> true
             is BitcoinAddress -> true
             is HdExtendedKey -> hdExtendedKey.isPublic
             is MoneroWatchAccount -> true
@@ -419,6 +451,9 @@ sealed class AccountType {
             is TronAddress -> address
             is TonAddress -> address
             is StellarAddress -> address
+            is XrpAddress -> address
+            is ThorchainAddress -> address
+            is MayachainAddress -> address
             is BitcoinAddress -> address
             is HdExtendedKey -> keySerialized
             is MoneroWatchAccount -> address

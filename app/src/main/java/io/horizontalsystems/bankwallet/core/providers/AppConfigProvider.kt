@@ -32,6 +32,10 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
     override val simplexSupportChat = "https://smp11.simplex.im/g#yTrDh716RZCNYsdPSDrqMMlHnqZlW4XJGnFTugBrsAI"
     override val nymVpnLink = "https://nymtechnologies.pxf.io/N9vnr1"
     override val telegramSupportChat = "https://t.me/m/1TNZ9JE4MTNi"
+    override val labsSimplexSwapBotLink = "https://unstoppable.money/simplex"
+    override val labsTelegramSwapBotLink = "https://unstoppable.money/telegram"
+    override val labsSignalSwapBotLink = "https://unstoppable.money/signal"
+    override val labsSwapWebLink = "https://swap.unstoppable.money"
 
     override val blocksDecodedEthereumRpc = BuildConfig.BLOCKS_DECODED_ETHEREUM_RPC
     override val twitterBearerToken = BuildConfig.TWITTER_BEARER_TOKEN
@@ -98,6 +102,7 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
                 BlockchainType.Base to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
                 BlockchainType.ZkSync to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
                 BlockchainType.RobinhoodChain to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
+                BlockchainType.Arc to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
                 BlockchainType.ArbitrumOne to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
                 BlockchainType.Solana to "EKQVqxaXVJf1QaVUeNynKkJC7rT4abMnWtg5TtqY2S5F",
                 BlockchainType.Gnosis to "0x2174BFA51C4c5ADa3035f3a9ccEb5DbeE32EE162",
@@ -122,6 +127,7 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
                 BlockchainType.Base to "0x731352dcF66014156B1560B832B56069e7b38ab1",
                 BlockchainType.ZkSync to "0x731352dcF66014156B1560B832B56069e7b38ab1",
                 BlockchainType.RobinhoodChain to "0x731352dcF66014156B1560B832B56069e7b38ab1",
+                BlockchainType.Arc to "0x731352dcF66014156B1560B832B56069e7b38ab1",
                 BlockchainType.ArbitrumOne to "0x731352dcF66014156B1560B832B56069e7b38ab1",
                 BlockchainType.Solana to "ELFQmFXqdS6C1zVqZifs7WAmLKovdEPbWSnqomhZoK3B",
                 BlockchainType.Gnosis to "0x731352dcF66014156B1560B832B56069e7b38ab1",
@@ -134,9 +140,11 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
     }
 
     // coinCode -> risk threshold (used for dust detection scoring)
-    // spam = risk/10 (auto-spam), risk = config value (+3 points), danger = risk*5 (+2 points)
+    // spam = risk/10 (auto-spam, except spamCoinsWithoutMicroDust), risk = config value (+3 points), danger = risk*5 (+2 points)
     override val spamCoinValueLimits: Map<String, BigDecimal> = mapOf(
         "XLM" to BigDecimal("0.1"),
+        // XRPL dust spam is sent in single drops; anything under 0.0001 XRP (limit / 10) is auto-spam
+        "XRP" to BigDecimal("0.001"),
         "USDT" to BigDecimal("1"),
         "USDC" to BigDecimal("1"),
         "USDD" to BigDecimal("1"),
@@ -151,6 +159,12 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
         "SOL" to BigDecimal("0.0001"),
     )
 
+    // Cent-sized stablecoin transfers are common test sends, so their micro dust is not
+    // auto-spam: it scores as ordinary dust and needs address or time correlation.
+    override val spamCoinsWithoutMicroDust: Set<String> = setOf(
+        "USDT", "USDC", "USDD", "DAI", "BUSD", "EURS", "BSC-USD",
+    )
+
     override val chainalysisBaseUrl = BuildConfig.CHAINALYSIS_BASE_URL
 
     override val chainalysisApiKey = BuildConfig.CHAINALYSIS_API_KEY
@@ -162,6 +176,8 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
     override val uswapApiBaseUrl = BuildConfig.USWAP_API_BASE_URL
 
     override val uswapApiKey = BuildConfig.USWAP_API_KEY
+
+    override val tonApiKey = BuildConfig.TONAPI_KEY
 
     override val oneInchPartnerFeeAddress = BuildConfig.ONE_INCH_PARTNER_FEE_ADDRESS
 

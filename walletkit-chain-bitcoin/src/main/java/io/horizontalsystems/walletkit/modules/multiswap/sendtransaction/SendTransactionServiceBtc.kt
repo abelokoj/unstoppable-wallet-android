@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.bitcoincore.models.SignedRawTransaction
+import io.horizontalsystems.bitcoincore.core.IPluginData
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.walletkit.R
@@ -22,18 +23,19 @@ import io.horizontalsystems.walletkit.core.factories.FeeRateProviderFactory
 import io.horizontalsystems.walletkit.entities.Address
 import io.horizontalsystems.walletkit.entities.CoinValue
 import io.horizontalsystems.walletkit.entities.TransactionDataSortMode
-import io.horizontalsystems.walletkit.modules.amount.AmountInputType
 import io.horizontalsystems.walletkit.modules.amount.AmountValidator
 import io.horizontalsystems.walletkit.modules.evmfee.EvmSettingsInput
 import io.horizontalsystems.walletkit.modules.fee.HSFee
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataField
+import io.horizontalsystems.walletkit.modules.send.bitcoin.rbfSupported
+import io.horizontalsystems.hodler.HodlerPlugin
+import io.horizontalsystems.hodler.HodlerData
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.send.SendModule
 import io.horizontalsystems.walletkit.modules.send.bitcoin.SendBitcoinAddressService
 import io.horizontalsystems.walletkit.modules.send.bitcoin.SendBitcoinAmountService
 import io.horizontalsystems.walletkit.modules.send.bitcoin.SendBitcoinFeeRateService
 import io.horizontalsystems.walletkit.modules.send.bitcoin.SendBitcoinFeeService
-import io.horizontalsystems.walletkit.modules.send.bitcoin.advanced.FeeRateCaution
 import io.horizontalsystems.walletkit.modules.send.bitcoin.settings.SendBtcSettingsViewModel
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.TranslatableString
@@ -46,6 +48,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import io.horizontalsystems.walletkit.modules.send.bitcoin.advanced.FeeRateCaution
 
 class SendTransactionServiceBtc(private val token: Token) : AbstractSendTransactionService(true, false), ISignOnlySendTransactionService {
     private val adapter = App.adapterManager.getAdapterForToken<ISendBitcoinAdapter>(token)!!
@@ -66,6 +69,7 @@ class SendTransactionServiceBtc(private val token: Token) : AbstractSendTransact
     private var unspentOutputs: List<UnspentOutputInfo>? = null
     private var transactionSorting: TransactionDataSortMode? = null
     private var rbfEnabled: Boolean = false
+    private var pluginData: Map<Byte, IPluginData>? = null
     private var networkFee: SendModule.AmountData? = null
 
     private var fields = listOf<DataField>()
@@ -124,6 +128,17 @@ class SendTransactionServiceBtc(private val token: Token) : AbstractSendTransact
         emitState()
     }
 
+    // Only settings that differ from their defaults are worth a row: a timelock is off unless
+    // chosen, and replace-by-fee is on unless switched off.
+    private fun refreshFields() {
+        val lockTime = (pluginData?.get(HodlerPlugin.id) as? HodlerData)?.lockTimeInterval
+
+        fields = listOfNotNull(
+            lockTime?.let { DataFieldBtcTimeLock(it) },
+            if (token.blockchainType.rbfSupported && !rbfEnabled) DataFieldBtcRbfDisabled else null,
+        )
+    }
+
     private fun refreshNetworkFee() {
         networkFee = bitcoinFeeInfo?.fee?.let { fee ->
             getAmountData(CoinValue(token, fee))
@@ -139,11 +154,15 @@ class SendTransactionServiceBtc(private val token: Token) : AbstractSendTransact
         emitState()
     }
 
+    // Fee-inclusive: computed by the adapter from the fee rate, recipient, memo and the
+    // selected outputs, so it is the exact amount a whole-balance send can carry.
+    override fun maxSendableAmount(): BigDecimal? = amountState.availableBalance
+
     override fun createState(): SendTransactionServiceState {
         val sendable = amountState.canBeSend && feeRateState.canBeSend && addressState.canBeSend
 
         val hasError = amountState.amountCaution?.isError() == true ||
-                feeRateState.feeRateCaution?.isError() == true &&
+                feeRateState.feeRateCaution?.isError() == true ||
                 addressState.addressError != null
 
         val loading = !sendable && !hasError
@@ -166,25 +185,32 @@ class SendTransactionServiceBtc(private val token: Token) : AbstractSendTransact
         unspentOutputs = data.unspentOutputs
         transactionSorting = data.transactionSorting
         rbfEnabled = data.rbfEnabled
+        pluginData = data.pluginData
 
         data.recommendedGasRate?.let {
             feeRateService.setRecommendedAndMin(it, it)
         }
 
         feeService.setMemo(memo)
+        feeService.setPluginData(pluginData)
         feeService.setChangeToFirstInput(changeToFirstInput)
         utxoFilters = data.utxoFilters
         feeService.setUtxoFilters(utxoFilters)
         feeService.setCustomUnspentOutputs(unspentOutputs)
 
         amountService.setMemo(memo)
+        amountService.setPluginData(pluginData)
         amountService.setUserMinimumSendAmount(data.minimumSendAmount)
         amountService.setChangeToFirstInput(changeToFirstInput)
         amountService.setUtxoFilters(utxoFilters)
         amountService.setCustomUnspentOutputs(unspentOutputs)
         amountService.setAmount(data.amount)
 
+        addressService.setPluginData(pluginData)
         addressService.setAddress(Address(data.address))
+
+        refreshFields()
+        emitState()
     }
 
     @Composable
@@ -219,9 +245,9 @@ class SendTransactionServiceBtc(private val token: Token) : AbstractSendTransact
             memo = memo,
             feeRate = feeRateState.feeRate!!,
             unspentOutputs = unspentOutputs,
-            // Deliberately no pluginData: a timelock cannot apply to these transfers (the
-            // private send deposit must be spendable by the provider immediately).
-            pluginData = null,
+            // Callers that must stay immediately spendable (a private send deposit) pass no
+            // plugin data; a plain send may carry the user's timelock.
+            pluginData = pluginData,
             transactionSorting = transactionSorting,
             rbfEnabled = rbfEnabled,
             changeToFirstInput = changeToFirstInput,
@@ -263,7 +289,6 @@ fun SendBtcFeeSettingsScreen(
                 coinCode = viewModel.token.coin.code,
                 coinDecimal = viewModel.coinMaxAllowedDecimals,
                 fee = uiState.fee,
-                amountInputType = AmountInputType.COIN,
                 rate = uiState.rate,
                 navigation = navigation
             )

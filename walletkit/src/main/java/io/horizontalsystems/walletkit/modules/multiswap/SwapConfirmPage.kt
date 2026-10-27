@@ -27,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.core.WatchAccountException
+import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.core.alternativeImageUrl
 import io.horizontalsystems.walletkit.core.badge
 import io.horizontalsystems.walletkit.core.iconPlaceholder
@@ -53,8 +55,6 @@ import io.horizontalsystems.walletkit.modules.nav3.LocalResultEventBus
 import io.horizontalsystems.walletkit.modules.usersubscription.BuySubscriptionHavHostPage
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.TranslatableString
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryDefault
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
 import io.horizontalsystems.walletkit.ui.compose.components.HsImageCircle
 import io.horizontalsystems.walletkit.ui.compose.components.MenuItem
@@ -82,6 +82,7 @@ import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.util.Locale
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 
 @Serializable
 data class SwapConfirmPage(
@@ -141,7 +142,8 @@ private fun SwapConfirmError(
         ),
         bottomBar = {
             ButtonsGroupWithShade {
-                ButtonPrimaryDefault(
+                HSButton(
+                    variant = ButtonVariant.Secondary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
@@ -158,14 +160,27 @@ private fun SwapConfirmError(
                 .padding(horizontal = 64.dp),
             icon = painterResource(R.drawable.ic_warning_filled_24),
             iconTint = ComposeAppTheme.colors.grey,
-            text = stringResource(R.string.SwapError_FailedToFetchQuote),
+            // A refused quote is not a failure to reach the provider: say which wallet to
+            // change, and let Copy Error carry the same thing rather than a class name.
+            text = if (error is WatchAccountException) {
+                stringResource(R.string.Hud_Text_ChangeWallet)
+            } else {
+                stringResource(R.string.SwapError_FailedToFetchQuote)
+            },
             button4config = ButtonConfig(
                 variant = ButtonVariant.Primary,
                 style = ButtonStyle.Transparent,
                 size = ButtonSize.Small,
                 title = stringResource(R.string.Button_CopyError),
                 onClick = {
-                    TextHelper.copyText(error.message ?: error.javaClass.simpleName)
+                    TextHelper.copyText(
+                        when (error) {
+                            is WatchAccountException ->
+                                Translator.getString(R.string.Hud_Text_ChangeWallet)
+
+                            else -> error.message ?: error.javaClass.simpleName
+                        }
+                    )
                 }
             )
         )
@@ -229,7 +244,8 @@ private fun SwapConfirmInternal(
         },
         buttonsSlot = {
             if (!uiState.validQuote || uiState.expired) {
-                ButtonPrimaryDefault(
+                HSButton(
+                    variant = ButtonVariant.Secondary,
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Button_Refresh),
                     onClick = {
@@ -238,7 +254,7 @@ private fun SwapConfirmInternal(
                 )
             } else {
                 val swapAction = rememberAsyncAction()
-                ButtonPrimaryYellow(
+                HSButton(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(if (swapAction.inProgress) R.string.Swap_Swapping else R.string.Swap),
                     enabled = !swapAction.inProgress && !uiState.loading,
@@ -252,9 +268,13 @@ private fun SwapConfirmInternal(
                                 resultEventBus.sendResult(SwapConfirmPage.Result(true))
                                 navigation.removeLastOrNull()
                             } catch (t: Throwable) {
-                                navigation.slideFromBottom(ErrorSheet(
-                                    ErrorSheet.Input(t.message ?: t.javaClass.simpleName)
-                                ))
+                                val message = when (t) {
+                                    is WatchAccountException ->
+                                        Translator.getString(R.string.Hud_Text_ChangeWallet)
+
+                                    else -> t.message ?: t.javaClass.simpleName
+                                }
+                                navigation.slideFromBottom(ErrorSheet(ErrorSheet.Input(message)))
                             }
                         }
                     },
@@ -331,14 +351,9 @@ private fun SwapConfirmInternal(
                         SwapProviderType.CEX -> formatSwapTimeRange(estimatedTime)
                         SwapProviderType.DEX -> "~${formatDuration(estimatedTime)}"
                     }
-                    val timeColor = if (swapTimeStatus(estimatedTime, uiState.providerType) == SwapTimeStatus.Attention) {
-                        ComposeAppTheme.colors.jacob
-                    } else {
-                        ComposeAppTheme.colors.leah
-                    }
                     QuoteInfoRow(
                         title = stringResource(id = R.string.Swap_SwapTime),
-                        value = timeText.hs(timeColor),
+                        value = timeText.hs(ComposeAppTheme.colors.leah),
                         onInfoClick = {
                             navigation.slideFromBottom(
                                 SwapInfoSheet(SwapInfoSheet.Input(infoTitle, infoText, R.drawable.ic_circle_clock_24))
@@ -356,7 +371,7 @@ private fun SwapConfirmInternal(
             DataFieldFee(
                 navigation,
                 uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
-                uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
+                uiState.networkFee?.secondary?.getFormattedPlain()
             )
         }
 

@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,6 +39,7 @@ import com.google.gson.Gson
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.AppLogger
 import io.horizontalsystems.walletkit.helpers.HudHelper
+import io.horizontalsystems.walletkit.modules.nav3.BottomSheetDismissHandler
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.walletconnect.WCDelegate
 import io.horizontalsystems.walletkit.modules.walletconnect.request.sendtransaction.WCEthereumTransaction
@@ -54,6 +59,7 @@ import io.horizontalsystems.walletkit.uiv3.components.AlertCard
 import io.horizontalsystems.walletkit.uiv3.components.AlertFormat
 import io.horizontalsystems.walletkit.uiv3.components.AlertType
 import io.horizontalsystems.walletkit.uiv3.components.bottombars.ButtonsGroupHorizontal
+import io.horizontalsystems.walletkit.uiv3.components.bottomsheet.BottomSheetBody
 import io.horizontalsystems.walletkit.uiv3.components.bottomsheet.BottomSheetContent
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellMiddleInfo
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellPrimary
@@ -145,37 +151,22 @@ fun WCNewSignRequestScreen(
     onAllow: suspend () -> Unit,
     onDecline: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val view = LocalView.current
     val messageBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var messageBottomSheet by remember { mutableStateOf<String?>(null) }
     val confirmAction = rememberAsyncAction()
 
-    // Animate the bottom sheet out before popping. Removing the entry directly disposes the
-    // ModalBottomSheet's window abruptly, which intermittently leaves the sheet content on screen
-    // (the dim is removed but the sheet card stays).
-    val hideAndPop = {
-        scope.launch {
-            sheetState.hide()
+    BottomSheetDismissHandler {
+        // Discard synchronously (avoids the reEmit race) before popping. A confirmed sign is
+        // already responding (NonCancellable); discarding now would race the pending response,
+        // so ignore dismissal until it completes.
+        if (!confirmAction.inProgress) {
+            WCDelegate.discardActiveSessionRequest()
             navigation.removeLastOrNull()
         }
-        Unit
     }
-
-    BottomSheetContent(
-        onDismissRequest = {
-            // Discard synchronously (avoids the reEmit race), then animate out before popping —
-            // same reason as hideAndPop above; popping outright can leave the sheet card on screen.
-            // A confirmed sign is already responding (NonCancellable); discarding now would race
-            // the pending response, so ignore dismissal until it completes.
-            if (!confirmAction.inProgress) {
-                WCDelegate.discardActiveSessionRequest()
-                hideAndPop()
-            }
-        },
-        sheetState = sheetState
-    ) { snackbarActions ->
+    BottomSheetBody { snackbarActions ->
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -342,7 +333,7 @@ fun WCNewSignRequestScreen(
                     onClick = {
                         logger.info("decline request")
                         onDecline()
-                        hideAndPop()
+                        navigation.removeLastOrNull()
                     }
                 )
                 HSButton(
@@ -355,12 +346,11 @@ fun WCNewSignRequestScreen(
                         confirmAction.run {
                             try {
                                 // Offload the signing (CPU-bound crypto) off the Main thread, but
-                                // keep hide()/removeLastOrNull() on Main — they mutate UI state.
+                                // keep removeLastOrNull() on Main — it mutates UI state.
                                 // NonCancellable: this scope dies with the composition (locking the
                                 // app tears the sheet down), and a confirmed sign-and-respond must
                                 // not be dropped halfway.
                                 withContext(Dispatchers.Default + NonCancellable) { onAllow() }
-                                sheetState.hide()
                                 navigation.removeLastOrNull()
                             } catch (e: Throwable) {
                                 showError(view, e)
@@ -472,10 +462,15 @@ fun MessageBottomSheet(
                 modifier = Modifier.fillMaxWidth()
             )
             VSpacer(8.dp)
+            // A typed-data payload is far taller than the screen. Cap the box so the Back button
+            // stays reachable and let the payload scroll inside it.
+            val maxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.6f
             Column(
                 modifier = Modifier
                     .padding(16.dp)
                     .border(1.dp, ComposeAppTheme.colors.blade, RoundedCornerShape(12.dp))
+                    .heightIn(max = maxHeight)
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
                 MessageToSign(

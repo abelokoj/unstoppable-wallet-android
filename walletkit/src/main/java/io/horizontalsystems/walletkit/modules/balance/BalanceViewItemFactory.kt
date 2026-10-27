@@ -66,14 +66,15 @@ class ZcashLockedValue(
     coinValue: DeemedValue<String>
 ) : LockedValue(title, info, coinValue)
 
-class StellarLockedValue(
+/** Reserve-style minimum balance (Stellar, XRP Ledger) with its per-item breakdown. */
+class ReserveLockedValue(
     title: TranslatableString,
     info: TranslatableString,
     coinValue: DeemedValue<String>,
-    val lockedValues: List<StellarAssetLockedValue>
+    val lockedValues: List<ReserveLockedItem>
 ) : LockedValue(title, info, coinValue)
 
-data class StellarAssetLockedValue(val title: String, val value: String)
+data class ReserveLockedItem(val title: String, val value: String)
 
 
 @Immutable
@@ -159,6 +160,7 @@ class BalanceViewItemFactory {
         BlockchainType.Base,
         BlockchainType.ZkSync,
         BlockchainType.RobinhoodChain,
+        BlockchainType.Arc,
         BlockchainType.Solana,
         BlockchainType.Gnosis,
         BlockchainType.Fantom,
@@ -166,6 +168,7 @@ class BalanceViewItemFactory {
         BlockchainType.Solana,
         BlockchainType.Tron,
         BlockchainType.Stellar,
+        BlockchainType.Xrp,
         BlockchainType.Thorchain,
         BlockchainType.Mayachain,
         BlockchainType.Ton -> 50
@@ -322,22 +325,13 @@ class BalanceViewItemFactory {
                 wallet.decimal,
                 wallet.token
             )?.let {
-                val locked = mutableListOf<StellarAssetLockedValue>()
-                val info = TranslatableString.ResString(R.string.Info_Reserved_Description).toString()
-
-                locked.add(
-                    StellarAssetLockedValue(
-                        Translator.getString(R.string.Info_Reserved_WalletAction),
-                        "1 XLM"
-                    )
-                )
-
-                item.balanceData.stellarAssets.forEach {
-                    locked.add(StellarAssetLockedValue(it.code, "0.5 XLM"))
-                }
+                // the adapter knows its chain's reserve rules; core only renders them
+                val reserve = item.balanceData.reserve
+                val locked = reserve?.items?.map { ReserveLockedItem(it.title, it.value) } ?: emptyList()
+                val info = reserve?.description ?: Translator.getString(R.string.Info_Reserved_Description)
 
                 add(
-                    StellarLockedValue(
+                    ReserveLockedValue(
                         title = TranslatableString.ResString(R.string.Info_Reserved_Title),
                         info = TranslatableString.PlainString(info),
                         coinValue = it,
@@ -454,7 +448,8 @@ class BalanceViewItemFactory {
             badge = wallet.badge,
             errorMessage = errorMessage,
             isWatchAccount = watchAccount,
-            notActivated = item.warning is BalanceModule.BalanceWarning.TronInactiveAccountWarning,
+            notActivated = item.warning is BalanceModule.BalanceWarning.TronInactiveAccountWarning ||
+                    item.warning is BalanceModule.BalanceWarning.XrpInactiveAccountWarning,
             loading = state is AdapterState.Syncing || state is AdapterState.SearchingTxs
         )
     }

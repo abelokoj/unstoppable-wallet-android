@@ -12,6 +12,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.core.WatchAccountException
+import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.core.stats.StatPage
 import io.horizontalsystems.walletkit.entities.Wallet
 import io.horizontalsystems.walletkit.helpers.HudHelper
@@ -22,7 +24,6 @@ import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldFee
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.sendevmtransaction.SectionView
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.CellUniversalLawrenceSection
 import io.horizontalsystems.walletkit.ui.compose.components.RowUniversal
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
@@ -33,7 +34,9 @@ import io.horizontalsystems.walletkit.ui.compose.components.subhead1_lucian
 import io.horizontalsystems.walletkit.ui.compose.components.subhead2_grey
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
+import io.horizontalsystems.walletkit.serializers.HSScreenKClassSerializer
 import kotlin.reflect.KClass
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 
 @Serializable
 data class OpenCryptoPayConfirmationPage(val input: Input) : HSPage() {
@@ -55,7 +58,7 @@ data class OpenCryptoPayConfirmationPage(val input: Input) : HSPage() {
         val merchant: String?,
         val expirationIso: String,
         val minFee: Double?,
-        val sendEntryPointDestId: KClass<out HSPage>,
+        @Serializable(with = HSScreenKClassSerializer::class) val sendEntryPointDestId: KClass<out HSPage>,
     )
 }
 
@@ -91,7 +94,7 @@ private fun OpenCryptoPayConfirmationScreen(
             val payAction = rememberAsyncAction()
             val isExpired = uiState.secondsUntilExpiry == 0
 
-            ButtonPrimaryYellow(
+            HSButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp),
@@ -108,9 +111,13 @@ private fun OpenCryptoPayConfirmationScreen(
                             delay(1200)
                             navigation.removeLastUntil(input.sendEntryPointDestId, true)
                         } catch (t: Throwable) {
-                            navigation.slideFromBottom(
-                                ErrorSheet(ErrorSheet.Input(t.message ?: t.javaClass.simpleName))
-                            )
+                            val message = when (t) {
+                                is WatchAccountException ->
+                                    Translator.getString(R.string.Hud_Text_ChangeWallet)
+
+                                else -> t.message ?: t.javaClass.simpleName
+                            }
+                            navigation.slideFromBottom(ErrorSheet(ErrorSheet.Input(message)))
                         }
                     }
                 },

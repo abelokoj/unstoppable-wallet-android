@@ -45,9 +45,6 @@ import io.horizontalsystems.walletkit.modules.contacts.viewmodel.ContactViewMode
 import io.horizontalsystems.walletkit.modules.contacts.viewmodel.ContactViewModel.AddressViewItem
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.TranslatableString
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryRed
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryTransparent
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.CellUniversalLawrenceSection
 import io.horizontalsystems.walletkit.ui.compose.components.FormsInput
 import io.horizontalsystems.walletkit.ui.compose.components.MenuItem
@@ -62,6 +59,9 @@ import io.horizontalsystems.walletkit.ui.extensions.BottomSheetHeader
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
 import io.horizontalsystems.walletkit.uiv3.components.bottomsheet.BottomSheetContent
 import kotlinx.coroutines.launch
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
+import io.horizontalsystems.walletkit.uiv3.components.controls.ButtonVariant
+import io.horizontalsystems.walletkit.uiv3.components.controls.ButtonStyle
 
 enum class ContactScreenBottomSheetType {
     DeleteConfirmation, DiscardChangesConfirmation
@@ -249,7 +249,8 @@ fun ConfirmationBottomSheet(
 
         when (cautionType) {
             Caution.Type.Error -> {
-                ButtonPrimaryRed(
+                HSButton(
+                    variant = ButtonVariant.Destructive,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp),
@@ -261,7 +262,7 @@ fun ConfirmationBottomSheet(
             }
 
             Caution.Type.Warning -> {
-                ButtonPrimaryYellow(
+                HSButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp),
@@ -274,7 +275,9 @@ fun ConfirmationBottomSheet(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
-        ButtonPrimaryTransparent(
+        HSButton(
+            variant = ButtonVariant.Secondary,
+            style = ButtonStyle.Transparent,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),

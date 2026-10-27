@@ -17,7 +17,6 @@ import io.horizontalsystems.walletkit.entities.Wallet
 import androidx.compose.runtime.Composable
 import io.horizontalsystems.walletkit.entities.Address
 import io.horizontalsystems.walletkit.modules.address.IAddressHandler
-import io.horizontalsystems.walletkit.modules.amount.AmountInputModeViewModel
 import io.horizontalsystems.walletkit.modules.balance.BalanceModule
 import io.horizontalsystems.walletkit.modules.blockchainsettings.BlockchainSettingsModule
 import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderAction
@@ -134,10 +133,6 @@ interface ChainPlugin {
     /** The chain's network/node settings page, opened from sync errors and settings. */
     fun networkSettingsPage(): HSPage? = null
 
-    /** The chain's send screen. Default renders nothing (matches the previous silent else). */
-    @Composable
-    fun SendScreen(args: ChainSendScreenArgs) = Unit
-
     /** Row shown in Settings > Blockchain Settings, or null to omit the chain there. */
     fun blockchainSettingsItem(): BlockchainSettingsModule.BlockchainItem? = null
 
@@ -205,6 +200,13 @@ interface ChainPlugin {
     /** Chain-specific receive screen; only called when [hasReceiveScreen] is true. */
     @Composable
     fun ReceiveScreen(navigation: HSNavigation, wallet: Wallet, receiveEntryPointDestId: KClass<out HSPage>?) = Unit
+
+    /**
+     * Wording for the shared token-activation flow (trust lines), for a wallet whose adapter is an
+     * [io.horizontalsystems.walletkit.core.IActivatableTokenAdapter]. Null when the chain has no
+     * such tokens.
+     */
+    fun tokenActivationInfo(wallet: Wallet): io.horizontalsystems.walletkit.core.TokenActivationInfo? = null
 
     /** Extra cells on the token balance screen (e.g. Monero account picker). */
     @Composable
@@ -298,6 +300,73 @@ interface ChainPlugin {
     fun sendTransactionService(token: Token): AbstractSendTransactionService? = null
 
     /**
+     * Memo the chain can attach to a plain transfer of [token], or null when it has no memo
+     * field. [address] is the chosen recipient, or null while none is chosen yet; chains whose
+     * memo depends on the destination answer for the optimistic case then.
+     */
+    suspend fun sendMemoSupport(token: Token, address: String?): SendMemoSupport? = null
+
+    /**
+     * A chain-specific field on the send screen above the memo (the XRP destination tag), or
+     * null when the chain has none. [address] is the chosen recipient, or null while none is
+     * chosen yet; whether the field is required and whether the address fixes its value
+     * depend on it.
+     */
+    suspend fun sendExtraInput(token: Token, address: String?): SendExtraInput? = null
+
+    /**
+     * A plain transfer of [amount] to [address] carrying [memo] as SendTransactionData for the
+     * chain's send-transaction service, or null when the chain cannot build one. [extraInput]
+     * is what was typed into the chain's [sendExtraInput] field, if any. [settings] are the
+     * per-send choices made on the chain's settings page (see [sendSettingsPage]), if any;
+     * what the user was not asked about (fee rate) takes the service's defaults.
+     */
+    fun sendTransactionData(
+        token: Token,
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        extraInput: String?,
+        settings: SendChainSettings?,
+    ): io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData? = null
+
+    /**
+     * The balance the send screen should offer for [token] under [settings], or null to use
+     * the wallet's spendable balance. Bitcoin answers with the sum of manually selected
+     * outputs, so the amount can only be taken from what will actually be spent.
+     */
+    fun sendAvailableBalance(token: Token, settings: SendChainSettings?): BigDecimal? = null
+
+    /**
+     * [data], a deposit built by a swap provider, with the coin control the user chose in the
+     * send screen's [settings] applied: the outputs to spend, and for Bitcoin the sorting and
+     * replace-by-fee preferences. A timelock is never applied: the deposit must be spendable
+     * by the provider immediately. Chains without such settings return [data] as is.
+     */
+    fun depositTransactionData(
+        token: Token,
+        data: io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData,
+        settings: SendChainSettings?,
+    ): io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData = data
+
+    /**
+     * Bitcoin-family parameters a private send deposit inherits from the send screen's
+     * [settings], or null for other chains. A timelock is never part of them: the deposit
+     * must be spendable by the provider immediately.
+     */
+    fun privateSendBtcParams(
+        token: Token,
+        settings: SendChainSettings?,
+    ): io.horizontalsystems.walletkit.modules.privatesend.PrivateSendBtcParams? = null
+
+    /**
+     * Page behind the send screen's settings icon, or null when the chain has none. [address]
+     * is the chosen recipient, or null while none is chosen; settings that depend on it (a
+     * Bitcoin timelock) are offered accordingly.
+     */
+    fun sendSettingsPage(wallet: Wallet, address: String?): HSPage? = null
+
+    /**
      * A plain transfer of [amount] to [address] as SendTransactionData, for flows that build a
      * deposit themselves (private send). Most chains are built kit-free by the caller; EVM
      * needs the kit for ERC20 transfer calldata, so its plugin overrides this.
@@ -309,24 +378,38 @@ interface ChainPlugin {
     ): io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData? = null
 }
 
+/** Per-send, chain-specific choices made on the send screen and carried to confirmation. */
+interface SendChainSettings
+
+/**
+ * How a chain's send memo is limited and who can read it once sent. [maxBytes] is what the
+ * network stores, so the field counts the memo's UTF-8 bytes, not its characters.
+ */
+data class SendMemoSupport(
+    val maxBytes: Int,
+    val visibility: io.horizontalsystems.walletkit.modules.memo.MemoVisibility,
+)
+
+/**
+ * A chain-specific text field on the send screen. [fixedValue] is a value the recipient
+ * address itself carries, which locks the field; [required] says the recipient will not
+ * accept a transfer without one. [validate] answers the error for a typed value, or null
+ * when it is acceptable.
+ */
+data class SendExtraInput(
+    val title: String,
+    val info: String,
+    val required: Boolean,
+    val fixedValue: String?,
+    val keyboardType: androidx.compose.ui.text.input.KeyboardType,
+    val maxLength: Int,
+    val validate: (String) -> String?,
+)
+
 /** A row on the manage-account private/public keys screens, navigating to a chain page. */
 class ChainKeyRow(
     val titleRes: Int,
     val descriptionRes: Int,
     val page: HSPage,
     val statPage: io.horizontalsystems.walletkit.core.stats.StatPage,
-)
-
-/** Everything SendPage provides to a chain's send screen. */
-class ChainSendScreenArgs(
-    val wallet: Wallet,
-    val title: String,
-    val navigation: HSNavigation,
-    val amountInputModeViewModel: AmountInputModeViewModel,
-    val sendEntryPointDestId: KClass<out HSPage>,
-    val address: Address,
-    val amount: BigDecimal?,
-    val memo: String?,
-    val hideAddress: Boolean,
-    val riskyAddress: Boolean,
 )

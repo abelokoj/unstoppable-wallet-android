@@ -34,6 +34,10 @@ interface IAppConfigProvider {
     val simplexSupportChat: String
     val nymVpnLink: String
     val telegramSupportChat: String
+    val labsSimplexSwapBotLink: String
+    val labsTelegramSwapBotLink: String
+    val labsSignalSwapBotLink: String
+    val labsSwapWebLink: String
     val blocksDecodedEthereumRpc: String
     val twitterBearerToken: String
     val etherscanApiKey: List<String>
@@ -58,12 +62,14 @@ interface IAppConfigProvider {
     val currencies: List<Currency>
     val donateAddresses: Map<BlockchainType, String>
     val spamCoinValueLimits: Map<String, BigDecimal>
+    val spamCoinsWithoutMicroDust: Set<String>
     val chainalysisBaseUrl: String
     val chainalysisApiKey: String
     val hashDitBaseUrl: String
     val hashDitApiKey: String
     val uswapApiBaseUrl: String
     val uswapApiKey: String
+    val tonApiKey: String
     val oneInchPartnerFeeAddress: String
     val fdroidBuild: Boolean
 

@@ -69,19 +69,20 @@ web3j = "4.9.8"
 unstoppableDomains = "v7.1.0"
 
 # Wallet Kits
-moneroKit = "ccd6dd8b"
-zanoKit = "4e55a34"
+moneroKit = "c404a56"
+zanoKit = "740513a"
 stellarKit = "4ecccc5"
-tonKit = "947c48a"
-bitcoinKit = "607354b"
+xrpKit = "291142a"
+tonKit = "d28b371"
+bitcoinKit = "600c239"
 hdWalletKit = "a74b51f3"
-ethereumKit = "16ef432"
+ethereumKit = "a887150"
 feeRateKit = "393cc14"
-marketKit = "46c3360"
-solanaKit = "f46029e"
+marketKit = "aa91028"
+solanaKit = "d5a3b0f"
 tronKit = "4033245"
-thorchainKit = "9de6579"
-zcashSdk = "2.7.0-rc.4"
+thorchainKit = "568a089"
+zcashSdk = "3.2.0-hs.1"
 
 # Binance
 binanceConnector = "3.4.1"
@@ -96,13 +97,12 @@ ktor = "2.3.7"
 desugar = "2.1.5"
 
 # Tor
-torAndroid = "0.4.9.8"
+torAndroid = "0.4.9.11"
 jtorctl = "0.4.5.7"
 
 # Utils
 circleindicator = "2.1.6"
 twitterText = "3.1.0"
-androidShell = "1.0.0"
 portmapper = "2.0.6"
 
 # Startup
@@ -212,7 +212,7 @@ coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coil" }
 
 # Logging
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
-leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+leakcanary = { module = "com.squareup.leakcanary:leakcanary-android-process", version.ref = "leakcanary" }
 
 # Markdown
 commonmark = { module = "com.atlassian.commonmark:commonmark", version.ref = "commonmark" }
@@ -235,21 +235,24 @@ unstoppable-domains = { module = "com.github.unstoppabledomains:resolution-java"
 kit-monero = { module = "com.github.horizontalsystems:monero-kit-android", version.ref = "moneroKit" }
 kit-zano = { module = "com.github.horizontalsystems:zano-kit-android", version.ref = "zanoKit" }
 kit-stellar = { module = "com.github.horizontalsystems:stellar-kit-android", version.ref = "stellarKit" }
+kit-xrp = { module = "com.github.horizontalsystems:xrp-android", version.ref = "xrpKit" }
 kit-ton = { module = "com.github.horizontalsystems:ton-kit-android", version.ref = "tonKit" }
 kit-bitcoin = { module = "com.github.horizontalsystems:bitcoin-kit-android", version.ref = "bitcoinKit" }
 kit-hd-wallet = { module = "com.github.horizontalsystems:hd-wallet-kit-android", version.ref = "hdWalletKit" }
 kit-hodler = { module = "com.github.horizontalsystems.bitcoin-kit-android:hodler", version.ref = "bitcoinKit" }
 kit-bitcoin-core = { module = "com.github.horizontalsystems.bitcoin-kit-android:bitcoincore", version.ref = "bitcoinKit" }
-kit-ethereum = { module = "com.github.abelokoj:ethereum-kit-android", version.ref = "ethereumKit" }
+kit-ethereum = { module = "com.github.horizontalsystems:ethereum-kit-android", version.ref = "ethereumKit" }
 kit-fee-rate = { module = "com.github.horizontalsystems:blockchain-fee-rate-kit-android", version.ref = "feeRateKit" }
 kit-market = { module = "com.github.horizontalsystems:market-kit-android", version.ref = "marketKit" }
 kit-solana = { module = "com.github.horizontalsystems:solana-kit-android", version.ref = "solanaKit" }
 kit-tron = { module = "com.github.horizontalsystems:tron-kit-android", version.ref = "tronKit" }
 kit-thorchain = { module = "com.github.horizontalsystems:thorchain-kit-android", version.ref = "thorchainKit" }
-zcash-android-sdk = { module = "cash.z.ecc.android:zcash-android-sdk", version.ref = "zcashSdk" }
+zcash-android-sdk = { module = "com.zodl.android:zcash-android-sdk", version.ref = "zcashSdk" }
 # rust backend of the sdk (transitive implementation dep) — needed at compile time for
 # synchronizer-free address validation (RustBackend.isValid*Addr)
-zcash-android-backend = { module = "cash.z.ecc.android:zcash-android-backend", version.ref = "zcashSdk" }
+zcash-android-backend = { module = "com.zodl.android:zcash-android-backend", version.ref = "zcashSdk" }
+# Slipstream sync engine — version-locked sibling of zcash-android-sdk, must always match zcashSdk
+zcash-android-slipstream = { module = "com.zodl.android:zcash-android-sdk-slipstream", version.ref = "zcashSdk" }
 
 # Binance
 binance-connector = { module = "io.github.binance:binance-connector-java", version.ref = "binanceConnector" }
@@ -267,7 +270,6 @@ jtorctl = { module = "info.guardianproject:jtorctl", version.ref = "jtorctl" }
 # Utils
 circleindicator = { module = "me.relex:circleindicator", version.ref = "circleindicator" }
 twitter-text = { module = "com.twitter.twittertext:twitter-text", version.ref = "twitterText" }
-android-shell = { module = "com.jaredrummler:android-shell", version.ref = "androidShell" }
 portmapper = { module = "com.offbynull.portmapper:portmapper", version.ref = "portmapper" }
 
 # Startup

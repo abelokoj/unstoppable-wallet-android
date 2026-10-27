@@ -116,6 +116,7 @@ class AddressHandlerUdn(
             BlockchainType.Base,
             BlockchainType.ZkSync,
             BlockchainType.RobinhoodChain,
+            BlockchainType.Arc,
             BlockchainType.Avalanche,
             BlockchainType.Gnosis,
             BlockchainType.Fantom,
@@ -131,6 +132,7 @@ class AddressHandlerUdn(
             BlockchainType.Tron -> "TRX"
             BlockchainType.Ton -> "TON"
             BlockchainType.Stellar -> "XLM"
+            BlockchainType.Xrp -> "XRP"
             BlockchainType.Thorchain -> "RUNE"
             BlockchainType.Mayachain -> "CACAO"
             BlockchainType.Monero -> "XMR"
@@ -153,6 +155,7 @@ class AddressHandlerUdn(
                 BlockchainType.Base,
                 BlockchainType.ZkSync,
                 BlockchainType.RobinhoodChain,
+                BlockchainType.Arc,
                 BlockchainType.ArbitrumOne,
                 BlockchainType.Gnosis,
                 BlockchainType.Fantom -> "ERC20"

@@ -8,6 +8,9 @@ import io.horizontalsystems.walletkit.core.BackgroundManager
 import io.horizontalsystems.walletkit.core.managers.ZanoKitManager
 import io.horizontalsystems.walletkit.core.managers.ZanoNodeManager
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.chain.SendChainSettings
+import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
+import java.math.BigDecimal
 import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.entities.Wallet
@@ -16,21 +19,17 @@ import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTran
 import io.horizontalsystems.zanokit.ZanoWallet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
-import io.horizontalsystems.walletkit.core.chain.ChainSendScreenArgs
 import io.horizontalsystems.walletkit.core.managers.statusInfo
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.modules.blockchainsettings.BlockchainSettingsModule
 import io.horizontalsystems.walletkit.modules.address.IAddressHandler
-import io.horizontalsystems.walletkit.modules.send.zano.SendZanoModule
-import io.horizontalsystems.walletkit.modules.send.zano.SendZanoScreen
-import io.horizontalsystems.walletkit.modules.send.zano.SendZanoViewModel
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.send.address.EnterAddressValidator
 import io.horizontalsystems.walletkit.modules.zanonetwork.ZanoNetworkPage
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.core.chain.SendMemoSupport
+import io.horizontalsystems.walletkit.modules.memo.MemoVisibility
 import io.horizontalsystems.zanokit.ZanoKit
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -44,6 +43,20 @@ class ZanoChainPlugin(
     private val zanoNodeManager: () -> ZanoNodeManager,
     private val backgroundManager: () -> BackgroundManager,
 ) : ChainPlugin {
+
+    override fun sendTransactionData(
+        token: Token,
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        extraInput: String?,
+        settings: SendChainSettings?,
+    ) = SendTransactionData.Zano(address, amount, memo)
+
+    // The memo is sent as the transfer comment, which Zano stores on-chain encrypted so that
+    // only the sender and the recipient can read it.
+    override suspend fun sendMemoSupport(token: Token, address: String?) =
+        SendMemoSupport(maxBytes = 120, visibility = MemoVisibility.Encrypted)
 
     // Created on first use: before any Zano wallet exists the kit manager's node/background
     // subscriptions are no-ops, so lazy construction preserves startup behavior.
@@ -117,19 +130,4 @@ class ZanoChainPlugin(
         return SendTransactionServiceZano(adapter)
     }
 
-    @Composable
-    override fun SendScreen(args: ChainSendScreenArgs) {
-        val factory = SendZanoModule.Factory(args.wallet, args.address, args.hideAddress)
-        val sendZanoViewModel = viewModel<SendZanoViewModel>(factory = factory)
-        SendZanoScreen(
-            args.title,
-            args.navigation,
-            sendZanoViewModel,
-            args.amountInputModeViewModel,
-            args.sendEntryPointDestId,
-            args.amount,
-            args.memo,
-            riskyAddress = args.riskyAddress,
-        )
-    }
 }

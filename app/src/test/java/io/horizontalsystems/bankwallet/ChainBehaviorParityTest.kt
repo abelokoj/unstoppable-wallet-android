@@ -12,6 +12,7 @@ import io.horizontalsystems.walletkit.chain.bitcoin.ECashChainPlugin
 import io.horizontalsystems.walletkit.chain.bitcoin.LitecoinChainPlugin
 import io.horizontalsystems.walletkit.chain.monero.MoneroChainPlugin
 import io.horizontalsystems.walletkit.chain.solana.SolanaChainPlugin
+import io.horizontalsystems.walletkit.chain.xrp.XrpChainPlugin
 import io.horizontalsystems.walletkit.chain.stellar.StellarChainPlugin
 import io.horizontalsystems.walletkit.chain.thorchain.MayachainChainPlugin
 import io.horizontalsystems.walletkit.chain.thorchain.ThorchainChainPlugin
@@ -87,6 +88,7 @@ class ChainBehaviorParityTest {
             { error("jupiter key is not available in unit tests") },
         ))
         ChainRegistry.register(StellarChainPlugin())
+        ChainRegistry.register(XrpChainPlugin())
         ChainRegistry.register(TonChainPlugin())
         ChainRegistry.register(ThorchainChainPlugin())
         ChainRegistry.register(MayachainChainPlugin())
@@ -98,6 +100,7 @@ class ChainBehaviorParityTest {
         "Spl" to TokenType.Spl("mint"),
         "Jetton" to TokenType.Jetton("jetton"),
         "Asset" to TokenType.Asset("CODE", "issuer"),
+        "XrpAsset" to TokenType.XrpAsset("USD", "issuer"),
         "ThorchainAsset" to TokenType.ThorchainAsset("denom"),
         "ZanoAsset" to TokenType.ZanoAsset("ref"),
         "Derived(Bip84)" to TokenType.Derived(TokenType.Derivation.Bip84),
@@ -115,6 +118,9 @@ class ChainBehaviorParityTest {
         "TonAddress" to AccountType.TonAddress("ton"),
         "StellarAddress" to AccountType.StellarAddress("stellar"),
         "StellarSecretKey" to AccountType.StellarSecretKey("secret"),
+        "XrpAddress" to AccountType.XrpAddress("xrp"),
+        "ThorchainAddress" to AccountType.ThorchainAddress("thor"),
+        "MayachainAddress" to AccountType.MayachainAddress("maya"),
         "BitcoinAddress(Bitcoin)" to AccountType.BitcoinAddress(
             "addr",
             BlockchainType.Bitcoin,
@@ -142,7 +148,8 @@ class ChainBehaviorParityTest {
         check(fixtureFile.exists()) {
             "Fixture missing. Generate it with -DupdateParityFixture=true"
         }
-        assertEquals(fixtureFile.readText(), actual)
+        // Git may check out the fixture with CRLF on Windows; dump() always appends LF.
+        assertEquals(fixtureFile.readText().replace("\r\n", "\n"), actual)
     }
 
     private fun dump(): String = buildString {

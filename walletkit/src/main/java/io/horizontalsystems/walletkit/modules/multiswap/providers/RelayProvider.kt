@@ -4,7 +4,7 @@ import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
 import io.horizontalsystems.walletkit.core.hexStringToByteArray
 import io.horizontalsystems.walletkit.core.managers.APIClient
-import io.horizontalsystems.walletkit.core.tor.torcore.TorConstants
+import io.horizontalsystems.walletkit.core.managers.requireSocksProxy
 import io.horizontalsystems.walletkit.entities.Address
 import io.horizontalsystems.walletkit.modules.multiswap.SwapFinalQuote
 import io.horizontalsystems.walletkit.modules.multiswap.SwapQuote
@@ -24,8 +24,6 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.net.InetSocketAddress
-import java.net.Proxy
 
 /**
  * Direct Relay v2 integration. Relay builds the deposit transaction without requiring an API key;
@@ -46,26 +44,15 @@ object RelayProvider : IMultiSwapProvider {
         .retrofit("https://api.relay.link", 60)
         .create(RelayApi::class.java)
 
-    private val torApi by lazy {
-        val proxy = Proxy(
-            Proxy.Type.HTTP,
-            InetSocketAddress(
-                TorConstants.IP_LOCALHOST,
-                TorConstants.HTTP_PROXY_PORT_DEFAULT.toInt(),
-            )
-        )
-        APIClient
-            .retrofit("https://api.relay.link", 60, proxy)
-            .create(RelayApi::class.java)
-    }
-
     private val api: RelayApi
         get() {
             if (!App.torKitManager.isTorEnabled) return directApi
             if (App.torKitManager.torStatusFlow.value != TorStatus.Connected) {
                 throw RetryableSwapError()
             }
-            return torApi
+            // Tor chooses a new SOCKS port on restart; never retain a client bound to the old port.
+            return APIClient.retrofit("https://api.relay.link", 60, App.torKitManager.requireSocksProxy())
+                .create(RelayApi::class.java)
         }
 
     private val chainIds = mapOf(

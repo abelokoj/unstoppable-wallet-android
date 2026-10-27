@@ -6,7 +6,7 @@ import com.google.gson.JsonObject
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.managers.EvmKitManagerRegistry
 import io.horizontalsystems.walletkit.core.managers.rpcSource
-import io.horizontalsystems.walletkit.core.tor.torcore.TorConstants
+import io.horizontalsystems.walletkit.core.managers.requireSocksProxy
 import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.entities.evmAddress
@@ -26,7 +26,6 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Url
 import java.math.BigInteger
-import java.net.InetSocketAddress
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
@@ -135,7 +134,7 @@ class EvmApprovalAccessService private constructor(
             require(App.accountManager.activeAccount?.id == accountId) { "Wallet changed. Reopen Revoke Access." }
             val torEnabled = App.torKitManager.isTorEnabled
             if (torEnabled) check(App.torKitManager.torStatusFlow.value == TorStatus.Connected) { "Wait for Tor to connect" }
-            val api = if (torEnabled) torApi else directApi
+            val api = if (torEnabled) api(App.torKitManager.requireSocksProxy()) else directApi
             val response = api.call(url, auth, JsonObject().apply {
                 addProperty("jsonrpc", "2.0"); addProperty("id", 1)
                 addProperty("method", method); add("params", params)
@@ -162,17 +161,18 @@ class EvmApprovalAccessService private constructor(
         internal const val APPROVAL_TOPIC = "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
         internal const val APPROVAL_ALL_TOPIC = "0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31"
 
+        // Reuse the pool during large scans, including clients bound to the current Tor port.
+        private val rpcClient = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS).callTimeout(30, TimeUnit.SECONDS)
+            .followRedirects(false).followSslRedirects(false).build()
+
         private fun api(proxy: Proxy? = null): Api {
             // Deliberately no request/body logging. Reject redirects instead of disclosing address queries.
-            val client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(20, TimeUnit.SECONDS).callTimeout(30, TimeUnit.SECONDS)
-                .followRedirects(false).followSslRedirects(false).apply { proxy?.let(::proxy) }.build()
+            val client = rpcClient.newBuilder().apply { proxy?.let(::proxy) }.build()
             return Retrofit.Builder().baseUrl("https://localhost/").client(client)
                 .addConverterFactory(GsonConverterFactory.create()).build().create(Api::class.java)
         }
         private val directApi by lazy { api() }
-        private val torApi by lazy { api(Proxy(Proxy.Type.HTTP, InetSocketAddress(
-            TorConstants.IP_LOCALHOST, TorConstants.HTTP_PROXY_PORT_DEFAULT.toInt()))) }
 
         fun create(account: Account, blockchainType: BlockchainType): EvmApprovalAccessService? {
             val owner = when (val type = account.type) {

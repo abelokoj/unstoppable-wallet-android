@@ -12,16 +12,33 @@ import io.horizontalsystems.walletkit.modules.send.SendModule
 import io.horizontalsystems.marketkit.models.Coin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import java.math.BigDecimal
 import java.util.UUID
 
 abstract class AbstractSendTransactionService(val hasSettings: Boolean, val hasNonceSettings: Boolean): ServiceState<SendTransactionServiceState>() {
     open val supportsMevProtection: Boolean = false
+    /** Explanation shown for the network fee row, or null for the generic one. */
+    open val networkFeeInfoRes: Int? = null
+
+    /**
+     * The most of the token this service can send under its current fee estimate, for chains
+     * where "requested amount minus fee" is not the answer (input selection, rent reserves).
+     * Null means that plain rule applies. Read after the state has settled.
+     */
+    open fun maxSendableAmount(): BigDecimal? = null
     abstract val sendTransactionSettingsFlow: StateFlow<SendTransactionSettings>
     protected var uuid = UUID.randomUUID().toString()
 
     private val baseCurrency = App.currencyManager.baseCurrency
 
     abstract fun start(coroutineScope: CoroutineScope)
+
+    /**
+     * Releases what [start] set up outside the scope it was given (sub-services with their
+     * own scopes). The owning view model calls this when cleared.
+     */
+    open fun clear() = Unit
+
     abstract suspend fun setSendTransactionData(data: SendTransactionData)
     @Composable
     open fun GetSettingsContent(navigation: HSNavigation) = Unit

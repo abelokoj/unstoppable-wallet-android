@@ -227,11 +227,14 @@ class WCSessionViewModel(
                     account?.name,
                 )
 
-                blockchainTypes = sessionProposal.optionalNamespaces.flatMap {
-                    it.value.chains?.mapNotNull { chain ->
-                        determineBlockchainType(chain)
-                    } ?: emptyList()
-                }
+                // Approving settles the session for every supported chain the dApp asked for, in
+                // BOTH requiredNamespaces and optionalNamespaces (see approve()). The sheet must
+                // list that same union: showing only the optional set would let a dApp hide, say,
+                // Ethereum mainnet in the required set behind a harmless-looking optional testnet.
+                blockchainTypes = (sessionProposal.requiredNamespaces.values + sessionProposal.optionalNamespaces.values)
+                    .flatMap { it.chains ?: emptyList() }
+                    .mapNotNull { chain -> determineBlockchainType(chain) }
+                    .distinct()
 
                 proposal = sessionProposal
                 verification = sessionProposal.verification
@@ -493,26 +496,29 @@ class WCSessionViewModel(
     }
 
     private fun determineBlockchainType(chain: String): BlockchainType? {
+        // CAIP-2 is `namespace:reference`; a proposal is untrusted input and may omit the
+        // reference, which must classify as unsupported rather than throw before validation.
         val chainParts = chain.split(":")
         val first = chainParts[0]
+        val reference = chainParts.getOrNull(1) ?: return null
 
         return when (first) {
             "eip155" -> {
-                val chainId = chainParts[1].toIntOrNull()
+                val chainId = reference.toIntOrNull()
                 chainId?.let {
                     App.evmBlockchainManager.getBlockchain(it)
                 }?.type
             }
 
             "stellar" -> {
-                if (chainParts[1] == "pubnet") BlockchainType.Stellar else null
+                if (reference == "pubnet") BlockchainType.Stellar else null
             }
 
             "solana" -> {
                 // Only the supported mainnet-beta references (canonical genesis-hash value + the
                 // legacy CAIP-30 value some dApps still use); reject devnet/testnet or any other
                 // cluster so an unsupported Solana network is never routed/approved as Solana.
-                if (chainParts.getOrNull(1) in solanaMainnetReferences) BlockchainType.Solana else null
+                if (reference in solanaMainnetReferences) BlockchainType.Solana else null
             }
 
             else -> null

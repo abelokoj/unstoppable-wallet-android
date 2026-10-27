@@ -10,6 +10,7 @@ import io.horizontalsystems.walletkit.core.managers.APIClient
 import io.horizontalsystems.walletkit.core.nativeTokenQueries
 import io.horizontalsystems.walletkit.modules.multiswap.SwapFinalQuote
 import io.horizontalsystems.walletkit.modules.multiswap.SwapQuote
+import io.horizontalsystems.walletkit.modules.multiswap.ThorChainSwapMemo
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.EvmTransactionData
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionSettings
@@ -134,6 +135,7 @@ class USwapProvider(
                 BlockchainType.Gnosis,
                 BlockchainType.ZkSync,
                 BlockchainType.RobinhoodChain,
+                BlockchainType.Arc,
                     -> {
                     val tokenType = if (!token.address.isNullOrBlank()) {
                         TokenType.Eip20(token.address)
@@ -233,6 +235,17 @@ class USwapProvider(
 
                     App.marketKit.token(TokenQuery(blockchainType, tokenType))?.let {
                         assetsMap[it] = token.identifier
+                    }
+                }
+
+                BlockchainType.Xrp -> {
+                    // Native XRP only: the server lists no XRPL issued token (`address` is
+                    // always null), and CanonicalAssetId maps TokenType.XrpAsset to no id, so
+                    // a trust-line asset would be unsuspendable even if one appeared.
+                    if (token.address.isNullOrBlank()) {
+                        App.marketKit.token(TokenQuery(blockchainType, TokenType.Native))?.let {
+                            assetsMap[it] = token.identifier
+                        }
                     }
                 }
 
@@ -363,7 +376,8 @@ class USwapProvider(
             providers = setOf(provider.id),
             chainId = chainId,
         )
-        var bestRoute = unstoppableAPI.rate(request).routes.maxBy { it.expectedBuyAmountOrZero }
+        var bestRoute = unstoppableAPI.rate(request).routes?.maxByOrNull { it.expectedBuyAmountOrZero }
+            ?: throw NoSuchElementException("No routes")
 
         if (provider == UProvider.Exolix) {
             val requestAlternate = when {
@@ -380,8 +394,10 @@ class USwapProvider(
 
             if (requestAlternate != null) {
                 try {
-                    val bestRouteAlternate = unstoppableAPI.rate(requestAlternate).routes.maxBy { it.expectedBuyAmountOrZero }
-                    if (bestRouteAlternate.expectedBuyAmountOrZero >= bestRoute.expectedBuyAmountOrZero) {
+                    val bestRouteAlternate = unstoppableAPI.rate(requestAlternate).routes?.maxByOrNull { it.expectedBuyAmountOrZero }
+                    if (bestRouteAlternate != null &&
+                        bestRouteAlternate.expectedBuyAmountOrZero >= bestRoute.expectedBuyAmountOrZero
+                    ) {
                         bestRoute = bestRouteAlternate
                     }
                 } catch (e: CancellationException) {
@@ -454,14 +470,25 @@ class USwapProvider(
         token: Token,
         amountOut: BigDecimal,
         slippage: BigDecimal,
+    ): UnstoppableAPI.Response.Rate = exactOutputRate(token, token, amountOut, slippage)
+
+    // /v2/rate in exact-output mode across assets (the CrossPay shape): buyAmount = what the
+    // recipient must receive in tokenOut, sellAmount comes back as the answer. Returns the
+    // whole response so the caller can read providerErrors when no route comes back.
+    suspend fun exactOutputRate(
+        tokenIn: Token,
+        tokenOut: Token,
+        amountOut: BigDecimal,
+        slippage: BigDecimal,
     ): UnstoppableAPI.Response.Rate {
-        val asset = assetsMap[token] ?: deriveIdentifier(token) ?: throw IllegalStateException("No identifier for token")
-        val chainId = if (assetsMap.isEmpty()) chainIdByBlockchainType[token.blockchainType] else null
+        val sellAsset = assetsMap[tokenIn] ?: deriveIdentifier(tokenIn) ?: throw IllegalStateException("No identifier for tokenIn")
+        val buyAsset = assetsMap[tokenOut] ?: deriveIdentifier(tokenOut) ?: throw IllegalStateException("No identifier for tokenOut")
+        val chainId = if (assetsMap.isEmpty()) chainIdByBlockchainType[tokenIn.blockchainType] else null
 
         return unstoppableAPI.rate(
             UnstoppableAPI.Request.Rate(
-                sellAsset = asset,
-                buyAsset = asset,
+                sellAsset = sellAsset,
+                buyAsset = buyAsset,
                 slippage = slippage,
                 providers = setOf(provider.id),
                 chainId = chainId,
@@ -480,18 +507,43 @@ class USwapProvider(
         destinationAddress: String,
         refundAddress: String,
         slippage: BigDecimal,
+    ): UnstoppableAPI.Response.Route =
+        exactOutputCommit(token, token, amountOut, destinationAddress, refundAddress, slippage)
+
+    // /v2/swap in exact-output mode across assets (the CrossPay shape). With
+    // [includeSourceAddress] the swap screen's build-signal contract applies verbatim:
+    // chains whose server-built tx the app consumes (EVM/Tron/TON/Solana by default) send
+    // the sender's address and get a ready-to-sign tx back, the rest omit it and build the
+    // deposit transfer locally. Private send keeps it off entirely — handing the provider
+    // the sender's address defeats that feature's point.
+    suspend fun exactOutputCommit(
+        tokenIn: Token,
+        tokenOut: Token,
+        amountOut: BigDecimal,
+        destinationAddress: String,
+        refundAddress: String,
+        slippage: BigDecimal,
+        includeSourceAddress: Boolean = false,
     ): UnstoppableAPI.Response.Route {
-        val asset = assetsMap[token] ?: deriveIdentifier(token) ?: throw IllegalStateException("No identifier for token")
-        val chainId = if (assetsMap.isEmpty()) chainIdByBlockchainType[token.blockchainType] else null
+        val sellAsset = assetsMap[tokenIn] ?: deriveIdentifier(tokenIn) ?: throw IllegalStateException("No identifier for tokenIn")
+        val buyAsset = assetsMap[tokenOut] ?: deriveIdentifier(tokenOut) ?: throw IllegalStateException("No identifier for tokenOut")
+        val chainId = if (assetsMap.isEmpty()) chainIdByBlockchainType[tokenIn.blockchainType] else null
+
+        val sourceAddress = if (includeSourceAddress && shouldIncludeSourceAddress(tokenIn)) {
+            SwapHelper.getSendingAddressForToken(tokenIn)
+        } else {
+            null
+        }
 
         val route = unstoppableAPI.swap(
             UnstoppableAPI.Request.Swap(
-                sellAsset = asset,
-                buyAsset = asset,
+                sellAsset = sellAsset,
+                buyAsset = buyAsset,
                 slippage = slippage,
                 provider = provider.id,
                 destinationAddress = destinationAddress,
                 refundAddress = refundAddress,
+                sourceAddress = sourceAddress,
                 chainId = chainId,
                 buyAmount = amountOut.toPlainString(),
             )
@@ -503,6 +555,19 @@ class USwapProvider(
 
         return route
     }
+
+    /**
+     * The deposit transfer for a route committed in exact-output mode: exactly
+     * [depositAmount] (the route's execution.amount) to its deposit address, in the same
+     * per-chain shapes the swap confirmation uses — including the attachment
+     * deliverability rules. Chains that consume a server-built tx must have committed with
+     * the source address included, exactly as the swap flow does.
+     */
+    fun depositTransactionData(
+        tokenIn: Token,
+        depositAmount: BigDecimal,
+        route: UnstoppableAPI.Response.Route,
+    ): SendTransactionData = getSendTransactionData(tokenIn, depositAmount, route)
 
     override suspend fun fetchFinalQuote(
         tokenIn: Token,
@@ -534,7 +599,12 @@ class USwapProvider(
         } else {
             null
         }
-        val refundAddress = SwapHelper.getReceiveAddressForToken(tokenIn)
+        val refundAddress = if (tokenIn.blockchainType == BlockchainType.Zcash) {
+            ChainRegistry[BlockchainType.Zcash]?.swapUnifiedReceiveAddress(tokenIn)
+                ?: SwapHelper.getReceiveAddressForToken(tokenIn)
+        } else {
+            SwapHelper.getReceiveAddressForToken(tokenIn)
+        }
 
         val bestRoute = commitSwap(
             tokenIn,
@@ -547,6 +617,14 @@ class USwapProvider(
             selectedRoute?.sellAsset,
             selectedRoute?.buyAsset
         )
+
+        // A THORChain-style deposit memo is what routes the outbound leg: a route without one
+        // cannot be delivered, and one whose destination is not the recipient shown to the user
+        // must not be signed.
+        bestRoute.execution?.takeIf { it.method == "thorchain_deposit" }?.let { execution ->
+            val memo = execution.memo ?: throw IllegalStateException("No THORChain deposit memo")
+            ThorChainSwapMemo.requireDestination(memo, destination, tokenOut.blockchainType)
+        }
 
         val amountOut = bestRoute.expectedBuyAmountOrZero
 
@@ -585,7 +663,11 @@ class USwapProvider(
             fromAsset = assetsMap[tokenIn] ?: deriveIdentifier(tokenIn) ?: throw IllegalStateException("No identifier for tokenIn"),
             toAsset = assetsMap[tokenOut] ?: deriveIdentifier(tokenOut) ?: throw IllegalStateException("No identifier for tokenOut"),
             depositAddress = bestRoute.execution?.resolvedDepositAddress(),
-            depositMemo = bestRoute.execution?.resolvedMemo(),
+            // XRP's identifier is a destination tag, not a memo — the XRP send service shows it
+            // under its own label, so showing it here again as a "deposit memo" would misname it.
+            depositMemo = bestRoute.execution
+                ?.takeIf { tokenIn.blockchainType != BlockchainType.Xrp }
+                ?.resolvedMemo(),
             approvalSpender = bestRoute.approvalSpenderOrExecution,
         )
     }
@@ -719,6 +801,17 @@ class USwapProvider(
                 return SendTransactionData.Ton.SendRequest(JSONObject(tx.toString()))
             }
 
+            BlockchainType.Xrp -> {
+                // The identifier travels in the Payment's DestinationTag field rather than a
+                // memo, so this builds the transfer from the tag — see [resolvedDestinationTag],
+                // which refuses any attachment XRP cannot carry there.
+                return SendTransactionData.Xrp(
+                    address = execution.resolvedDepositAddress() ?: throw IllegalStateException("No deposit address"),
+                    amount = amountIn,
+                    destinationTag = execution.resolvedDestinationTag(),
+                )
+            }
+
             BlockchainType.Zcash -> {
                 if (!provider.supportsSimpleUtxoTransactions) {
                     throw IllegalStateException("Only simple ZEC tx providers are supported")
@@ -791,6 +884,7 @@ class USwapProvider(
             "bitcoincash" to BlockchainType.BitcoinCash,
             "litecoin" to BlockchainType.Litecoin,
             "stellar" to BlockchainType.Stellar,
+            "ripple" to BlockchainType.Xrp,
             "ton" to BlockchainType.Ton,
             "dash" to BlockchainType.Dash,
             "ecash" to BlockchainType.ECash,
@@ -798,6 +892,7 @@ class USwapProvider(
             "zano" to BlockchainType.Zano,
             "100" to BlockchainType.Gnosis,
             "4663" to BlockchainType.RobinhoodChain,
+            "5042" to BlockchainType.Arc,
 //            "" to BlockchainType.Fantom,
 //            "" to BlockchainType.ZkSync,
         )
@@ -823,6 +918,7 @@ class USwapProvider(
             BlockchainType.Avalanche to "AVAX",
             BlockchainType.BinanceSmartChain to "BSC",
             BlockchainType.RobinhoodChain to "ROBINHOOD",
+            BlockchainType.Arc to "ARC",
         )
     }
 
@@ -1001,7 +1097,10 @@ interface UnstoppableAPI {
         // only (no execution, no uuid — those appear after committing with /v2/swap).
         // A provider that declined to route lands in providerErrors instead of routes.
         data class Rate(
-            val routes: List<Route>,
+            // Absent entirely (not just empty) when every provider refuses — the response
+            // then carries only providerErrors. Nullable so Gson's missing-field null is an
+            // honest type instead of a latent NPE.
+            val routes: List<Route>? = null,
             val providerErrors: List<ProviderError>? = null,
         )
 
@@ -1128,12 +1227,32 @@ interface UnstoppableAPI {
             // Every chain we build a transfer for here (Stellar/Zcash/Monero/Zano/UTXO) puts
             // it in the memo field, whether the server typed it `text` (RUNE/GAIA/TON/NEAR)
             // or `destination_tag` (a numeric tag, e.g. a Stellar memo-id), so accept both.
-            // The dedicated XRP destination-tag path (where the tag is a separate tx field,
-            // not a memo) is not built by this provider, so this can't misroute one.
+            // XRP is the one chain where a tag is NOT a memo — it reads the same attachment
+            // through [resolvedDestinationTag] instead, and never through this.
             fun resolvedMemo(): String? = when (method) {
                 "thorchain_deposit" -> memo
                 "transfer" -> attachment?.value
                 else -> null
+            }
+
+            /**
+             * The binding identifier for an XRP transfer, as the Payment's DestinationTag.
+             *
+             * Only a numeric `destination_tag` fits that field: a `text` attachment would have
+             * to ride an XRPL memo, which providers do not read, so it fails the route instead
+             * of being silently dropped — an unmatched deposit is typically unrecoverable.
+             * No attachment at all is a route the provider credits by deposit address alone.
+             */
+            fun resolvedDestinationTag(): Long? {
+                if (method != "transfer") return null
+                val attachment = attachment ?: return null
+
+                if (attachment.type != "destination_tag") {
+                    throw IllegalStateException("XRP cannot deliver a `${attachment.type}` attachment")
+                }
+
+                return XrpDestinationTag.parse(attachment.value)
+                    ?: throw IllegalStateException("Destination tag out of range")
             }
 
             val approvalSpender: String?

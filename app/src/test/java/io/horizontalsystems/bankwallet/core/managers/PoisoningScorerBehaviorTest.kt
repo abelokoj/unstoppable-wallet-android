@@ -26,6 +26,7 @@ import java.math.BigInteger
  *
  * Production dust limits (AppConfigProvider.spamCoinValueLimits): SOL 0.0001, USDT 1.
  * Derived bands per coin: micro-dust < limit/10 (+7), dust < limit (+3), low < limit*5 (+2).
+ * Coins in spamCoinsWithoutMicroDust have no micro-dust band: anything below limit scores +3.
  */
 class PoisoningScorerBehaviorTest {
 
@@ -75,6 +76,38 @@ class PoisoningScorerBehaviorTest {
     }
 
     // ==================== Value scoring: auto-spam classes ====================
+
+    // ---- XRP: production limit 0.001 XRP, so payments under 0.0001 XRP (100 drops) are auto-spam ----
+
+    private val xrpLimits = mapOf("XRP" to BigDecimal("0.001"))
+
+    private fun xrp(amount: String): TransactionValue.CoinValue {
+        val token = Token(
+            coin = Coin(uid = "ripple", name = "XRP", code = "XRP"),
+            blockchain = Blockchain(BlockchainType.Xrp, "XRP Ledger", null),
+            type = TokenType.Native,
+            decimals = 6
+        )
+        return TransactionValue.CoinValue(token, BigDecimal(amount))
+    }
+
+    private fun xrpValueScore(amount: String): Int =
+        scorer.calculateValueScore(listOf(TransferEvent("rPq4Ko4ockCSHLbFeuRbMx9kT7rxDefTTC", xrp(amount))), xrpLimits).score
+
+    @Test
+    fun `XRP dust payments of a few drops are auto-spam`() {
+        assertTrue(xrpValueScore("0.000001") >= PoisoningScorer.SPAM_THRESHOLD)   // 1 drop
+        assertTrue(xrpValueScore("0.00001") >= PoisoningScorer.SPAM_THRESHOLD)    // 10 drops
+        assertTrue(xrpValueScore("0.000099") >= PoisoningScorer.SPAM_THRESHOLD)
+    }
+
+    @Test
+    fun `XRP payments from the dust band up need correlation and normal amounts score zero`() {
+        assertTrue(xrpValueScore("0.0001") < PoisoningScorer.SPAM_THRESHOLD)
+        assertTrue(xrpValueScore("0.0005") in 1..<PoisoningScorer.SPAM_THRESHOLD)
+        assertEquals(0, xrpValueScore("1.8"))
+    }
+
 
     @Test
     fun `unknown token (RawValue) is auto-spam`() {
@@ -149,6 +182,61 @@ class PoisoningScorerBehaviorTest {
     @Test
     fun `USDT dust below limit scores gray-zone three`() {
         assertEquals(PoisoningScorer.POINTS_DUST_BELOW_LIMIT, valueScore(coin("USDT", "0.5", decimals = 6)))
+    }
+
+    // ==================== Value scoring: coins without micro dust ====================
+
+    // Stablecoins in AppConfigProvider.spamCoinsWithoutMicroDust: a cent-sized test send
+    // (0.01 USDC on Arc before the real 50.1 USDC) must not be auto-spam by value alone.
+    private val stableLimits = mapOf("USDC" to BigDecimal("1"), "SOL" to BigDecimal("0.0001"))
+    private val coinsWithoutMicroDust = setOf("USDC")
+
+    private fun isStableSpam(
+        value: TransactionValue,
+        senderAddress: String = mimic,
+        context: List<PoisoningScorer.OutgoingTxInfo> = emptyList()
+    ): Boolean {
+        val events = listOf(TransferEvent(senderAddress, value))
+        val valueResult = scorer.calculateValueScore(events, stableLimits, coinsWithoutMicroDust)
+        if (valueResult.score >= PoisoningScorer.SPAM_THRESHOLD) return true
+        if (valueResult.score == 0) return false
+        val correlation = scorer.calculateCorrelationScore(events, 1_000L, null, context)
+        return valueResult.score + correlation.points >= PoisoningScorer.SPAM_THRESHOLD
+    }
+
+    @Test
+    fun `stablecoin micro dust scores as ordinary dust`() {
+        val events = listOf(TransferEvent(unrelated, coin("USDC", "0.01", decimals = 6)))
+        assertEquals(
+            PoisoningScorer.POINTS_DUST_BELOW_LIMIT,
+            scorer.calculateValueScore(events, stableLimits, coinsWithoutMicroDust).score
+        )
+    }
+
+    @Test
+    fun `stablecoin test send without correlation is not spam`() {
+        assertFalse(isStableSpam(coin("USDC", "0.01", decimals = 6), senderAddress = unrelated))
+    }
+
+    @Test
+    fun `stablecoin test send that only correlates in time is not spam`() {
+        // dust(3) + time(3) = 6 < 7
+        assertFalse(isStableSpam(coin("USDC", "0.01", decimals = 6), unrelated, context(realPayer, ts = 950L)))
+    }
+
+    @Test
+    fun `stablecoin micro dust from a mimic address is spam`() {
+        // dust(3) + prefix(4) + suffix(4) + time(3) = 14
+        assertTrue(isStableSpam(coin("USDC", "0.000001", decimals = 6), mimic, context(realPayer, ts = 985L)))
+    }
+
+    @Test
+    fun `coins outside the set keep micro dust auto-spam`() {
+        val events = listOf(TransferEvent(unrelated, coin("SOL", "0.000005")))
+        assertEquals(
+            PoisoningScorer.POINTS_MICRO_DUST,
+            scorer.calculateValueScore(events, stableLimits, coinsWithoutMicroDust).score
+        )
     }
 
     // ==================== Value scoring: NFTs ====================

@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.core.WatchAccountException
 import io.horizontalsystems.walletkit.entities.CoinValue
 import io.horizontalsystems.walletkit.entities.CurrencyValue
 import io.horizontalsystems.walletkit.modules.multiswap.FeeRow
@@ -31,10 +32,10 @@ import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldFeeTemplate
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.serializers.HSScreenKClassSerializer
-import io.horizontalsystems.walletkit.modules.send.SendPage
+import io.horizontalsystems.walletkit.modules.send.v2.SendViewModel
+import io.horizontalsystems.walletkit.modules.send.v2.SendV2Page
+import io.horizontalsystems.walletkit.core.chain.ChainRegistry
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryDefault
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.ui.compose.components.rememberAsyncAction
 import io.horizontalsystems.walletkit.ui.helpers.TextHelper
@@ -50,28 +51,32 @@ import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import kotlin.reflect.KClass
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 
 @Serializable
 data class PrivateSendConfirmationPage(val input: Input) : HSPage() {
 
     @Composable
     override fun GetContent(navigation: HSNavigation) {
-        // The same toggle ViewModel the send screen filled in, resolved from the SendPage
-        // store. The factory only matters after process death, where a fresh instance
-        // carries no deposit params and the build degrades to service defaults — safe.
-        val toggleViewModel = viewModel<PrivateSendViewModel>(
-            viewModelStoreOwner = io.horizontalsystems.walletkit.modules.nav3.rememberChildViewModelStoreOwner(SendPage::class.simpleName!!),
-            factory = PrivateSendViewModel.Factory(input.wallet.token),
+        // Bitcoin deposit parameters come from the send screen's settings. After process
+        // death that is a fresh instance carrying none, and the build degrades to service
+        // defaults — safe.
+        val sendViewModel = navigation.viewModelForScreen<SendViewModel>(
+            SendV2Page::class,
+            SendViewModel.Factory(input.wallet),
         )
+        val btcParams = ChainRegistry[input.wallet.token.blockchainType]
+            ?.privateSendBtcParams(input.wallet.token, sendViewModel.uiState.chainSettings)
 
         val viewModel = viewModel<PrivateSendConfirmViewModel>(
             initializer = PrivateSendConfirmViewModel.init(
                 PrivateSendRequest(
+                    accountId = input.wallet.account.id,
                     token = input.wallet.token,
                     recipient = input.recipient,
                     amountOut = input.amount,
                 ),
-                toggleViewModel.btcParams,
+                btcParams,
             )
         )
 
@@ -97,7 +102,7 @@ private fun PrivateSendConfirmationScreen(
     val uiState = viewModel.uiState
     val view = LocalView.current
     val context = androidx.compose.ui.platform.LocalContext.current
-    val closeUntilDestId = sendEntryPointDestId ?: SendPage::class
+    val closeUntilDestId = sendEntryPointDestId ?: SendV2Page::class
 
     val error = uiState.error
     if (error != null) {
@@ -123,14 +128,15 @@ private fun PrivateSendConfirmationScreen(
             if (uiState.expired) {
                 // The committed order is not honoured past its lifetime; Refresh commits a
                 // fresh order in place — the same recovery the swap confirmation offers.
-                ButtonPrimaryDefault(
+                HSButton(
+                    variant = ButtonVariant.Secondary,
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Button_Refresh),
                     onClick = viewModel::refresh,
                 )
             } else {
                 val sendAction = rememberAsyncAction()
-                ButtonPrimaryYellow(
+                HSButton(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(if (sendAction.inProgress) R.string.Send_Sending else R.string.Send_Confirmation_Send_Button),
                     enabled = uiState.canSend && !sendAction.inProgress && !uiState.loading,
@@ -224,6 +230,7 @@ private fun PrivateSendConfirmationScreen(
                         CurrencyValue(it.currency, it.value * fee).getFormattedFull()
                     },
                     valueToken = CoinValue(uiState.token, fee).getFormattedFull(),
+                    fiatFirst = true,
                     onInfoClick = {
                         navigation.slideFromBottom(
                             SwapInfoSheet(
@@ -239,7 +246,7 @@ private fun PrivateSendConfirmationScreen(
             DataFieldFeeTemplate(
                 navigation = navigation,
                 primary = uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
-                secondary = uiState.networkFee?.secondary?.getFormattedPlain() ?: "---",
+                secondary = uiState.networkFee?.secondary?.getFormattedPlain(),
                 title = stringResource(R.string.FeeSettings_NetworkFee),
                 infoText = stringResource(R.string.FeeSettings_NetworkFee_Info),
             )
@@ -275,7 +282,8 @@ private fun PrivateSendConfirmationError(navigation: HSNavigation, error: Throwa
         onClickBack = navigation::removeLastOrNull,
         onClickFeeSettings = null,
         buttonsSlot = {
-            ButtonPrimaryDefault(
+            HSButton(
+                variant = ButtonVariant.Secondary,
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.Button_Back),
                 onClick = navigation::removeLastOrNull,
@@ -322,6 +330,7 @@ private fun errorText(context: android.content.Context, error: Throwable): Strin
     is PrivateSendError.NetworkError -> context.getString(R.string.PrivateSend_Caution_NetworkError)
     is PrivateSendError.TokenUnsupported -> context.getString(R.string.PrivateSend_Caution_TokenUnsupported)
     is PrivateSendError.AttachmentUnsupported -> context.getString(R.string.PrivateSend_Caution_AttachmentUnsupported)
+    is WatchAccountException -> context.getString(R.string.Hud_Text_ChangeWallet)
     else -> context.getString(R.string.PrivateSend_CommitFailed)
 }
 

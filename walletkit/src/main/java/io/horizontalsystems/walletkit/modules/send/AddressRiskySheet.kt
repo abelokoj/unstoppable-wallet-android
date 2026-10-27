@@ -12,13 +12,14 @@ import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.LocalResultEventBus
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryRed
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryTransparent
 import io.horizontalsystems.walletkit.ui.compose.components.TextImportantError
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.ui.extensions.BottomSheetHeader
 import io.horizontalsystems.walletkit.ui.extensions.HSBottomSheet
 import kotlinx.serialization.Serializable
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
+import io.horizontalsystems.walletkit.uiv3.components.controls.ButtonVariant
+import io.horizontalsystems.walletkit.uiv3.components.controls.ButtonStyle
 
 @Serializable
 data class AddressRiskySheet(val input: Input) : HSBottomSheet() {
@@ -61,7 +62,8 @@ private fun RiskyAddressAlertView(
             text = alertText
         )
         VSpacer(32.dp)
-        ButtonPrimaryRed(
+        HSButton(
+            variant = ButtonVariant.Destructive,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
@@ -71,7 +73,9 @@ private fun RiskyAddressAlertView(
             }
         )
         VSpacer(12.dp)
-        ButtonPrimaryTransparent(
+        HSButton(
+            variant = ButtonVariant.Secondary,
+            style = ButtonStyle.Transparent,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),

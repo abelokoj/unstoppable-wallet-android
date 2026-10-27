@@ -27,7 +27,7 @@ import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 import io.horizontalsystems.walletkit.ui.compose.components.ButtonSecondaryDefault
 import io.horizontalsystems.walletkit.ui.compose.components.FormsInput
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
@@ -64,7 +64,7 @@ data object ApprovalAccessPage : HSPage() {
                 }
                 item {
                     Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        ButtonPrimaryYellow(
+                        HSButton(
                             modifier = Modifier.fillMaxWidth(),
                             title = stringResource(if (state.busy) R.string.ApprovalAccess_Scanning else R.string.ApprovalAccess_Scan),
                             onClick = model::scan,

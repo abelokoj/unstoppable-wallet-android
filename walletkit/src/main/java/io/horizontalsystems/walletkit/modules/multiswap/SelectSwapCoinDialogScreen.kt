@@ -43,7 +43,7 @@ import io.horizontalsystems.walletkit.ui.compose.components.HsImage
 import io.horizontalsystems.walletkit.ui.compose.components.ListEmptyView
 import io.horizontalsystems.walletkit.ui.compose.components.HSCircularProgressIndicator
 import io.horizontalsystems.walletkit.ui.compose.components.HsSwitch
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.ui.compose.components.subhead2_leah
 import io.horizontalsystems.walletkit.uiv3.components.BoxBordered
@@ -213,7 +213,7 @@ private fun ManualAddTokenButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    ButtonPrimaryYellow(
+    HSButton(
         modifier = modifier.fillMaxWidth(),
         title = stringResource(R.string.Swap_AddTokenManually),
         onClick = onClick,

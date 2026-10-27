@@ -7,6 +7,7 @@ import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.ViewModelUiState
+import io.horizontalsystems.walletkit.core.WatchAccountException
 import io.horizontalsystems.walletkit.core.ethereum.CautionViewItem
 import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.core.storage.OcpPaymentDao
@@ -47,6 +48,13 @@ class OpenCryptoPayConfirmationViewModel(
 
     val sendTransactionService = SendTransactionServiceFactory.create(wallet.token)
 
+    // The wallet is captured when the payment opens and never re-read, so by now it can be one
+    // that cannot sign, or one the user has switched away from. Either way this payment must
+    // not go out: the provider is not asked for transaction details and Pay stays disabled.
+    private val payingWalletUnusable: Boolean
+        get() = wallet.account.isWatchAccount ||
+                App.accountManager.activeAccount?.id != wallet.account.id
+
     private var initialLoading = true
     private var apiLoading = true
     private var fetchError: CautionViewItem? = null
@@ -68,6 +76,18 @@ class OpenCryptoPayConfirmationViewModel(
         }
         sendTransactionService.start(viewModelScope)
         viewModelScope.launch {
+            if (payingWalletUnusable) {
+                fetchError = CautionViewItem(
+                    title = Translator.getString(R.string.Error),
+                    text = Translator.getString(R.string.Hud_Text_ChangeWallet),
+                    type = CautionViewItem.Type.Error,
+                )
+                apiLoading = false
+                updateInitialLoading()
+                emitState()
+                return@launch
+            }
+
             try {
                 val (resolvedAddress, resolvedProofUrl) = fetchOcpTransactionDetails(callbackUrl, quoteId, paymentId, method, asset)
                 address = resolvedAddress
@@ -128,10 +148,15 @@ class OpenCryptoPayConfirmationViewModel(
 
     override fun onCleared() {
         countdownJob?.cancel()
+        sendTransactionService.clear()
         super.onCleared()
     }
 
     suspend fun pay() {
+        // This screen signs with the wallet it captured, so paying after the active account
+        // moved on would spend from a wallet the user is no longer looking at.
+        if (payingWalletUnusable) throw WatchAccountException()
+
         val baseUrl = proofUrl.substringBefore("/tx/").let { it.trimEnd('/') + "/" }
         if (wallet.token.blockchainType == BlockchainType.Bitcoin) {
             val signed = withContext(Dispatchers.IO) {
@@ -200,6 +225,7 @@ class OpenCryptoPayConfirmationViewModel(
     private fun extractTxHash(result: SendTransactionResult): String? = when (result) {
         is SendTransactionResult.Btc -> result.transactionRecord?.transactionHash
         is SendTransactionResult.Tron -> result.txHash
+        is SendTransactionResult.Xrp -> result.txHash
         is SendTransactionResult.Solana -> result.txHash
         is SendTransactionResult.Monero -> result.txHash
         is SendTransactionResult.Zano -> result.txHash
@@ -226,6 +252,7 @@ class OpenCryptoPayConfirmationViewModel(
 
             BlockchainType.Solana -> SendTransactionData.Solana.Simple(address, amount)
             BlockchainType.Tron -> SendTransactionData.Tron.Simple(address, amount)
+            BlockchainType.Xrp -> SendTransactionData.Xrp(address, amount, null)
             BlockchainType.Monero -> SendTransactionData.Monero(address, amount, null)
             BlockchainType.Zano -> SendTransactionData.Zano(address, amount, null)
             else -> throw IllegalStateException("Unsupported chain: ${wallet.token.blockchainType}")

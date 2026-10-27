@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.managers.FaqManager
-import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.core.shorten
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.core.stats.StatPage
@@ -64,7 +63,7 @@ import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.rateapp.RateAppModule
 import io.horizontalsystems.walletkit.modules.rateapp.RateAppViewModel
 import io.horizontalsystems.walletkit.modules.receive.ReceiveChooseCoinPage
-import io.horizontalsystems.walletkit.modules.send.address.EnterAddressPage
+import io.horizontalsystems.walletkit.modules.send.v2.SendV2Page
 import io.horizontalsystems.walletkit.modules.sendtokenselect.SendTokenSelectPage
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.HSSwipeRefresh
@@ -76,6 +75,7 @@ import io.horizontalsystems.walletkit.ui.compose.components.subhead2_leah
 import io.horizontalsystems.walletkit.ui.compose.components.subheadSB_lucian
 import io.horizontalsystems.walletkit.ui.helpers.TextHelper
 import io.horizontalsystems.walletkit.uiv3.components.AlertCard
+import io.horizontalsystems.walletkit.uiv3.components.ConcealOnScroll
 import io.horizontalsystems.walletkit.uiv3.components.AlertFormat
 import io.horizontalsystems.walletkit.uiv3.components.AlertType
 import io.horizontalsystems.walletkit.uiv3.components.BalanceButtonsGroup
@@ -171,6 +171,14 @@ fun BalanceItems(
     val context = LocalContext.current
     val view = LocalView.current
     var revealedCardId by remember { mutableStateOf<Int?>(null) }
+    val listState = rememberSaveable(
+        accountViewItem.id,
+        uiState.sortType,
+        saver = LazyListState.Saver
+    ) {
+        LazyListState()
+    }
+    ConcealOnScroll(listState) { revealedCardId = null }
 
     val navigateToTokenBalance: (BalanceViewItem2) -> Unit = remember {
         {
@@ -207,13 +215,7 @@ fun BalanceItems(
             modifier = Modifier
                 .fillMaxSize()
                 .background(ComposeAppTheme.colors.lawrence),
-            state = rememberSaveable(
-                accountViewItem.id,
-                uiState.sortType,
-                saver = LazyListState.Saver
-            ) {
-                LazyListState()
-            },
+            state = listState,
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item {
@@ -501,16 +503,7 @@ private fun handleContextMenuClick(
 ) {
     when (menuItem) {
         BalanceContextMenuItem.Send -> {
-            val sendTitle = Translator.getString(
-                R.string.Send_Title,
-                balanceViewItem.wallet.token.fullCoin.coin.code
-            )
-            navigation.slideFromRight(
-                EnterAddressPage(EnterAddressPage.Input(
-                    wallet = balanceViewItem.wallet,
-                    title = sendTitle
-                ))
-            )
+            navigation.slideFromRight(SendV2Page(balanceViewItem.wallet))
 
             stat(
                 page = StatPage.Balance,

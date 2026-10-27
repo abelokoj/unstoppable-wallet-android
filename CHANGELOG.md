@@ -8,11 +8,24 @@ A personal fork of [unstoppable-wallet-android](https://github.com/horizontalsys
 
 | Repo | Branch / pin | Base | Notes |
 |---|---|---|---|
-| [unstoppable-wallet-android](https://github.com/abelokoj/unstoppable-wallet-android) | `master` | upstream `0.50.1` | the app |
-| [ethereum-kit-android](https://github.com/abelokoj/ethereum-kit-android) | `feature/fee-on-transfer` @ `11b92fc` | `665021b` | fee-on-transfer swaps, EIP-7702 |
-| [market-kit-android](https://github.com/abelokoj/market-kit-android) | `feature/ngn-rates` @ `966a222` | `33432f8` | NGN rate conversion |
+| [unstoppable-wallet-android](https://github.com/abelokoj/unstoppable-wallet-android) | `master` | upstream `0.52.2` | Open Swap |
+| [ethereum-kit-android](https://github.com/horizontalsystems/ethereum-kit-android) | pinned `a887150` | upstream | Arc-capable kit; taxed-token compatibility lives in the wallet |
+| [market-kit-android](https://github.com/horizontalsystems/market-kit-android) | pinned `aa91028` | upstream | NGN rate conversion remains in the wallet |
 
-Both kit forks branch from the **commit the wallet pins**, not `master`. Upstream `market-kit` master has since replaced RxJava with coroutines, and `ethereum-kit` master diverges similarly — building against either would break the wallet.
+Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `master` branches. The earlier custom kit forks are retained in their repositories but are no longer build dependencies as of this 0.52.2 merge.
+
+---
+
+# Unreleased - 2026-10-27T01:48:47-04:00
+
+- Imported upstream release `0.52.2` (`4b0488cf42b66ca514c5ae5c30267df46bdae63a`) into the local OpenSwap integration branch. This brings XRP with trust-line assets, Arc/native USDC, CrossPay, unified sending, Zcash Names and Slipstream synchronization, watch-only THORChain/MayaChain, improved operation history, Tor routing/recovery, signing and swap-recipient checks, WalletConnect session cleanup, private-key backup encoding fixes and upstream minified-build fixes. Version metadata is now `0.52.2 (183)`.
+- Preserved OpenSwap branding/signing, restored V2 swap providers and fee settings, Relay/Across entries and privacy preferences, provider icons, fixed wallet-switch search, manually added token persistence/discovery, shared EVM contacts, NGN handling, font choices/scaling, splash selection and custom swap percentages. The shared upstream amount input replaces the old swap-only layout; 100% stays visible while retaining upstream's native-fee guard. Across remains an incomplete optional backend adapter, not a newly completed direct integration.
+- Switched to upstream's Arc-capable Ethereum kit `a887150`; retained fee-on-transfer V2 encoding and history decoding through a small wallet-side adapter. It rejects exact-output/zero-minimum calls and preserves the SDK-built router, value, amount, path, recipient and deadline. The earlier fork-only EIP-7702 SDK extension had no wallet callers and is no longer a dependency; this merge does not add EIP-7702 signing support to the app. Historical custom-kit references above were corrected to the dependencies now used.
+- Adapted Relay and Revoke Access to the connected Tor SOCKS endpoint, refusing requests when unavailable and reading the current port after restarts. Approval scans share their connection pool instead of creating a separate pool for every query. The old fixed HTTP proxy no longer exists upstream. Added regression tests for proxy readiness/ports, taxed-token calldata/decoding and percentage input. Preserved the approval feature in local checkpoint `94bf54eb6` before the merge; the October 26 entries below describe its original pre-commit state.
+- Completed localization coverage for 14 existing fork appearance/manual-token strings and 45 Revoke Access strings in all nine supported locales. Moved the unchanged English approval strings into the main strings resource so upstream's translation check covers them. Updated public release notes and dependency documentation while preserving previous release notes and changelog entries.
+- Broader app tests exposed a Windows CRLF-versus-LF snapshot mismatch and legacy upstream number-format assertions that did not match the existing OpenSwap precision policy. Normalized fixture line endings in the assertion and updated the stale expectations; production formatting and chain behavior were not changed for those tests.
+- Validation: all 411 unit tests passed (309 across nine wallet/chain modules and 102 app tests), with zero failures, errors or skipped tests. Both `:app:assembleBaseDebug` and `:app:assembleBaseRelease` succeeded, including release minification, resource shrinking and release lint. The final development APK is `money.openswap.wallet.dev`, `0.52.2 (183)`; the release APK retains the documented OpenSwap signing certificate. The translation check passed for 1,788 strings across nine locales, and patch whitespace checks passed. Existing Gradle/Kotlin, Room-index and native-library warnings remain. This validation record is prepared for the local merge commit and fast-forward to `master`; it is not a published release.
+- No phone is connected. Device rendering, live RPC/Tor reconnection, external bridge availability, upgrades with real wallet data and funded transaction flows have not been tested. Translations have not had native-speaker review. No installation, remote push, tag or release publication was performed. Timestamp is the recording time for local integration work, not a release time.
 
 ---
 

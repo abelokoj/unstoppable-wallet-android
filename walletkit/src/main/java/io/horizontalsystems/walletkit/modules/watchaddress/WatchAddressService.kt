@@ -74,6 +74,24 @@ class WatchAddressService(
                     }
                 }
 
+                is AccountType.XrpAddress -> {
+                    if (BlockchainType.Xrp.supports(accountType)) {
+                        add(TokenQuery(BlockchainType.Xrp, TokenType.Native))
+                    }
+                }
+
+                is AccountType.ThorchainAddress -> {
+                    if (BlockchainType.Thorchain.supports(accountType)) {
+                        add(TokenQuery(BlockchainType.Thorchain, TokenType.Native))
+                    }
+                }
+
+                is AccountType.MayachainAddress -> {
+                    if (BlockchainType.Mayachain.supports(accountType)) {
+                        add(TokenQuery(BlockchainType.Mayachain, TokenType.Native))
+                    }
+                }
+
                 is AccountType.HdExtendedKey -> {
                     if (BlockchainType.Bitcoin.supports(accountType)) {
                         accountType.hdExtendedKey.purposes.forEach { purpose ->
@@ -109,8 +127,11 @@ class WatchAddressService(
             }
         }
 
+        // Queries are built in enum declaration order and the MarketKit lookup has no ORDER BY,
+        // so the token type needs sorting too, or BCH and the BTC derivations come back with the
+        // recommended type last.
         return marketKit.tokens(tokenQueries)
-            .sortedBy { it.blockchainType.order }
+            .sortedWith(compareBy<Token> { it.blockchainType.order }.thenBy { it.type.order })
     }
 
     fun watchAll(accountType: AccountType, name: String?) {

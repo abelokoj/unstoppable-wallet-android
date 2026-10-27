@@ -35,6 +35,7 @@ import io.horizontalsystems.walletkit.SnackbarDuration
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.badge
 import io.horizontalsystems.walletkit.core.ethereum.CautionViewItem
+import io.horizontalsystems.walletkit.ui.compose.components.IMenuItem
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.core.stats.StatPage
 import io.horizontalsystems.walletkit.core.stats.stat
@@ -50,9 +51,9 @@ import io.horizontalsystems.walletkit.modules.multiswap.QuoteInfoRow
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldFeeTemplate
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
+import io.horizontalsystems.walletkit.modules.send.v2.SendV2Page
 import io.horizontalsystems.walletkit.modules.sendevmtransaction.AddressCell
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.CoinImage
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
 import io.horizontalsystems.walletkit.ui.compose.components.RowUniversal
@@ -69,6 +70,7 @@ import io.horizontalsystems.marketkit.models.Token
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import kotlin.reflect.KClass
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 
 @Composable
 fun SendConfirmationScreen(
@@ -89,36 +91,36 @@ fun SendConfirmationScreen(
     sendEntryPointDestId: KClass<out HSPage>?,
     title: String? = null,
     error: Throwable? = null,
+    menuItems: List<IMenuItem> = listOf(),
+    cautions: List<CautionViewItem> = listOf(),
+    sendEnabled: Boolean = true,
+    feeInfoText: String? = null,
+    // Called once the failure sheet is up, so the caller can clear the result and a later
+    // recomposition of this screen does not show the sheet again.
+    onFailureShown: (() -> Unit)? = null,
     additionalFields: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
-    val closeUntilDestId = sendEntryPointDestId ?: SendPage::class
+    val closeUntilDestId = sendEntryPointDestId ?: SendV2Page::class
     val view = LocalView.current
-    when (sendResult) {
-        is SendResult.Sent -> {
-            HudHelper.showSuccessMessage(
-                view,
-                R.string.Send_Success,
-                SnackbarDuration.LONG
-            )
-        }
-
-        is SendResult.Failed -> {
-            navigation.slideFromBottom(
-                ErrorSheet(
-                    ErrorSheet.Input(
-                        sendResult.caution.getDescription() ?: sendResult.caution.getString()
-                    )
-                )
-            )
-        }
-
-        else -> Unit
+    val failureText = (sendResult as? SendResult.Failed)?.let {
+        it.caution.getDescription() ?: it.caution.getString()
     }
 
+    // Keyed on the result so each outcome is announced once, not on every recomposition.
     LaunchedEffect(sendResult) {
-        if (sendResult is SendResult.Sent) {
-            delay(1200)
-            navigation.removeLastUntil(closeUntilDestId, true)
+        when (sendResult) {
+            is SendResult.Sent -> {
+                HudHelper.showSuccessMessage(view, R.string.Send_Success, SnackbarDuration.LONG)
+                delay(1200)
+                navigation.removeLastUntil(closeUntilDestId, true)
+            }
+
+            is SendResult.Failed -> {
+                navigation.slideFromBottom(ErrorSheet(ErrorSheet.Input(failureText.orEmpty())))
+                onFailureShown?.invoke()
+            }
+
+            else -> Unit
         }
     }
 
@@ -131,6 +133,7 @@ fun SendConfirmationScreen(
     HSScaffold(
         title = title ?: stringResource(R.string.Send_Confirmation_Title),
         onBack = navigation::removeLastOrNull,
+        menuItems = menuItems,
         bottomBar = {
             ButtonsGroupWithShade {
                 SendButton(
@@ -143,7 +146,7 @@ fun SendConfirmationScreen(
 
                         stat(page = StatPage.SendConfirmation, event = StatEvent.Send)
                     },
-                    enabled = error == null
+                    enabled = error == null && sendEnabled
                 )
             }
         }
@@ -170,11 +173,15 @@ fun SendConfirmationScreen(
                 feeCoinRate = feeCoinRate,
                 navigation = navigation,
                 memo = memo,
+                customFeeInfo = feeInfoText,
                 additionalFields = additionalFields
             )
 
             error?.let {
                 Cautions(listOf(CautionViewItem.fromThrowable(it)))
+            }
+            if (cautions.isNotEmpty()) {
+                Cautions(cautions)
             }
         }
     }
@@ -214,15 +221,15 @@ fun ConfirmationBottomSection(
             MemoCell(memo)
         }
 
-        formattedFee?.let { formattedFee ->
-            DataFieldFeeTemplate(
-                navigation = navigation,
-                primary = formattedFee.primary,
-                secondary = formattedFee.secondary,
-                title = stringResource(id = R.string.FeeSettings_NetworkFee),
-                infoText = customFeeInfo ?: stringResource(id = R.string.FeeSettings_NetworkFee_Info)
-            )
-        }
+        // The row stays in place while no fee is known (still estimating, or the amount
+        // cannot be sent), so the layout does not jump and the user sees the fee is pending.
+        DataFieldFeeTemplate(
+            navigation = navigation,
+            primary = formattedFee?.primary ?: stringResource(R.string.NotAvailable),
+            secondary = formattedFee?.secondary,
+            title = stringResource(id = R.string.FeeSettings_NetworkFee),
+            infoText = customFeeInfo ?: stringResource(id = R.string.FeeSettings_NetworkFee_Info)
+        )
     }
 }
 
@@ -276,7 +283,8 @@ fun ConfirmationTopSection(
                 HsDivider()
                 AddressCell(
                     address = it.hex,
-                    contact = contact?.name
+                    contact = contact?.name,
+                    domain = it.domain,
                 )
             }
         }
@@ -317,7 +325,7 @@ fun SendButton(
 
     when (sendResult) {
         SendResult.Sending -> {
-            ButtonPrimaryYellow(
+            HSButton(
                 modifier = modifier,
                 title = stringResource(R.string.Send_Sending),
                 onClick = { },
@@ -326,7 +334,7 @@ fun SendButton(
         }
 
         is SendResult.Sent -> {
-            ButtonPrimaryYellow(
+            HSButton(
                 modifier = modifier,
                 title = stringResource(R.string.Send_Success),
                 onClick = { },
@@ -335,7 +343,7 @@ fun SendButton(
         }
 
         else -> {
-            ButtonPrimaryYellow(
+            HSButton(
                 modifier = modifier,
                 title = stringResource(R.string.Send_Confirmation_Send_Button),
                 onClick = {

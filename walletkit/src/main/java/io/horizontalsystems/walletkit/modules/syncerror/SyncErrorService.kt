@@ -1,18 +1,24 @@
 package io.horizontalsystems.walletkit.modules.syncerror
 
 import io.horizontalsystems.walletkit.core.IAdapterManager
+import io.horizontalsystems.walletkit.core.ITorManager
 import io.horizontalsystems.walletkit.core.managers.BtcBlockchainManager
 import io.horizontalsystems.walletkit.core.managers.EvmBlockchainManager
 import io.horizontalsystems.walletkit.entities.Wallet
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
 import io.horizontalsystems.marketkit.models.BlockchainType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class SyncErrorService(
     private val wallet: Wallet,
     private val adapterManager: IAdapterManager,
     val reportEmail: String,
     private val btcBlockchainManager: BtcBlockchainManager,
-    private val evmBlockchainManager: EvmBlockchainManager
+    private val evmBlockchainManager: EvmBlockchainManager,
+    private val torManager: ITorManager,
 ) {
 
     val blockchainWrapper by lazy {
@@ -37,7 +43,17 @@ class SyncErrorService(
 
     val sourceChangeable = blockchainWrapper != null
 
+    // The sheet closes as soon as retry is tapped, so the retry must not be tied to its lifecycle
     fun retry() {
-        adapterManager.refreshByWallet(wallet)
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                if (torManager.isTorEnabled) {
+                    torManager.newCircuits()
+                }
+                adapterManager.refreshByWallet(wallet)
+            } catch (e: Throwable) {
+                Timber.e(e, "Retrying sync failed")
+            }
+        }
     }
 }

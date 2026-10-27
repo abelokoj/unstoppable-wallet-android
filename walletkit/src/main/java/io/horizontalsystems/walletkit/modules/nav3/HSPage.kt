@@ -9,8 +9,10 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.serialization.NavKeySerializer
 import androidx.navigation3.ui.NavDisplay
 import io.horizontalsystems.walletkit.core.NavigationType
 import kotlinx.serialization.Serializable
@@ -40,7 +42,12 @@ abstract class HSPage(
     @OptIn(ExperimentalMaterial3Api::class)
     fun getMetadata() = buildMap {
         if (bottomSheet) {
-            putAll(BottomSheetSceneStrategy.bottomSheet(skipPartiallyExpanded = expandedBottomSheet))
+            putAll(
+                BottomSheetSceneStrategy.bottomSheet(
+                    modalBottomSheetProperties = bottomSheetProperties,
+                    skipPartiallyExpanded = expandedBottomSheet,
+                )
+            )
         }
 
         putAll(getAnimationMetadata())
@@ -88,4 +95,18 @@ abstract class HSPage(
 
     @Composable
     abstract fun GetContent(navigation: HSNavigation)
+
+    companion object {
+        // Light system bar icons over the sheet's scrim in both themes.
+        @OptIn(ExperimentalMaterial3Api::class)
+        private val bottomSheetProperties = ModalBottomSheetProperties(
+            isAppearanceLightStatusBars = false,
+            isAppearanceLightNavigationBars = false,
+        )
+    }
 }
+
+// For HSPage-typed properties of a page: the plugin's default for an abstract type is a
+// polymorphic serializer with no registered subclasses, which throws when the backstack is
+// saved. This writes the concrete class name and its own serializer, like the backstack does.
+object HSPageSerializer : NavKeySerializer<HSPage>()

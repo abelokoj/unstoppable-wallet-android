@@ -252,6 +252,8 @@ class SwapViewModel(
         // The quote service keeps a standing subscription to provider suspensions, so it stays
         // referenced until its own scope is cancelled.
         quoteService.clear()
+        fiatServiceIn.clear()
+        fiatServiceOut.clear()
     }
 
     private fun requoteIfTimeout() {
@@ -282,12 +284,29 @@ class SwapViewModel(
         initialShowRegularPrice = initialShowRegularPrice,
         swapTimeStatus = swapTimeStatus(
             quoteState.quote?.estimationTime,
-            quoteState.quote?.provider?.type
+            quoteState.quotes.map { it.estimationTime }
         ),
         allowanceActionSuppressed = allowanceActionSuppressed(),
         externalRecipientRequired = externalRecipientRequired(quoteState.tokenOut),
         percentOptions = FixedSwapPercentOptions,
+        disabledPercents = disabledPercents(quoteState.tokenIn),
     )
+
+    // The network fee is only estimated on the confirmation screen, so 100% of an asset
+    // that also pays its own fee always ends in an insufficient balance error. Keep the
+    // option visible but disabled for those; only tokens whose fee is paid with a separate
+    // native asset can spend everything.
+    private fun disabledPercents(tokenIn: Token?): Set<Int> {
+        val feePaidFromAsset = when (tokenIn?.type) {
+            null,
+            TokenType.Native,
+            is TokenType.Derived,
+            is TokenType.AddressTyped,
+            is TokenType.Unsupported -> true
+            else -> false
+        }
+        return if (feePaidFromAsset) setOf(100) else emptySet()
+    }
 
     // tokenOut the account can't hold: the swap is deliverable only to an external
     // address, which the user is asked for before the confirmation screen
@@ -362,28 +381,15 @@ class SwapViewModel(
     }
 
     fun onEnterAmount(v: BigDecimal?) = quoteService.setAmount(v)
-    fun onEnterAmountPercentage(percentage: Int) {
-        val tokenIn = quoteState.tokenIn ?: return
-        val availableBalance = balanceState.balance ?: return
+    fun onEnterAmountPercentage(percentage: Int) =
+        onEnterAmountPercentageExact(BigDecimal(percentage))
 
-        val amount = availableBalance
-            .times(BigDecimal(percentage / 100.0))
-            .setScale(tokenIn.decimals, RoundingMode.DOWN)
-            .stripTrailingZeros()
-
-        quoteService.setAmount(amount)
-    }
-
-    // Custom percentage entered by the user. Unlike the fixed chips this accepts 100 for
-    // every token type, including assets that pay their own network fee - selling the
-    // entire balance of such an asset leaves nothing for gas and will fail at
-    // confirmation, but the choice is the user's to make deliberately.
     fun onEnterAmountPercentageExact(percentage: BigDecimal) {
         val tokenIn = quoteState.tokenIn ?: return
         val availableBalance = balanceState.balance ?: return
 
         val clamped = percentage.coerceIn(BigDecimal.ZERO, BigDecimal(100))
-        if (clamped <= BigDecimal.ZERO) return
+        if (clamped <= BigDecimal.ZERO || (clamped >= BigDecimal(100) && 100 in disabledPercents(tokenIn))) return
 
         val amount = availableBalance
             .multiply(clamped)
@@ -418,6 +424,7 @@ class SwapViewModel(
         // can't sign transactions for it
         if (externalRecipientRequired(quoteState.tokenOut)) return
 
+        tokensManuallySet = true
         quoteService.switchPairs()
 
         stat(page = StatPage.Swap, event = StatEvent.SwapSwitchPairs)
@@ -543,7 +550,8 @@ data class SwapUiState(
     val swapTimeStatus: SwapTimeStatus,
     val allowanceActionSuppressed: Boolean = false,
     val externalRecipientRequired: Boolean = false,
-    val percentOptions: List<Int> = listOf(25, 50, 75, 100),
+    val percentOptions: List<Int> = FixedSwapPercentOptions,
+    val disabledPercents: Set<Int> = emptySet(),
 ) {
     val currentStep: SwapStep = when {
         quoting -> SwapStep.Quoting

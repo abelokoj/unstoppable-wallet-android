@@ -7,6 +7,8 @@ import io.horizontalsystems.marketkit.models.TokenType
  * Controls whether V2-router swaps are encoded against the plain router functions
  * (`swapExactTokensForTokens`) or the fee-on-transfer variants
  * (`swapExactTokensForTokensSupportingFeeOnTransferTokens`).
+ * [FeeOnTransferCompatibility] applies this policy at the wallet boundary while the
+ * canonical SDK does not encode or decode the supporting functions correctly.
  *
  * Background: a token that skims a tax on `transfer` delivers less to the pair than the
  * nominal `amountIn`. The plain router functions compute the expected output from the

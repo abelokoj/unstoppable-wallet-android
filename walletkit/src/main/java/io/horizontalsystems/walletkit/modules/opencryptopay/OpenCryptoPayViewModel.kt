@@ -52,6 +52,15 @@ class OpenCryptoPayViewModel(
         emitState()
         viewModelScope.launch {
             try {
+                // Before the provider is contacted at all: a watch account cannot pay the
+                // invoice, so it must not announce itself to the payment provider either.
+                if (App.accountManager.activeAccount?.isWatchAccount != false) {
+                    error = Translator.getString(R.string.Hud_Text_ChangeWallet)
+                    loading = false
+                    emitState()
+                    return@launch
+                }
+
                 val url = resolveApiUrl(lnurl)
                 apiUrl = url
                 val baseUrl = url.substringBefore("?").let { u ->
@@ -132,6 +141,15 @@ class OpenCryptoPayViewModel(
     fun onPayClick(methodItem: OcpMethodViewItem) {
         val response = paymentResponse ?: return
         val quote = response.quote ?: return
+
+        // The methods were built for the account active when the payment loaded. Opening a
+        // confirmation for a wallet that is no longer that account only leads to a refusal.
+        val activeAccount = App.accountManager.activeAccount
+        if (activeAccount == null || activeAccount.id != methodItem.wallet.account.id) {
+            error = Translator.getString(R.string.Hud_Text_ChangeWallet)
+            emitState()
+            return
+        }
 
         val data = OcpConfirmData(
             wallet = methodItem.wallet,

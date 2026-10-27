@@ -3,6 +3,7 @@ package io.horizontalsystems.walletkit.modules.privatesend
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.WatchAccountException
 import io.horizontalsystems.walletkit.core.ViewModelUiState
 import io.horizontalsystems.walletkit.core.badge
 import io.horizontalsystems.walletkit.core.ethereum.CautionViewItem
@@ -11,6 +12,7 @@ import io.horizontalsystems.walletkit.entities.Currency
 import io.horizontalsystems.walletkit.entities.SwapRecord
 import io.horizontalsystems.walletkit.modules.multiswap.TimerService
 import io.horizontalsystems.walletkit.modules.xrate.XRateService
+import io.horizontalsystems.walletkit.modules.multiswap.history.SwapOperation
 import io.horizontalsystems.walletkit.modules.multiswap.history.SwapRecordManager
 import io.horizontalsystems.walletkit.modules.multiswap.history.SwapStatus
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.AbstractSendTransactionService
@@ -20,7 +22,9 @@ import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTran
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataField
 import io.horizontalsystems.walletkit.modules.send.SendModule
 import io.horizontalsystems.marketkit.models.Token
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
@@ -79,6 +83,13 @@ class PrivateSendConfirmViewModel(
     // the deposit could fund one order while the screen and history describe the other.
     private var commitJob: Job? = null
 
+    // The chain service and its sub-services are plain objects; their collectors and every
+    // deposit fed to them run on this one confined thread so their state stays consistent.
+    // It is an IO thread: signing and broadcasting block on it.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val serviceDispatcher = Dispatchers.IO.limitedParallelism(1)
+    private val serviceScope = CoroutineScope(viewModelScope.coroutineContext + serviceDispatcher)
+
     init {
         viewModelScope.launch {
             sendTransactionService.stateFlow.collect {
@@ -98,7 +109,9 @@ class PrivateSendConfirmViewModel(
             sendTransactionService.sendTransactionSettingsFlow.collect {
                 val data = depositData ?: return@collect
                 try {
-                    sendTransactionService.setSendTransactionData(data)
+                    withContext(serviceDispatcher) {
+                        sendTransactionService.setSendTransactionData(data)
+                    }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Throwable) {
@@ -118,7 +131,7 @@ class PrivateSendConfirmViewModel(
             }
         }
 
-        sendTransactionService.start(viewModelScope)
+        sendTransactionService.start(serviceScope)
 
         commit()
     }
@@ -177,9 +190,17 @@ class PrivateSendConfirmViewModel(
 
     private fun commit() {
         commitJob?.cancel()
-        commitJob = viewModelScope.launch(Dispatchers.Default) {
+        commitJob = viewModelScope.launch(serviceDispatcher) {
             try {
                 error = null
+
+                val activeAccount = App.accountManager.activeAccount
+                if (activeAccount == null ||
+                    activeAccount.isWatchAccount ||
+                    activeAccount.id != request.accountId
+                ) {
+                    throw WatchAccountException()
+                }
 
                 val order = manager.commit(request)
 
@@ -209,9 +230,10 @@ class PrivateSendConfirmViewModel(
 
     override fun onCleared() {
         timerService.stop()
+        sendTransactionService.clear()
     }
 
-    suspend fun send(): SendTransactionResult = withContext(Dispatchers.Default) {
+    suspend fun send(): SendTransactionResult = withContext(serviceDispatcher) {
         val order = order ?: throw PrivateSendError.CommitFailed()
 
         synchronized(this@PrivateSendConfirmViewModel) {
@@ -220,6 +242,16 @@ class PrivateSendConfirmViewModel(
         }
 
         try {
+            // Checked before the timer is stopped: throwing after that would silence the
+            // expiry watchdog without rearming it, leaving a lapsed order looking sendable.
+            val activeAccount = App.accountManager.activeAccount
+            if (activeAccount == null ||
+                activeAccount.isWatchAccount ||
+                activeAccount.id != request.accountId
+            ) {
+                throw WatchAccountException()
+            }
+
             timerService.stop()
 
             // Pre-saved before broadcasting so the record survives the app dying between the
@@ -298,6 +330,7 @@ class PrivateSendConfirmViewModel(
         toAsset = null,
         depositAddress = order.depositAddress,
         status = SwapStatus.Depositing.name,
+        operation = SwapOperation.PrivateSend.name,
         estimatedTime = order.estimatedTime,
     )
 
@@ -309,6 +342,7 @@ class PrivateSendConfirmViewModel(
         is SendTransactionResult.Tron -> result.txHash
         is SendTransactionResult.Thorchain -> result.txHash
         is SendTransactionResult.Stellar -> result.txHash
+        is SendTransactionResult.Xrp -> result.txHash
         else -> null
     }
 

@@ -27,13 +27,12 @@ import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.send.ConfirmationBottomSection
 import io.horizontalsystems.walletkit.modules.send.ConfirmationTopSection
 import io.horizontalsystems.walletkit.modules.send.SendResult
-import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldFeeTemplate
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.TextWarningVersion2
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
 import kotlinx.coroutines.delay
 import kotlin.reflect.KClass
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 
 @Composable
 fun ZcashMigrationScreen(
@@ -113,22 +112,6 @@ fun ZcashMigrationScreen(
                 feeCoinRate = uiState.coinRate,
                 navigation = navigation,
                 memo = null,
-                // The fee only exists once proposeIronwoodMigration() resolves, and
-                // ConfirmationBottomSection renders no fee row for a null fee — render the same
-                // cell with "n/a" in its place, so only the value changes when the fee lands.
-                additionalFields = if (uiState.fee == null) {
-                    {
-                        DataFieldFeeTemplate(
-                            navigation = navigation,
-                            primary = stringResource(R.string.NotAvailable),
-                            secondary = null,
-                            title = stringResource(R.string.FeeSettings_NetworkFee),
-                            infoText = stringResource(R.string.FeeSettings_NetworkFee_Info)
-                        )
-                    }
-                } else {
-                    null
-                }
             )
 
             VSpacer(16.dp)
@@ -168,7 +151,7 @@ fun MigrateButton(
 
     when (sendResult) {
         SendResult.Sending -> {
-            ButtonPrimaryYellow(
+            HSButton(
                 modifier = modifier,
                 title = stringResource(R.string.Send_Sending),
                 onClick = { },
@@ -177,7 +160,7 @@ fun MigrateButton(
         }
 
         is SendResult.Sent -> {
-            ButtonPrimaryYellow(
+            HSButton(
                 modifier = modifier,
                 title = stringResource(R.string.Send_Success),
                 onClick = { },
@@ -186,7 +169,7 @@ fun MigrateButton(
         }
 
         else -> {
-            ButtonPrimaryYellow(
+            HSButton(
                 modifier = modifier,
                 title = stringResource(R.string.Balance_Zcash_Migration_Migrate),
                 onClick = {

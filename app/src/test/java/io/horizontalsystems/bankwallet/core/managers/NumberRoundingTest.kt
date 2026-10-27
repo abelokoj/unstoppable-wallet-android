@@ -21,17 +21,17 @@ class NumberRoundingTest {
     }
 
     @Test
-    fun getShort_lessThen1_show4SignificantDecimals() {
-        assertShortRegular("0.123456789", "0.1234")
-        assertShortRegular("0.012345678", "0.01234")
+    fun getShort_lessThan1_keepsForkPrecision() {
+        assertShortRegular("0.123456789", "0.123456")
+        assertShortRegular("0.012345678", "0.012345")
         assertShortRegular("0.001234567", "0.001234")
-        assertShortRegular("0.000123456", "0.0001234")
+        assertShortRegular("0.000123456", "0.00012345")
         assertShortRegular("0.000012345", "0.00001234")
         assertShortRegular("0.000001234", "0.00000123")
-        assertShortRegular("0.999999999", "0.9999")
+        assertShortRegular("0.999999999", "0.999999")
 
         // noTrailingZeros
-        assertShortRegular("0.10001", "0.1")
+        assertShortRegular("0.10001", "0.10001")
     }
 
     @Test
@@ -84,37 +84,36 @@ class NumberRoundingTest {
         assertShortRegular("200.5", "200")
 
         assertShortRegular("19999.1", "19999")
-        assertShortLarge("19999.5", "20", LargeNumberName.Thousand)
+        assertShortLarge("19999.5", "20.00", LargeNumberName.Thousand)
     }
 
     @Test
-    fun getShort_largeNumber_range_show1Decimals() {
-        // 20k until 200k show 1 decimals
+    fun getShort_thousands_keepTwoDecimals() {
+        // Open Swap keeps two decimals on abbreviated values.
 
-        assertShortLarge("20000", "20", LargeNumberName.Thousand)
-        assertShortLarge("20123", "20.1", LargeNumberName.Thousand)
-        assertShortLarge("20350", "20.4", LargeNumberName.Thousand)
-        assertShortLarge("199555", "199.6", LargeNumberName.Thousand)
-        assertShortLarge("199950", "200", LargeNumberName.Thousand)
+        assertShortLarge("20000", "20.00", LargeNumberName.Thousand)
+        assertShortLarge("20123", "20.12", LargeNumberName.Thousand)
+        assertShortLarge("20350", "20.35", LargeNumberName.Thousand)
+        assertShortLarge("199555", "199.56", LargeNumberName.Thousand)
+        assertShortLarge("199950", "199.95", LargeNumberName.Thousand)
     }
 
     @Test
-    fun getShort_largeNumber_range_showNoDecimals() {
-        // 200k until 1M show 0 decimals
+    fun getShort_thousands_roundAndCarryAtMillion() {
 
-        assertShortLarge("200000", "200", LargeNumberName.Thousand)
-        assertShortLarge("998500", "999", LargeNumberName.Thousand)
-        assertShortLarge("999499", "999", LargeNumberName.Thousand)
-        assertShortLarge("999500", "1", LargeNumberName.Million)
+        assertShortLarge("200000", "200.00", LargeNumberName.Thousand)
+        assertShortLarge("998500", "998.50", LargeNumberName.Thousand)
+        assertShortLarge("999499", "999.50", LargeNumberName.Thousand)
+        assertShortLarge("999500", "1.00", LargeNumberName.Million)
     }
 
     @Test
-    fun getShort_largeNumber_range_show2Decimals() {
+    fun getShort_millions_keepTwoDecimals() {
         // 1M until 20M show 2 decimals
 
         assertShortLarge("1234567", "1.23", LargeNumberName.Million)
         assertShortLarge("19123456", "19.12", LargeNumberName.Million)
-        assertShortLarge("19995000", "20", LargeNumberName.Million)
+        assertShortLarge("19995000", "20.00", LargeNumberName.Million)
     }
 
     private fun assertLessThen(value: String, expectedValue: String, ) {
@@ -159,14 +158,14 @@ class NumberRoundingTest {
 
     @Test
     fun getFull_smallNumbers_showCorrectPrecision() {
-        // Values less than 1 - should show zero count + up to 8 significant digits
-        assertFullRegular("0.123456789", 0, 8, "0.12345678")
-        assertFullRegular("0.012345678", 0, 8, "0.01234567")
-        assertFullRegular("0.001234567", 0, 8, "0.00123456")
+        // Uncompressed sub-1 values keep six decimals; compressed ones respect the caller's cap.
+        assertFullRegular("0.123456789", 0, 8, "0.123456")
+        assertFullRegular("0.012345678", 0, 8, "0.012345")
+        assertFullRegular("0.001234567", 0, 8, "0.001234")
         assertFullRegular("0.000123456", 0, 8, "0.00012345")
         assertFullRegular("0.000012345", 0, 8, "0.00001234")
         assertFullRegular("0.000001234", 0, 8, "0.00000123")
-        assertFullRegular("0.001506812962699895", 4, 18, "0.0015068129")
+        assertFullRegular("0.001506812962699895", 4, 18, "0.001506")
 
         // Test with limited maximum digits
         assertFullRegular("0.123456789", 0, 4, "0.1234")

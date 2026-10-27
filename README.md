@@ -13,9 +13,10 @@ App name: Open Swap. Package: `money.openswap.wallet` — installs alongside the
 ### Changes
 
 - Restored the Uniswap V2, PancakeSwap V2 and QuickSwap swap providers, which upstream disabled. Tax and meme tokens overwhelmingly have liquidity in V2 pairs, not V3 pools.
-- Fixed selling fee-on-transfer (tax) tokens, which previously failed with `PancakeSwap: K` / `UniswapV2: K`. Swaps now encode the router's `...SupportingFeeOnTransferTokens` functions. Requires the matching fork of [ethereum-kit-android](https://github.com/abelokoj/ethereum-kit-android).
+- Fixed selling fee-on-transfer (tax) tokens, which previously failed with `PancakeSwap: K` / `UniswapV2: K`. Swaps encode the router's `...SupportingFeeOnTransferTokens` functions through a wallet-side compatibility adapter, using the upstream Ethereum kit pinned by this repository.
 - Enabled WalletConnect in the fdroid flavor.
 - Swap provider name shown by default.
+- Updated to upstream 0.52.2, including XRP, Arc, CrossPay, unified sending, Zcash Names and privacy/signing fixes. See [release notes](RELEASE_NOTES.md) for the user-facing changes and [changelog](CHANGELOG.md) for validation and limitations.
 
 ### Known behaviour
 

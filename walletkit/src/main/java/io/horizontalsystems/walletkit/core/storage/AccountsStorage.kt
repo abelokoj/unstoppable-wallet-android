@@ -23,6 +23,9 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
         private const val TRON_ADDRESS = "tron_address"
         private const val TON_ADDRESS = "ton_address"
         private const val STELLAR_ADDRESS = "stellar_address"
+        private const val XRP_ADDRESS = "xrp_address"
+        private const val THORCHAIN_ADDRESS = "thorchain_address"
+        private const val MAYACHAIN_ADDRESS = "mayachain_address"
         private const val BITCOIN_ADDRESS = "bitcoin_address"
         private const val HD_EXTENDED_LEY = "hd_extended_key"
         private const val MONERO_WATCH_ACCOUNT = "monero_watch_account"
@@ -59,6 +62,9 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
                             TRON_ADDRESS -> AccountType.TronAddress(record.key!!.value)
                             TON_ADDRESS -> AccountType.TonAddress(record.key!!.value)
                             STELLAR_ADDRESS -> AccountType.StellarAddress(record.key!!.value)
+                            XRP_ADDRESS -> AccountType.XrpAddress(record.key!!.value)
+                            THORCHAIN_ADDRESS -> AccountType.ThorchainAddress(record.key!!.value)
+                            MAYACHAIN_ADDRESS -> AccountType.MayachainAddress(record.key!!.value)
                             BITCOIN_ADDRESS -> AccountType.BitcoinAddress.fromSerialized(record.key!!.value)
                             HD_EXTENDED_LEY -> AccountType.HdExtendedKey(record.key!!.value)
                             MONERO_WATCH_ACCOUNT -> AccountType.MoneroWatchAccount.fromSerialized(record.key!!.value)
@@ -156,6 +162,18 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
             is AccountType.StellarAddress -> {
                 key = SecretString(account.type.address)
                 accountType = STELLAR_ADDRESS
+            }
+            is AccountType.XrpAddress -> {
+                key = SecretString(account.type.address)
+                accountType = XRP_ADDRESS
+            }
+            is AccountType.ThorchainAddress -> {
+                key = SecretString(account.type.address)
+                accountType = THORCHAIN_ADDRESS
+            }
+            is AccountType.MayachainAddress -> {
+                key = SecretString(account.type.address)
+                accountType = MAYACHAIN_ADDRESS
             }
             is AccountType.BitcoinAddress -> {
                 key = SecretString(account.type.serialized)

@@ -133,6 +133,7 @@ object CanonicalAssetId {
         BlockchainType.Solana to "SOL",
         BlockchainType.Ton to "TON",
         BlockchainType.Stellar to "XLM",
+        BlockchainType.Xrp to "XRP",
         BlockchainType.Thorchain to "THOR",
     )
 
@@ -161,6 +162,7 @@ object CanonicalAssetId {
         BlockchainType.Solana to "SOL",
         BlockchainType.Ton to "TON",
         BlockchainType.Stellar to "XLM",
+        BlockchainType.Xrp to "XRP",
         BlockchainType.Thorchain to "RUNE",
     )
 
@@ -195,6 +197,8 @@ object CanonicalAssetId {
             // id as THORChain — which is where the asset actually lives.
             is TokenType.ThorchainAsset -> type.denom.uppercase()
 
+            // No swap provider lists XRPL issued tokens yet.
+            is TokenType.XrpAsset,
             is TokenType.ZanoAsset,
             is TokenType.Unsupported,
                 -> null

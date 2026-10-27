@@ -2,23 +2,25 @@ package io.horizontalsystems.walletkit.modules.multiswap
 
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import io.horizontalsystems.walletkit.modules.multiswap.providers.MAYA_PROVIDER_ID
+import io.horizontalsystems.marketkit.models.BlockchainType
+import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.BackgroundManager
 import io.horizontalsystems.walletkit.core.BackgroundManagerState
 import io.horizontalsystems.walletkit.core.ViewModelUiState
+import io.horizontalsystems.walletkit.core.WatchAccountException
 import io.horizontalsystems.walletkit.core.badge
 import io.horizontalsystems.walletkit.core.ethereum.CautionViewItem
 import io.horizontalsystems.walletkit.core.managers.CurrencyManager
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.core.stats.StatPage
 import io.horizontalsystems.walletkit.core.stats.stat
-import io.horizontalsystems.walletkit.core.toHexString
 import io.horizontalsystems.walletkit.entities.Address
 import io.horizontalsystems.walletkit.entities.Currency
 import io.horizontalsystems.walletkit.entities.SwapRecord
 import io.horizontalsystems.walletkit.modules.multiswap.history.SwapStatus
 import io.horizontalsystems.walletkit.modules.multiswap.providers.IMultiSwapProvider
+import io.horizontalsystems.walletkit.modules.multiswap.providers.MAYA_PROVIDER_ID
 import io.horizontalsystems.walletkit.modules.multiswap.providers.RetryableSwapError
 import io.horizontalsystems.walletkit.modules.multiswap.providers.SwapHelper
 import io.horizontalsystems.walletkit.modules.multiswap.providers.SwapProviderType
@@ -27,9 +29,9 @@ import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTran
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionServiceFactory
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionSettings
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataField
+import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldDepositAddress
+import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldDepositMemo
 import io.horizontalsystems.walletkit.modules.send.SendModule
-import io.horizontalsystems.marketkit.models.BlockchainType
-import io.horizontalsystems.marketkit.models.Token
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -99,6 +101,10 @@ class SwapConfirmViewModel(
     private var toAsset: String? = null
     private var depositAddress: String? = null
     private var fetchFinalQuoteJob: Job? = null
+
+    // The account this confirmation was opened for. The send service is built from it and
+    // keeps it, so everything below must agree with it rather than with whatever is active.
+    private val confirmingAccountId = App.accountManager.activeAccount?.id
 
     init {
         fiatServiceIn.setCurrency(currency)
@@ -255,6 +261,10 @@ class SwapConfirmViewModel(
 
     override fun onCleared() {
         timerService.stop()
+        fiatServiceIn.clear()
+        fiatServiceOut.clear()
+        fiatServiceOutMin.clear()
+        sendTransactionService.clear()
     }
 
     fun refresh(silent: Boolean = false) {
@@ -279,6 +289,10 @@ class SwapConfirmViewModel(
             try {
                 error = null
 
+                if (App.accountManager.activeAccount?.isWatchAccount != false) {
+                    throw WatchAccountException()
+                }
+
                 val finalQuote = swapProvider.fetchFinalQuote(
                     tokenIn,
                     tokenOut,
@@ -295,12 +309,18 @@ class SwapConfirmViewModel(
                 amountOut = finalQuote.amountOut
                 amountOutMin = finalQuote.amountOutMin
                 estimatedTime = finalQuote.estimatedTime
-                quoteFields = finalQuote.fields
                 slippage = finalQuote.slippage
                 providerSwapId = finalQuote.providerSwapId
                 fromAsset = finalQuote.fromAsset
                 toAsset = finalQuote.toAsset
                 depositAddress = finalQuote.depositAddress
+                // The deposit target comes from the provider's server and is what the signed
+                // transaction actually pays; it must be on screen next to the recipient so a
+                // compromised or spoofed provider response cannot redirect funds unseen.
+                quoteFields = finalQuote.fields + listOfNotNull(
+                    finalQuote.depositAddress?.let { DataFieldDepositAddress(it) },
+                    finalQuote.depositMemo?.let { DataFieldDepositMemo(it) },
+                )
                 emitState()
 
                 fiatServiceOut.setAmount(amountOut)
@@ -328,6 +348,17 @@ class SwapConfirmViewModel(
 
         stat(page = StatPage.SwapConfirmation, event = StatEvent.Send)
 
+        // The send service was built with the account that was active when the quote was
+        // prepared and holds on to it, so it would still sign after a switch — to a watch
+        // account, or to another signing one whose wallet this swap was never meant to spend.
+        val activeAccount = App.accountManager.activeAccount
+        if (activeAccount == null ||
+            activeAccount.isWatchAccount ||
+            activeAccount.id != confirmingAccountId
+        ) {
+            throw WatchAccountException()
+        }
+
         val result = sendTransactionService.sendTransaction(swapDefenseState.mevProtectionEnabled)
         saveSwapRecord(result)
 
@@ -351,11 +382,12 @@ class SwapConfirmViewModel(
             is SendTransactionResult.Tron -> result.txHash
             is SendTransactionResult.Thorchain -> result.txHash
             is SendTransactionResult.Stellar -> result.txHash
+            is SendTransactionResult.Xrp -> result.txHash
             else -> null
         }
 
         val record = SwapRecord(
-            accountId = App.accountManager.activeAccount?.id ?: "",
+            accountId = confirmingAccountId ?: "",
             timestamp = System.currentTimeMillis(),
             providerId = swapProvider.id,
             providerName = swapProvider.title,

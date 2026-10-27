@@ -1,9 +1,12 @@
 package io.horizontalsystems.walletkit.chain.stellar
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.ISendStellarAdapter
+import io.horizontalsystems.walletkit.core.chain.SendChainSettings
+import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
+import java.math.BigDecimal
 import io.horizontalsystems.walletkit.core.IAdapter
 import io.horizontalsystems.walletkit.core.ITransactionsAdapter
 import io.horizontalsystems.walletkit.core.adapters.StellarAdapter
@@ -11,7 +14,6 @@ import io.horizontalsystems.walletkit.core.adapters.StellarAssetAdapter
 import io.horizontalsystems.walletkit.core.adapters.StellarTransactionsAdapter
 import io.horizontalsystems.walletkit.core.chain.ChainKeyRow
 import io.horizontalsystems.walletkit.core.chain.ChainPlugin
-import io.horizontalsystems.walletkit.core.chain.ChainSendScreenArgs
 import io.horizontalsystems.walletkit.core.factories.StellarTransactionConverter
 import io.horizontalsystems.walletkit.core.managers.RestoreSettings
 import io.horizontalsystems.walletkit.core.managers.StellarAccountManager
@@ -31,23 +33,47 @@ import io.horizontalsystems.walletkit.modules.address.AddressHandlerStellar
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.receive.ReceiveScreen
-import io.horizontalsystems.walletkit.modules.receive.ReceiveStellarAssetScreen
+import io.horizontalsystems.walletkit.modules.receive.ReceiveActivatableTokenScreen
+import io.horizontalsystems.walletkit.core.TokenActivationInfo
 import io.horizontalsystems.walletkit.modules.send.address.EnterAddressValidator
 import io.horizontalsystems.walletkit.modules.send.address.StellarAddressValidator
-import io.horizontalsystems.walletkit.modules.send.stellar.SendStellarModule
-import io.horizontalsystems.walletkit.modules.send.stellar.SendStellarScreen
-import io.horizontalsystems.walletkit.modules.send.stellar.SendStellarViewModel
 import io.horizontalsystems.walletkit.modules.transactions.TransactionSource
 import io.horizontalsystems.walletkit.modules.walletconnect.handler.IWCHandler
 import io.horizontalsystems.walletkit.modules.walletconnect.stellar.WCHandlerStellar
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.core.chain.SendMemoSupport
+import io.horizontalsystems.walletkit.modules.memo.MemoVisibility
 import io.horizontalsystems.marketkit.models.TokenQuery
 import io.horizontalsystems.marketkit.models.TokenType
 import io.horizontalsystems.stellarkit.StellarKit
 import kotlin.reflect.KClass
 
 class StellarChainPlugin : ChainPlugin {
+
+    // Native XLM: the reserve-aware balance net of the flat network fee, which is what a
+    // whole-balance payment can carry. Assets pay their fee in XLM and keep their own figure.
+    override fun sendAvailableBalance(token: Token, settings: SendChainSettings?): BigDecimal? =
+        if (token.type == TokenType.Native) {
+            App.adapterManager.getAdapterForToken<ISendStellarAdapter>(token)?.maxSendableBalance
+                ?.coerceAtLeast(BigDecimal.ZERO)
+        } else {
+            null
+        }
+
+    override fun sendTransactionData(
+        token: Token,
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        extraInput: String?,
+        settings: SendChainSettings?,
+    ) = SendTransactionData.Stellar.Regular(address, memo.orEmpty(), amount)
+
+    // A Stellar text memo holds at most 28 bytes; the SDK rejects a longer one when the
+    // transaction is built.
+    override suspend fun sendMemoSupport(token: Token, address: String?) =
+        SendMemoSupport(maxBytes = 28, visibility = MemoVisibility.Public)
 
     override val blockchainType: BlockchainType = BlockchainType.Stellar
 
@@ -146,27 +172,21 @@ class StellarChainPlugin : ChainPlugin {
 
     override val hasReceiveScreen: Boolean get() = true
 
+    private val stellarActivationInfo = TokenActivationInfo(
+        dialogDescriptionRes = R.string.ActivationRequired_DialogDescription,
+        insufficientBalanceDescriptionRes = R.string.Activate_InsufficientBalance_Description,
+    )
+
+    override fun tokenActivationInfo(wallet: Wallet): TokenActivationInfo? =
+        if (wallet.token.type is TokenType.Asset) stellarActivationInfo else null
+
     @Composable
     override fun ReceiveScreen(navigation: HSNavigation, wallet: Wallet, receiveEntryPointDestId: KClass<out HSPage>?) {
         if (wallet.token.type is TokenType.Asset) {
-            ReceiveStellarAssetScreen(navigation, wallet, receiveEntryPointDestId)
+            ReceiveActivatableTokenScreen(navigation, wallet, receiveEntryPointDestId, stellarActivationInfo)
         } else {
             ReceiveScreen(navigation, wallet, receiveEntryPointDestId, false)
         }
     }
 
-    @Composable
-    override fun SendScreen(args: ChainSendScreenArgs) {
-        val factory = SendStellarModule.Factory(args.wallet, args.address, args.hideAddress)
-        val sendStellarViewModel = viewModel<SendStellarViewModel>(factory = factory)
-        SendStellarScreen(
-            args.title,
-            args.navigation,
-            sendStellarViewModel,
-            args.amountInputModeViewModel,
-            args.sendEntryPointDestId,
-            args.amount,
-            riskyAddress = args.riskyAddress,
-        )
-    }
 }

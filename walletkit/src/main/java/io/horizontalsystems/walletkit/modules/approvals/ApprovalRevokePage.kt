@@ -27,7 +27,7 @@ import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTran
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldFeeTemplate
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
 import io.horizontalsystems.walletkit.uiv3.components.info.TextBlock
@@ -52,7 +52,7 @@ data class ApprovalRevokePage(val accountId: String, val blockchainType: Blockch
             onClickBack = navigation::removeLastOrNull,
             onClickFeeSettings = { navigation.slideFromRight(ApprovalRevokeFeePage(this)) },
             buttonsSlot = {
-                ButtonPrimaryYellow(
+                HSButton(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(if (model.submitted) R.string.ApprovalAccess_SubmittedButton else R.string.Swap_Revoke),
                     enabled = model.ready && !model.submitting && !model.submitted && model.feeState?.sendable == true,

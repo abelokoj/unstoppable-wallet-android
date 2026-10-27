@@ -1,6 +1,8 @@
 package io.horizontalsystems.walletkit.modules.multiswap.sendtransaction
 
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
+import io.horizontalsystems.bitcoincore.core.IPluginData
+import io.horizontalsystems.walletkit.core.MoneroUnspentOutput
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.walletkit.entities.TransactionDataSortMode
 import org.json.JSONObject
@@ -25,6 +27,7 @@ sealed class SendTransactionData {
         val unspentOutputs: List<UnspentOutputInfo>? = null,
         val transactionSorting: TransactionDataSortMode? = null,
         val rbfEnabled: Boolean = false,
+        val pluginData: Map<Byte, IPluginData>? = null,
     ) : SendTransactionData()
 
     sealed class Tron : SendTransactionData() {
@@ -100,10 +103,23 @@ sealed class SendTransactionData {
         ) : Thorchain()
     }
 
+    /**
+     * An XRP Payment. The counterparty's crediting identifier rides in [destinationTag] — a
+     * separate 32-bit unsigned field of the transaction — not in a memo, which is why this
+     * shape carries a tag and no memo string.
+     */
+    data class Xrp(
+        val address: String,
+        val amount: BigDecimal,
+        val destinationTag: Long?,
+    ) : SendTransactionData()
+
     data class Monero(
         val address: String,
         val amount: BigDecimal,
         val memo: String?,
+        /** The outputs to spend, or null for the wallet's own selection. */
+        val selectedOutputs: List<MoneroUnspentOutput>? = null,
     ) : SendTransactionData()
 
     data class Zano(

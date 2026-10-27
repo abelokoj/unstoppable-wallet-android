@@ -28,7 +28,6 @@ import io.horizontalsystems.walletkit.core.stats.StatSection
 import io.horizontalsystems.walletkit.core.stats.stat
 import io.horizontalsystems.walletkit.entities.transactionrecords.bitcoin.BitcoinOutgoingTransactionRecord
 import io.horizontalsystems.walletkit.helpers.HudHelper
-import io.horizontalsystems.walletkit.modules.amount.AmountInputType
 import io.horizontalsystems.walletkit.modules.confirm.ErrorSheet
 import io.horizontalsystems.walletkit.modules.evmfee.EvmSettingsInput
 import io.horizontalsystems.walletkit.modules.fee.HSFee
@@ -37,11 +36,9 @@ import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.send.ConfirmAmountCell
 import io.horizontalsystems.walletkit.modules.send.SendResult
-import io.horizontalsystems.walletkit.modules.send.bitcoin.advanced.FeeRateCaution
 import io.horizontalsystems.walletkit.modules.transactionInfo.TransactionInfoPage
 import io.horizontalsystems.walletkit.modules.transactionInfo.TransactionInfoViewModel
 import io.horizontalsystems.walletkit.modules.transactionInfo.options.SpeedUpCancelType
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.CellUniversalLawrenceSection
 import io.horizontalsystems.walletkit.ui.compose.components.SectionTitleCell
 import io.horizontalsystems.walletkit.ui.compose.components.TitleAndValueCell
@@ -51,6 +48,8 @@ import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
+import io.horizontalsystems.walletkit.modules.send.bitcoin.advanced.FeeRateCaution
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 
 @Serializable
 data class ResendBitcoinPage(val input: Input) : HSPage() {
@@ -210,7 +209,6 @@ data class ResendBitcoinPage(val input: Input) : HSPage() {
                         coinCode = uiState.feeCoin.code,
                         coinDecimal = uiState.coinMaxAllowedDecimals,
                         fee = uiState.fee,
-                        amountInputType = AmountInputType.COIN,
                         rate = uiState.coinRate,
                         navigation = navigation
                     )
@@ -266,7 +264,7 @@ data class ResendBitcoinPage(val input: Input) : HSPage() {
     ) {
         when (sendResult) {
             SendResult.Sending -> {
-                ButtonPrimaryYellow(
+                HSButton(
                     modifier = modifier,
                     title = stringResource(R.string.Send_Sending),
                     onClick = { },
@@ -275,7 +273,7 @@ data class ResendBitcoinPage(val input: Input) : HSPage() {
             }
 
             is SendResult.Sent -> {
-                ButtonPrimaryYellow(
+                HSButton(
                     modifier = modifier,
                     title = stringResource(R.string.Send_Success),
                     onClick = { },
@@ -284,7 +282,7 @@ data class ResendBitcoinPage(val input: Input) : HSPage() {
             }
 
             else -> {
-                ButtonPrimaryYellow(
+                HSButton(
                     modifier = modifier,
                     title = stringResource(titleResId),
                     onClick = onClickSend,

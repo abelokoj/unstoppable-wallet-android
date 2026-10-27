@@ -71,7 +71,7 @@ abstract class BaseUniswapProvider : IMultiSwapProvider {
             sendTransactionSettings.receiveAddress,
             bestTrade.chain,
             bestTrade.tradeData
-        )
+        ).let { FeeOnTransferCompatibility.transactionData(it, bestTrade.tradeData) }
 
         val amountOut = bestTrade.tradeData.amountOut!!
         val amountOutMin = amountOut - amountOut / BigDecimal(100) * slippage

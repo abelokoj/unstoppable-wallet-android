@@ -1,7 +1,10 @@
 package io.horizontalsystems.walletkit.modules.multiswap.sendtransaction
 
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.ISendStellarAdapter
+import io.horizontalsystems.walletkit.core.ethereum.CautionViewItem
 import io.horizontalsystems.walletkit.entities.CoinValue
+import io.horizontalsystems.walletkit.modules.send.SendErrorMinimumSendAmount
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.stellar.IStellarSender
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.stellar.StellarSenderRegular
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.stellar.StellarSenderTransactionEnvelope
@@ -10,8 +13,12 @@ import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.marketkit.models.TokenQuery
 import io.horizontalsystems.marketkit.models.TokenType
 import io.horizontalsystems.stellarkit.StellarKit
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import java.math.BigDecimal
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 
 class SendTransactionServiceStellar(
     private val stellarKit: StellarKit,
@@ -22,6 +29,12 @@ class SendTransactionServiceStellar(
     private val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Stellar, TokenType.Native)) ?: throw IllegalArgumentException()
 
     private var stellarSendHandler: IStellarSender? = null
+
+    // A destination not yet on the ledger is created by the payment, which the network
+    // accepts only from the base reserve upwards; below that the send would fail on
+    // broadcast, so it is refused here.
+    private var minimumAmountCaution: CautionViewItem? = null
+    private var checkingMinimum = false
 
     override fun start(coroutineScope: CoroutineScope) = Unit
 
@@ -44,6 +57,32 @@ class SendTransactionServiceStellar(
             }
         }
 
+        if (data is SendTransactionData.Stellar.Regular) {
+            checkingMinimum = true
+            minimumAmountCaution = null
+            emitState()
+
+            minimumAmountCaution = try {
+                // Horizon lookup, blocking.
+                val minimum = withContext(Dispatchers.IO) {
+                    App.adapterManager.getAdapterForToken<ISendStellarAdapter>(token)
+                        ?.getMinimumSendAmount(data.address)
+                }
+                if (minimum != null && data.amount < minimum) {
+                    SendErrorMinimumSendAmount(minimum, token.coin.code).toCautionViewItem()
+                } else {
+                    null
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                // Without knowing whether the destination exists the payment may fail on
+                // broadcast; surface the lookup failure rather than guess.
+                CautionViewItem.fromThrowable(e)
+            }
+            checkingMinimum = false
+        }
+
         emitState()
     }
 
@@ -53,14 +92,24 @@ class SendTransactionServiceStellar(
         return SendTransactionResult.Stellar(txHash)
     }
 
+    // The send screen already offers the balance net of the fee for XLM, so the maximum is
+    // that figure itself; subtracting the fee again would leave one fee behind.
+    override fun maxSendableAmount(): BigDecimal? =
+        if (token.type == TokenType.Native) {
+            App.adapterManager.getAdapterForToken<ISendStellarAdapter>(token)?.maxSendableBalance
+                ?.coerceAtLeast(BigDecimal.ZERO)
+        } else {
+            null
+        }
+
     override fun createState() = SendTransactionServiceState(
         uuid = uuid,
         networkFee = stellarSendHandler?.getFee()?.let {
             getAmountData(CoinValue(feeToken, it))
         },
-        cautions = listOf(),
-        sendable = stellarSendHandler != null,
-        loading = stellarSendHandler == null,
+        cautions = listOfNotNull(minimumAmountCaution),
+        sendable = stellarSendHandler != null && !checkingMinimum && minimumAmountCaution == null,
+        loading = stellarSendHandler == null || checkingMinimum,
         fields = listOf(),
     )
 }

@@ -1,15 +1,15 @@
 package io.horizontalsystems.walletkit.chain.thorchain
 
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.chain.SendChainSettings
+import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
+import java.math.BigDecimal
 import io.horizontalsystems.walletkit.core.IAdapter
 import io.horizontalsystems.walletkit.core.ITransactionsAdapter
 import io.horizontalsystems.walletkit.core.adapters.ThorchainAdapter
 import io.horizontalsystems.walletkit.core.adapters.ThorchainTransactionConverter
 import io.horizontalsystems.walletkit.core.adapters.ThorchainTransactionsAdapter
-import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.core.chain.ChainPlugin
-import io.horizontalsystems.walletkit.core.chain.ChainSendScreenArgs
 import io.horizontalsystems.walletkit.core.managers.RestoreSettings
 import io.horizontalsystems.walletkit.core.managers.ThorchainAccountManager
 import io.horizontalsystems.walletkit.core.managers.ThorchainKitManager
@@ -24,18 +24,29 @@ import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.Abstract
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionServiceThorchain
 import io.horizontalsystems.walletkit.modules.send.address.EnterAddressValidator
 import io.horizontalsystems.walletkit.modules.send.address.ThorchainAddressValidator
-import io.horizontalsystems.walletkit.modules.send.thorchain.SendThorchainModule
-import io.horizontalsystems.walletkit.modules.send.thorchain.SendThorchainScreen
-import io.horizontalsystems.walletkit.modules.send.thorchain.SendThorchainViewModel
 import io.horizontalsystems.walletkit.modules.transactions.TransactionSource
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.core.chain.SendMemoSupport
+import io.horizontalsystems.walletkit.modules.memo.MemoVisibility
 import io.horizontalsystems.marketkit.models.TokenQuery
 import io.horizontalsystems.marketkit.models.TokenType
 import io.horizontalsystems.thorchainkit.network.Network
 import kotlinx.coroutines.flow.Flow
 
 class MayachainChainPlugin : ChainPlugin {
+
+    override fun sendTransactionData(
+        token: Token,
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        extraInput: String?,
+        settings: SendChainSettings?,
+    ) = SendTransactionData.Thorchain.Send(address, amount, memo.orEmpty())
+
+    override suspend fun sendMemoSupport(token: Token, address: String?) =
+        SendMemoSupport(maxBytes = 250, visibility = MemoVisibility.Public)
 
     override val blockchainType: BlockchainType = BlockchainType.Mayachain
 
@@ -118,19 +129,4 @@ class MayachainChainPlugin : ChainPlugin {
 
     override fun addressValidator(token: Token): EnterAddressValidator = ThorchainAddressValidator(token)
 
-    @Composable
-    override fun SendScreen(args: ChainSendScreenArgs) {
-        val factory = SendThorchainModule.Factory(args.wallet, args.address, args.hideAddress, args.memo)
-        val sendThorchainViewModel = viewModel<SendThorchainViewModel>(factory = factory)
-        SendThorchainScreen(
-            args.title,
-            args.navigation,
-            sendThorchainViewModel,
-            args.amountInputModeViewModel,
-            args.sendEntryPointDestId,
-            args.amount,
-            args.memo,
-            riskyAddress = args.riskyAddress,
-        )
-    }
 }

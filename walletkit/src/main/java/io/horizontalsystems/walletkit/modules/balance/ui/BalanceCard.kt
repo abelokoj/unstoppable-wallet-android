@@ -1,6 +1,5 @@
 package io.horizontalsystems.walletkit.modules.balance.ui
 
-import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -9,7 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,9 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -47,12 +43,11 @@ import io.horizontalsystems.walletkit.modules.balance.BalanceViewModel
 import io.horizontalsystems.walletkit.modules.balance.contextMenuItems
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.syncerror.SyncErrorSheet
-import io.horizontalsystems.walletkit.modules.walletconnect.list.ui.DraggableCardSimple
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
-import io.horizontalsystems.walletkit.ui.compose.components.CoinImage
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
 import io.horizontalsystems.walletkit.ui.compose.components.body_leah
-import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftLoaderCoinSyncFailed
+import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftCoinIcon
+import io.horizontalsystems.walletkit.uiv3.components.HSSwipeToReveal
 import io.horizontalsystems.walletkit.uiv3.components.controls.HSCellButton
 import io.horizontalsystems.marketkit.models.Token
 import kotlinx.coroutines.launch
@@ -70,36 +65,27 @@ fun BalanceCardSwipable(
     onDisable: () -> Unit,
 ) {
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Max)
-            .background(ComposeAppTheme.colors.tyler),
-        contentAlignment = Alignment.Center
-    ) {
-        HSCellButton(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            icon = painterResource(R.drawable.trash_24),
-            onClick = onDisable
-        )
-
-        DraggableCardSimple(
-            key = viewItem.wallet,
-            isRevealed = revealed,
-            cardOffset = 100f,
-            onReveal = { onReveal(viewItem.wallet.hashCode()) },
-            onConceal = onConceal,
-            content = {
-                BalanceCard(
-                    onClick = onClick,
-                    onClickSyncError = onClickSyncError,
-                    viewItem = viewItem,
-                    balanceHidden = balanceHidden,
-                    onContextMenuItemClick = onContextMenuItemClick
-                )
-            }
-        )
-    }
+    HSSwipeToReveal(
+        modifier = Modifier.background(ComposeAppTheme.colors.tyler),
+        revealed = revealed,
+        onReveal = { onReveal(viewItem.wallet.hashCode()) },
+        onConceal = onConceal,
+        actions = {
+            HSCellButton(
+                icon = painterResource(R.drawable.trash_24),
+                onClick = onDisable
+            )
+        },
+        content = {
+            BalanceCard(
+                onClick = onClick,
+                onClickSyncError = onClickSyncError,
+                viewItem = viewItem,
+                balanceHidden = balanceHidden,
+                onContextMenuItemClick = onContextMenuItemClick
+            )
+        }
+    )
 }
 
 @Composable
@@ -243,16 +229,12 @@ fun IconCell(
     iconAlpha: Float,
     onClickSyncError: (() -> Unit)?
 ) {
-    if (failedIconVisible) {
-        CellLeftLoaderCoinSyncFailed(onClickSyncError)
-    } else {
-        CoinImage(
-            token = token,
-            modifier = Modifier
-                .size(IconSizes.Token)
-                .alpha(iconAlpha),
-        )
-    }
+    CellLeftCoinIcon(
+        token = token,
+        syncFailed = failedIconVisible,
+        iconAlpha = iconAlpha,
+        onClickSyncError = onClickSyncError,
+    )
 }
 
 fun onSyncErrorClicked(viewItem: BalanceViewItem2, viewModel: BalanceViewModel, navigation: HSNavigation, view: View) {

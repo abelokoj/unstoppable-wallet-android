@@ -25,7 +25,7 @@ class WCActionSolanaSignTransaction(
     private val paramsJsonStr: String,
     private val signer: Signer,
     private val multiple: Boolean,
-    private val peerName: String?,
+    private val walletAddress: String?,
 ) : AbstractWCAction() {
 
     private val gson = GsonBuilder().create()
@@ -123,13 +123,16 @@ class WCActionSolanaSignTransaction(
         // Falls back to nothing on parse failure. Bytes were already base64-decoded in the
         // initializer, so this can't throw on malformed base64 here.
         val summaries = rawTransactions.map { rawTransaction ->
-            WCSolanaTxSummary.summary(rawTransaction, peerName)
+            WCSolanaTxSummary.summary(rawTransaction, walletAddress)
         }
 
         // If ANY transaction in the (possibly batched) request could not be decoded to a material
-        // action, warn that the user is blind-signing before showing whatever did decode.
-        if (summaries.any { it.opaque }) {
-            sections.add(WCSolanaTxSummary.opaqueWarningSection())
+        // action, hides a transfer's recipient in a lookup table, or carries undisplayed
+        // instructions, warn before showing whatever did decode. Every distinct warning is shown,
+        // most severe first (Warning is declared in severity order), so a hidden recipient in one
+        // transaction is never masked by an unreadable sibling.
+        summaries.mapNotNull { it.warning }.distinct().sorted().forEach { warning ->
+            sections.add(WCSolanaTxSummary.warningSection(warning))
         }
 
         summaries.forEach { sections += it.sections }

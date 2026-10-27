@@ -182,6 +182,12 @@ class EnterAddressViewModel(
         emitState()
     }
 
+    // The same match the contact suggestions above the field are built from, so a picked
+    // suggestion and a typed address resolve to the same name.
+    private fun contactName(address: Address?): String? = address?.let { a ->
+        contactNameAddresses.firstOrNull { it.contactAddress.address.equals(a.hex, ignoreCase = true) }?.name
+    }
+
     override fun createState() = EnterAddressUiState(
         canBeSendToAddress = canBeSendToAddress,
         recentAddress = recentlySentAddress,
@@ -190,6 +196,7 @@ class EnterAddressViewModel(
         value = value,
         inputState = inputState,
         address = address,
+        contactName = contactName(address),
         addressValidationInProgress = addressValidationInProgress,
         addressValidationError = addressValidationError,
         checkResults = checkResults,
@@ -303,8 +310,12 @@ class EnterAddressViewModel(
             val ensHandler = AddressHandlerEns(blockchainType, EnsResolverHolder.resolver)
             val udnHandler =
                 AddressHandlerUdn(tokenQuery, coinCode, App.appConfigProvider.udnApiKey)
-            val domainHandlers = mutableListOf(ensHandler, udnHandler)
+            // Chain-specific name services go first: they reject foreign input without a network
+            // call, whereas ENS and UDN attempt a remote lookup for any dotted name.
+            val domainHandlers = mutableListOf<IAddressHandler>()
             domainHandlers.addAll(ChainRegistry[blockchainType]?.domainAddressHandlers().orEmpty())
+            domainHandlers.add(ensHandler)
+            domainHandlers.add(udnHandler)
             val addressParserChain = AddressParserChain(domainHandlers = domainHandlers)
             val addressUriParser = AddressUriParser(token.blockchainType, token.type)
             val recentAddressManager =
@@ -344,6 +355,8 @@ data class EnterAddressUiState(
     val value: String,
     val inputState: DataState<Address>?,
     val address: Address?,
+    /** Name of the contact [address] belongs to, if any. */
+    val contactName: String?,
     val addressValidationInProgress: Boolean,
     val addressValidationError: Throwable?,
     val checkResults: Map<AddressCheckType, AddressCheckData>,

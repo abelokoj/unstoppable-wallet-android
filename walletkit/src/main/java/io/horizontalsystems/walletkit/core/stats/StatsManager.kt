@@ -277,6 +277,18 @@ val AccountType.statAccountType: String
             "stellar_address"
         }
 
+        is AccountType.XrpAddress -> {
+            "xrp_address"
+        }
+
+        is AccountType.ThorchainAddress -> {
+            "thorchain_address"
+        }
+
+        is AccountType.MayachainAddress -> {
+            "mayachain_address"
+        }
+
         is AccountType.TronAddress -> {
             "tron_address"
         }

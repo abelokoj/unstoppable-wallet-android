@@ -7,6 +7,7 @@ import io.horizontalsystems.walletkit.core.BackgroundManagerState
 import io.horizontalsystems.walletkit.core.UnsupportedAccountException
 import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.entities.AccountType
+import io.horizontalsystems.walletkit.modules.multiswap.providers.FeeOnTransferCompatibility
 import io.horizontalsystems.erc20kit.core.Erc20Kit
 import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.horizontalsystems.ethereumkit.core.TransactionBuilder
@@ -161,6 +162,7 @@ class EvmKitManager(
             Erc20Kit.addDecorators(evmKit)
 
             UniswapKit.addDecorators(evmKit)
+            evmKit.addMethodDecorator(FeeOnTransferCompatibility)
             try {
                 UniswapV3Kit.addDecorators(evmKit)
             } catch (e: UnsupportedChainError.NoWethAddress) {
@@ -322,6 +324,7 @@ object EvmKitManagerRegistry {
         BlockchainType.Base -> Chain.Base
         BlockchainType.ZkSync -> Chain.ZkSync
         BlockchainType.RobinhoodChain -> Chain.RobinhoodChain
+        BlockchainType.Arc -> Chain.Arc
         BlockchainType.ArbitrumOne -> Chain.ArbitrumOne
         BlockchainType.Gnosis -> Chain.Gnosis
         BlockchainType.Fantom -> Chain.Fantom

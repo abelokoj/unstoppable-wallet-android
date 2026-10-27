@@ -36,7 +36,6 @@ import io.horizontalsystems.walletkit.modules.send.address.AddressValidationErro
 import io.horizontalsystems.walletkit.modules.settings.security.securesend.SecureSendConfigSheet
 import io.horizontalsystems.walletkit.modules.usersubscription.BuySubscriptionHavHostPage
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
-import io.horizontalsystems.walletkit.ui.compose.components.ButtonPrimaryYellow
 import io.horizontalsystems.walletkit.ui.compose.components.FormsInputAddress
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
@@ -55,6 +54,7 @@ import io.horizontalsystems.walletkit.uiv3.components.cell.CellRightInfo
 import io.horizontalsystems.walletkit.uiv3.components.cell.hs
 import io.horizontalsystems.walletkit.uiv3.components.section.SectionHeader
 import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 
 @Composable
 fun EnterAddressScreen(
@@ -69,7 +69,8 @@ fun EnterAddressScreen(
     buttonTitleEmpty: String? = null,
     allowOwnAddress: Boolean = false,
     zcashTransparentOnly: Boolean = false,
-    onResult: (address: Address?, risky: Boolean) -> Unit
+    backIcon: Int? = null,
+    onResult: (address: Address?, risky: Boolean, contactName: String?) -> Unit
 ) {
     val viewModel = viewModel<EnterAddressViewModel>(
         factory = EnterAddressViewModel.Factory(
@@ -89,6 +90,7 @@ fun EnterAddressScreen(
     HSScaffold(
         title = title,
         onBack = navigation::removeLastOrNull,
+        backIcon = backIcon
     ) {
         Column(
             modifier = Modifier.windowInsetsPadding(WindowInsets.ime)
@@ -141,7 +143,7 @@ fun EnterAddressScreen(
                 VSpacer(32.dp)
             }
             ButtonsGroupWithShade {
-                ButtonPrimaryYellow(
+                HSButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp),
@@ -153,7 +155,7 @@ fun EnterAddressScreen(
                         else -> buttonTitle
                     },
                     onClick = {
-                        onResult.invoke(uiState.address, uiState.risky)
+                        onResult.invoke(uiState.address, uiState.risky, uiState.contactName)
                     },
                     enabled = uiState.canBeSendToAddress
                 )

@@ -14,6 +14,7 @@ import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.entities.CoinValue
 import io.horizontalsystems.walletkit.modules.amount.AmountValidator
 import io.horizontalsystems.walletkit.modules.amount.SendAmountService
+import io.horizontalsystems.walletkit.modules.multiswap.ui.DataField
 import io.horizontalsystems.walletkit.modules.send.SendModule
 import io.horizontalsystems.walletkit.modules.send.tron.SendTronAddressService
 import io.horizontalsystems.walletkit.modules.send.tron.SendTronFeeService
@@ -54,6 +55,7 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
     private var feeState = feeService.stateFlow.value
 
     private var networkFee: SendModule.AmountData? = null
+    private var fields: List<DataField> = listOf()
     private var cautions: List<CautionViewItem> = listOf()
     private var sendTransactionData: SendTransactionData.Tron? = null
     private var loading = true
@@ -88,8 +90,25 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
             getAmountData(CoinValue(nativeToken, it))
         }
 
+        fields = listOfNotNull(
+            feeState.resourcesConsumed?.let { DataFieldTronResources(it) },
+            feeState.activationFee?.let { DataFieldTronActivationFee(getAmountData(CoinValue(nativeToken, it))) },
+        )
+
+        val fee = feeState.fee
+        val trxAmount = nativeTokenAmount ?: BigDecimal.ZERO
+
         cautions = buildList {
-            val total = (nativeTokenAmount ?: BigDecimal.ZERO) + (feeState.fee ?: BigDecimal.ZERO)
+            val total = trxAmount + (fee ?: BigDecimal.ZERO)
+            feeState.error?.let { error ->
+                add(
+                    HSCaution(
+                        s = TranslatableString.ResString(R.string.FeeSettings_Error_FeeEstimateFailed),
+                        type = Type.Error,
+                        description = TranslatableString.PlainString(error.message ?: error.javaClass.simpleName),
+                    ).toCautionViewItem()
+                )
+            }
             if (adapter.trxBalanceData.available < total) {
                 add(
                     HSCaution(
@@ -100,6 +119,17 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
                                 R.string.EthereumTransaction_Error_InsufficientBalanceForFee,
                                 nativeToken.coinCodeWithNetwork
                             )
+                        )
+                    ).toCautionViewItem()
+                )
+            } else if (token.type.isNative && sendTransactionData is SendTransactionData.Tron.Simple && trxAmount <= BigDecimal.ZERO) {
+                // The network rejects a zero-value TRX transfer.
+                add(
+                    HSCaution(
+                        s = TranslatableString.PlainString(Translator.getString(R.string.Error)),
+                        type = Type.Error,
+                        description = TranslatableString.PlainString(
+                            Translator.getString(R.string.Tron_ZeroAmountTrxNotAllowed, token.coin.code)
                         )
                     ).toCautionViewItem()
                 )
@@ -126,12 +156,27 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
     }
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
-        loading = false
-
         check(data is SendTransactionData.Tron)
+
+        // Estimating hops threads, so the service's own collector can emit mid-way; until
+        // the estimate lands the state must read as loading, on resubmissions too. Published
+        // at once: an equal fee state would not re-emit it.
+        loading = true
+        emitState()
 
         sendTransactionData = data
 
+        try {
+            applySendTransactionData(data)
+        } finally {
+            // Whether the estimate ran or the transfer could not be taken, the state settles;
+            // a throw is reported by the caller.
+            loading = false
+            emitState()
+        }
+    }
+
+    private suspend fun applySendTransactionData(data: SendTransactionData.Tron) {
         when (data) {
             is SendTransactionData.Tron.Trc20Approve -> {
                 val trc20Adapter = App.adapterManager.getAdapterForToken<Trc20Adapter>(token)
@@ -150,13 +195,11 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
                 nativeTokenAmount = extractTrxSun(transaction).toBigDecimal(nativeToken.decimals)
             }
             is SendTransactionData.Tron.Simple -> {
-                nativeTokenAmount = data.amount
+                nativeTokenAmount = if (token.type.isNative) data.amount else BigDecimal.ZERO
                 feeService.setAmount(data.amount)
                 feeService.setTronAddress(TronAddress.fromBase58(data.address))
             }
         }
-
-        emitState()
     }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
@@ -179,12 +222,17 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
         uuid = uuid,
         networkFee = networkFee,
         cautions = cautions,
-        sendable = feeState.canBeSend && cautions.none {
+        // The fee service reports "nothing to estimate" as no error while the transfer is
+        // still being fed to it; a fee is what proves the estimate ran.
+        sendable = feeState.canBeSend && feeState.fee != null && cautions.none {
             it.type == CautionViewItem.Type.Error
         },
         loading = loading,
-        fields = listOf(),
+        fields = fields,
     )
+
+    // The total already includes bandwidth, energy and any activation fee.
+    override val networkFeeInfoRes = R.string.FeeInfo_TronFee_Description
 
     fun extractTrxSun(contract: Contract) = when (contract) {
         is TransferContract -> contract.amount

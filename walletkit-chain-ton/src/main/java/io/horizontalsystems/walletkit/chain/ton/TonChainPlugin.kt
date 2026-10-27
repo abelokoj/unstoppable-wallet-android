@@ -9,8 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.core.chain.SendChainSettings
+import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
+import java.math.BigDecimal
 import io.horizontalsystems.walletkit.core.IAdapter
 import io.horizontalsystems.walletkit.core.ITransactionsAdapter
 import io.horizontalsystems.walletkit.core.adapters.JettonAdapter
@@ -19,7 +21,6 @@ import io.horizontalsystems.walletkit.core.adapters.TonTransactionConverter
 import io.horizontalsystems.walletkit.core.adapters.TonTransactionsAdapter
 import io.horizontalsystems.walletkit.core.chain.ChainPlugin
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
-import io.horizontalsystems.walletkit.core.chain.ChainSendScreenArgs
 import io.horizontalsystems.walletkit.core.managers.RestoreSettings
 import io.horizontalsystems.walletkit.core.managers.TonAccountManager
 import io.horizontalsystems.walletkit.core.managers.TonConnectManager
@@ -36,15 +37,14 @@ import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.ResultEffect
 import io.horizontalsystems.walletkit.modules.send.address.EnterAddressValidator
 import io.horizontalsystems.walletkit.modules.send.address.TonAddressValidator
-import io.horizontalsystems.walletkit.modules.send.ton.SendTonModule
-import io.horizontalsystems.walletkit.modules.send.ton.SendTonScreen
-import io.horizontalsystems.walletkit.modules.send.ton.SendTonViewModel
 import io.horizontalsystems.walletkit.modules.tonconnect.TonConnectNewPage
 import io.horizontalsystems.walletkit.modules.tonconnect.TonConnectSendRequestPage
 import io.horizontalsystems.walletkit.modules.transactions.TransactionSource
 import io.horizontalsystems.marketkit.models.Blockchain
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.core.chain.SendMemoSupport
+import io.horizontalsystems.walletkit.modules.memo.MemoVisibility
 import io.horizontalsystems.marketkit.models.TokenQuery
 import io.horizontalsystems.marketkit.models.TokenType
 import kotlinx.coroutines.delay
@@ -53,6 +53,18 @@ import java.util.UUID
 class TonChainPlugin(
     private val appName: String = "unstoppable",
 ) : ChainPlugin {
+
+    override fun sendTransactionData(
+        token: Token,
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        extraInput: String?,
+        settings: SendChainSettings?,
+    ) = SendTransactionData.Ton.Regular(address, amount, memo)
+
+    override suspend fun sendMemoSupport(token: Token, address: String?) =
+        SendMemoSupport(maxBytes = 120, visibility = MemoVisibility.Public)
 
     companion object {
         val tonConnectManager: TonConnectManager
@@ -177,18 +189,4 @@ class TonChainPlugin(
         }
     }
 
-    @Composable
-    override fun SendScreen(args: ChainSendScreenArgs) {
-        val factory = SendTonModule.Factory(args.wallet, args.address, args.hideAddress)
-        val sendTonViewModel = viewModel<SendTonViewModel>(factory = factory)
-        SendTonScreen(
-            args.title,
-            args.navigation,
-            sendTonViewModel,
-            args.amountInputModeViewModel,
-            args.sendEntryPointDestId,
-            args.amount,
-            riskyAddress = args.riskyAddress,
-        )
-    }
 }

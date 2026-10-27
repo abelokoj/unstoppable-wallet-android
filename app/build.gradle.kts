@@ -25,9 +25,8 @@ android {
         applicationId = "money.openswap.wallet"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
-        versionCode = 182
-        // Open Swap fork: upstream 0.51.0 plus fork changes
-        versionName = "0.51.2"
+        versionCode = 183
+        versionName = "0.52.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         resourceConfigurations += listOf("de", "es", "en", "fa", "fr", "ko", "pt", "pt-rBR", "ru", "tr", "zh")
@@ -149,6 +148,7 @@ android {
             buildConfigFieldString("WALLET_CONNECT_V2_KEY", "8b4f41c60880a3e3ad57d82fddb30568")
             buildConfigFieldString("ALCHEMY_API_KEY", "PKgWxOMarrHgyMESGjIkJ,BOlzgqJUeGYe5E7K613Fm")
             buildConfigFieldString("SOLANA_JUPITER_API_KEY", "ec901a97-0375-45b1-8b7d-da1ea9934cb0")
+            buildConfigFieldString("TONAPI_KEY", "AF7UFKEIREGC7MIAAAAKF6ZSZASWBFTKEHR6E6JYCPDLTJSBWD6BLUFFMCS4RWECZVQ4VHQ")
             buildConfigFieldString("TRONGRID_API_KEYS", "33374494-8060-447e-8367-90c5efd4ed95")
             buildConfigFieldString("UDN_API_KEY", "r2phzgatt_zt9-hd_wyvdjrdsrimnxgokm7knyag1malzgcz")
             buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
@@ -163,8 +163,9 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
             isDebuggable = false
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             buildConfigFieldString("APP_LINKS_HOST", "unstoppable.money")
             manifestPlaceholders["appLinksHost"] = "unstoppable.money"
             buildConfigFieldString("TWITTER_BEARER_TOKEN", "AAAAAAAAAAAAAAAAAAAAAJgeNwEAAAAA6xVpR6xLKTrxIA3kkSyRA92LDpA%3Da6auybDwcymUyh2BcS6zZwicUdxGtrzJC0qvOSdRwKLeqBGhwB")
@@ -182,6 +183,7 @@ android {
             buildConfigFieldString("WALLET_CONNECT_V2_KEY", "0c5ca155c2f165a7d0c88686f2113a72")
             buildConfigFieldString("ALCHEMY_API_KEY", "BOlzgqJUeGYe5E7K613Fm,Vmt7ucAGIMEux_c43Qqqf,uCordWq3EOD800awDx1kb,1uAryzn6DOEVs5PIugeoR,PKgWxOMarrHgyMESGjIkJ")
             buildConfigFieldString("SOLANA_JUPITER_API_KEY", "ec901a97-0375-45b1-8b7d-da1ea9934cb0")
+            buildConfigFieldString("TONAPI_KEY", "AF7UFKEIREGC7MIAAAAKF6ZSZASWBFTKEHR6E6JYCPDLTJSBWD6BLUFFMCS4RWECZVQ4VHQ")
             buildConfigFieldString("TRONGRID_API_KEYS", "8f5ae2c8-8012-42a8-b0ca-ffc2741f6a29,578aa64f-a79f-4ee8-86e9-e9860e2d050a,1e92f1fc-41f8-401f-a7f6-5b719b6f1280,d1511874-1547-48df-9536-a32cc85949ac")
             buildConfigFieldString("UDN_API_KEY", "r2phzgatt_zt9-hd_wyvdjrdsrimnxgokm7knyag1malzgcz")
             buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
@@ -262,6 +264,7 @@ dependencies {
     implementation(project(":walletkit-chain-zcash"))
     implementation(project(":walletkit-chain-solana"))
     implementation(project(":walletkit-chain-stellar"))
+    implementation(project(":walletkit-chain-xrp"))
     implementation(project(":walletkit-chain-ton"))
     implementation(project(":walletkit-chain-tron"))
     implementation(project(":walletkit-chain-thorchain"))
@@ -277,6 +280,12 @@ dependencies {
     configurations.configureEach {
         exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
         exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
+    }
+
+    // Spongycastle's POM declares junit as a compile dependency. LeakCanary disables
+    // heap dumps when it finds org.junit.Test on the classpath, so keep junit out of the APK.
+    configurations.matching { it.name.endsWith("RuntimeClasspath") && !it.name.contains("Test") }.configureEach {
+        exclude(group = "junit", module = "junit")
     }
 
     // UI Tests
