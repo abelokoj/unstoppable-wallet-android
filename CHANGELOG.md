@@ -1,3 +1,10 @@
+# Release notes clarification - 2026-10-28T15:07:00-04:00
+
+- Reorganized the 0.52.3 public notes into New Features, Improvements and Fixes, and Cross-chain Preview. Explicitly identified upstream Unstoppable Wallet 0.52.2 as the integrated base and separated approval management from full-balance sending and other fixes, at the user's request.
+- Preserved all previously listed release features and material preview limits. Kept the existing v0.52.3 tag and application sources unchanged; this is a documentation-only follow-up to the published release commit feb0a4484. Earlier notes and changelog entries remain intact.
+- Validation: checked release-note section/history preservation and patch whitespace; no app rebuild or test rerun is needed for these prose-only changes. The signed GitHub APK build for the unchanged release tag was still in progress at recording time. Recording time in America/New_York, before this documentation commit and release-body update.
+
+---
 # Release preparation - 2026-10-28T14:59:06-04:00
 
 - Prepared OpenSwap 0.52.3 (184) for publication as a new release after v0.51.2, including the upstream 0.52.2 integration and all subsequent OpenSwap approval, send, swap, wallet-selection and provider-icon work. The upstream 0.53.0 investigation is complete, but none of that release is merged into this version.
