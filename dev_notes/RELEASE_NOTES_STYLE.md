@@ -21,3 +21,5 @@ Write concise bullets with a clear feature name followed by what changed for the
 For swaps, bridges, approvals and other financial features, state material fees, availability limits, trust assumptions and untested flows plainly. Do not present a route rating as a security guarantee. Include APK variants or sizes only when the release contains a meaningful choice between artifacts.
 
 Preserve previous release sections in `RELEASE_NOTES.md`. Keep public notes free of model attribution, private data and em dashes.
+
+When creating an annotated release tag from Markdown, use `git tag -a --cleanup=verbatim -F <notes-file> <tag>`. Default cleanup strips lines beginning with #, including release headings. After a release workflow publishes or reruns, compare the live body with the prepared version section and restore that body if needed without moving an existing tag.

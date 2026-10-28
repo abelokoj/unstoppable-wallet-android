@@ -1,3 +1,18 @@
+# Release 0.53.0 published - 2026-10-28T18:09:59-04:00
+
+- Published the separate GitHub release v0.53.0 from d4f63de9da963607c53bbe1d114272f6d5dd694f after the user's successful manual development review and explicit publication request. GitHub Actions run 40775692405 completed successfully and attached the signed Fdroid Release APK open-swap-v0.53.0.apk (99,896,026 bytes). Earlier releases and tags remain intact.
+- Downloaded the actual public APK and verified package money.openswap.wallet, version 0.53.0 (185), a valid signature matching the established Open Swap release certificate, the exact uploaded size and the GitHub SHA-256 digest 085026678306077a563f8ddbc083591ac5cf232655a60b5d740463d224e62523. No release APK was installed over the user's regular wallet by automation; the previously validated local Base Release APK was also provided for optional manual installation while the hosted build ran.
+- Restored the agreed Markdown release body after Git's default annotated-tag cleanup stripped its headings, then checked it exactly against the prepared notes. The release tag still points to the original release commit; no tag was moved. Added the verbatim-cleanup instruction to the developer guide so future tags preserve Markdown headings. The published notes retain the financial-testing, provider/fee, preview, Tor and iOS limits.
+- This follow-up records publication and the separately requested test-emulator cleanup. Application source remains unchanged from the tested merge, so no application test rerun is needed. The prior 596 selected tests and Base builds, user feedback and successful Fdroid Release build are the actual validation evidence; no funded transaction, recovery exercise or packet capture is claimed. Recording time in America/New_York before this documentation commit/push.
+
+---
+# Test emulator removal - 2026-10-28T18:01:46-04:00
+
+- Closed the test emulator and removed only the added OpenSwap_053_Test Pixel 5 virtual device at the user's request because it was slow. Preserved the original Pixel 10 Pro XL virtual-device definition and the shared Android system image.
+- Verified the exact AVD directory and configuration before deletion, used the Android AVD manager to remove it, confirmed the added device files are absent, and confirmed no emulator engine remains running. No app source, wallet data or APK changed; no application test rerun is needed for this host-only cleanup.
+- Recording time in America/New_York for local documentation awaiting the publication-record commit. The signed GitHub APK build continues independently.
+
+---
 # Release 0.53.0 preparation - 2026-10-28T17:52:36-04:00
 
 - The user reported that manual development testing is working and requested the APK build and GitHub publication. Prepared the separate v0.53.0 release with version 0.53.0 (185); application source is unchanged from the tested upstream merge cdba97d76. Existing releases and signing identity are preserved.
