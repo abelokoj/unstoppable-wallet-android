@@ -9,10 +9,11 @@
 - [x] Passed all 596 selected walletkit/chain/app tests, including 26 NEAR tests, and translation coverage for 1,849 strings across nine locales.
 - [x] Built Base Debug and Base Release, including shrinking/vital lint, and verified 0.53.0 (185) plus the unchanged release certificate. Prepared the changelog and reviewed commit message for the authorized source merge/push. See [merge plan](dev_notes/UPSTREAM_0_53_MERGE_PLAN.md).
 - [x] Installed/opened the development update in place on the connected test device and checked the Balances shortcut, retained swap layout, bottom percentages and an unsigned PancakeSwap Cross-chain ETH-to-BNB quote with the configured Excellent label. No approval, signature or send occurred.
-- [ ] Complete user manual testing and exercise NEAR live watch-history vectors, full backup restore, rapid wallet switching, token RPC failure/recovery and observed Tor routing on Android. The user is reviewing the development update; a separate test emulator remains open for later work.
+- [x] The user reported that manual development testing is working and authorized building/publishing the APK on 2026-10-28. No individual funded or controlled-failure vector is inferred from that general report.
+- [ ] Exercise the remaining NEAR watch-history, backup, account-switch, RPC failure/recovery and observed Tor vectors recorded in the integration documents. A separate test emulator remains open for later work.
 - [ ] Test disposable funded NEAR sends, registration/reserve boundaries, ambiguous submission, pending expiry and restart recovery. No funded transaction is authorized by the merge task.
 - [ ] Compare NEAR derivation/backup/history with iOS through an authorized paired-platform handoff. No external developer message has been sent.
-- [ ] Publish a new 0.53.0 tag and APK only when requested. Existing release tags and APKs remain unchanged.
+- [ ] Publish and verify the newly authorized v0.53.0 signed APK with the prepared release notes. Preserve existing release tags and APKs.
 ## Deferred Across integration
 
 - Across direct integration is deferred at the user's request on 2026-10-27 because Across requires a production API key and integrator ID. Upstream Unstoppable 0.52.2 provides neither a direct Across provider nor reusable Across credentials. Do not borrow another project's credentials.

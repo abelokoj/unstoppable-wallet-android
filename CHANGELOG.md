@@ -1,3 +1,11 @@
+# Release 0.53.0 preparation - 2026-10-28T17:52:36-04:00
+
+- The user reported that manual development testing is working and requested the APK build and GitHub publication. Prepared the separate v0.53.0 release with version 0.53.0 (185); application source is unchanged from the tested upstream merge cdba97d76. Existing releases and signing identity are preserved.
+- Finalized the reader-facing release notes, removed the unreleased heading and source-only homepage notice, and updated the APK verification example. Kept the material NEAR, provider, fee, bridge-preview, funded-recovery, Tor and iOS limitations explicit. General user feedback does not establish that each unrun financial or cross-platform vector passed.
+- Validation already completed for this unchanged application source: 596 selected tests, all supported translations, Base Debug and optimized Base Release passed; the development update was installed and reviewed. This batch checks documentation and delegates the distributable Fdroid Release build to the existing signed GitHub Actions workflow triggered by the new annotated tag. No new source code or funded transaction is part of publication preparation.
+- Recording time in America/New_York before the release commit/tag push and before the hosted build. Completion, attached asset and final APK verification will be recorded after they actually succeed. Unrelated installers and private development notes remain excluded.
+
+---
 # Upstream 0.53 integration - 2026-10-28T17:22:32-04:00
 
 - Integrated upstream Unstoppable Wallet 0.53.0 at `d6661c8d0dc02d259767f58b7cd73cabb877da18`, adapting the merge to preserve Open Swap's current layouts, direct providers, Relay, PancakeSwap Cross-chain, configured route ratings, bottom percentages, maximum-amount controls, fiat cursor, wallet switching, appearance, token/contact features and Revoke Access. Version metadata is 0.53.0 (185), advancing beyond 0.52.3 (184).

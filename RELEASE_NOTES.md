@@ -1,4 +1,4 @@
-# Open Swap v0.53.0 (Unreleased)
+# Open Swap v0.53.0
 
 This update brings upstream Unstoppable Wallet 0.53.0 to Open Swap while retaining its current appearance, direct swap providers and route ratings.
 
@@ -23,7 +23,7 @@ This update brings upstream Unstoppable Wallet 0.53.0 to Open Swap while retaini
 
 ## ⚠️ Notes
 
-NEAR's new device flows, funded sends, failure recovery and iOS parity have not been exercised in this integration. Discovery and network providers receive the public information needed for account lookup, balances, history and transaction submission. Tor traffic has not been independently captured.
+NEAR account and history test coverage remains limited. Funded sends, controlled failure recovery and iOS parity have not been verified. Discovery and network providers receive the public information needed for account lookup, balances, history and transaction submission. Tor traffic has not been independently captured.
 
 Provider, pool, bridge and network fees and availability limits still apply. The existing PancakeSwap Cross-chain preview and refund-testing limits remain unchanged; route ratings do not guarantee safety. Direct Across integration remains deferred.
 

@@ -8,8 +8,6 @@ Forked from [Unstoppable Wallet](https://github.com/horizontalsystems/unstoppabl
 
 ---
 
-Latest published APK: [v0.52.3](https://github.com/abelokoj/unstoppable-wallet-android/releases/tag/v0.52.3). The 0.53.0 update is currently available in source; its APK has not been published.
-
 ## 🚀 Overview
 
 Open Swap builds on Unstoppable Wallet's non-custodial multi-chain foundation while retaining Open Swap features for swapping, token discovery, wallet customization and approval management. It installs alongside the official Unstoppable Wallet under the package name `money.openswap.wallet`.
@@ -61,7 +59,7 @@ SHA-1:   5f1d0cf868588fd989ddcf05d0996c43a8cd7bd1
 Check a downloaded APK before installing it:
 
 ```text
-apksigner verify --print-certs open-swap-v0.52.3.apk
+apksigner verify --print-certs open-swap-v0.53.0.apk
 ```
 
 Do not install the file if the SHA-256 fingerprint does not match.
