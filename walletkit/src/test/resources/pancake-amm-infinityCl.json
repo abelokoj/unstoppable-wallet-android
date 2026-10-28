@@ -1,0 +1,68 @@
+{
+  "quote": {
+    "requestId": "9ab7a3dc479b86ca123ba3fb6cd9c6ec",
+    "srcToken": "0x55d398326f99059fF775485246999027B3197955",
+    "dstToken": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+    "chainId": 56,
+    "tradeType": "exactIn",
+    "inputAmount": "100000000000000000000",
+    "outputAmount": "99887002885793612223",
+    "gasUseEstimate": "117600",
+    "gasUseEstimateUsd": "4402135152738775",
+    "priceImpactBps": 0,
+    "priceImpactBpsWithoutFee": 0,
+    "aggregatorAddress": "0x2f68417A18dA681589F4eA64B9Cc9839209acfF7",
+    "swapFeeBps": "0",
+    "swapFee": "0",
+    "routes": [
+      {
+        "percent": 100,
+        "inputAmount": "100000000000000000000",
+        "outputAmount": "99887002885793612223",
+        "priceImpactBps": 0,
+        "priceImpactBpsWithoutFee": 0,
+        "path": [
+          {
+            "address": "0x55d398326f99059fF775485246999027B3197955",
+            "decimals": 18,
+            "symbol": "USDT"
+          },
+          {
+            "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+            "decimals": 18,
+            "symbol": "USDC"
+          }
+        ],
+        "pools": [
+          {
+            "address": "0x32a805e65a3219a79707ab3e75443d75160d798de46613fc960d39cd4a96bb22",
+            "type": "infinityCl",
+            "fee": 1,
+            "resolvedFee": 1,
+            "poolManager": "0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b",
+            "provider": "pancakeswap",
+            "token0": "0x55d398326f99059fF775485246999027B3197955",
+            "token1": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+            "hooks": null,
+            "parameters": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "tickSpacing": 1
+          }
+        ]
+      }
+    ],
+    "minBlockNumber": 130299196,
+    "quoteSource": "aggregator"
+  },
+  "states": [
+    {
+      "address": "0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b",
+      "data": "0xc815641c32a805e65a3219a79707ab3e75443d75160d798de46613fc960d39cd4a96bb22",
+      "result": "0x0000000000000000000000000000000000000000ffdbb3e48024eef095ae4245fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff400000000000000000000000000000000000000000000000000000000000010010000000000000000000000000000000000000000000000000000000000000001"
+    },
+    {
+      "address": "0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b",
+      "data": "0xfa6793d532a805e65a3219a79707ab3e75443d75160d798de46613fc960d39cd4a96bb22",
+      "result": "0x00000000000000000000000000000000000000000016a2dd90fcddd924815ca6"
+    }
+  ]
+}

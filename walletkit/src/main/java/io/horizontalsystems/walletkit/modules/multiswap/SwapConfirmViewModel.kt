@@ -4,6 +4,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.core.IBalanceAdapter
+import io.horizontalsystems.walletkit.core.providers.Translator
+import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.BackgroundManager
 import io.horizontalsystems.walletkit.core.BackgroundManagerState
@@ -68,13 +72,18 @@ class SwapConfirmViewModel(
     // a transparent recipient address
     val zcashTransparentRecipientOnly =
         tokenOut.blockchainType == BlockchainType.Zcash && swapProvider.id != MAYA_PROVIDER_ID
-    private val amountIn = swapQuote.amountIn.let { amount ->
+    private var amountIn = swapQuote.amountIn.let { amount ->
         if (amount.scale() > tokenIn.decimals) {
             amount.setScale(tokenIn.decimals, RoundingMode.DOWN)
         } else {
             amount
         }
     }
+    private val maxAmount = if (swapFeePaidFromAsset(tokenIn.type) &&
+        App.adapterManager.getAdapterForToken<IBalanceAdapter>(tokenIn)?.balanceData?.available?.compareTo(amountIn) == 0)
+        SwapMaxAmount(amountIn, tokenIn.decimals) else null
+    private var preparingQuote = true
+    private var additionalNativeSpend = BigDecimal.ZERO
     private var fiatAmountIn: BigDecimal? = null
     private var recipient: Address? = initialRecipient
     private var slippage: BigDecimal? = null
@@ -147,6 +156,7 @@ class SwapConfirmViewModel(
                 sendTransactionSettings = it
 
                 if (!isInBackground) {
+                    maxAmount?.reset()
                     fetchFinalQuote()
                 }
             }
@@ -155,17 +165,7 @@ class SwapConfirmViewModel(
         viewModelScope.launch {
             sendTransactionService.stateFlow.collect { transactionState ->
                 sendTransactionState = transactionState
-
-                initialLoading = initialLoading && transactionState.loading
-                loading = transactionState.loading
-
-                swapDefenseSystemService.setSendable(sendTransactionState.sendable)
-
-                emitState()
-
-                if (sendTransactionState.sendable) {
-                    timerService.start(20)
-                }
+                updateTransactionState()
             }
         }
 
@@ -237,8 +237,11 @@ class SwapConfirmViewModel(
         fiatAmountOutMin = fiatAmountOutMin,
         currency = currency,
         networkFee = sendTransactionState.networkFee,
-        cautions = sendTransactionState.cautions,
-        validQuote = error == null && sendTransactionState.sendable,
+        cautions = if (maxAmount?.failed == true && sendTransactionState.cautions.isEmpty()) listOf(
+            CautionViewItem(Translator.getString(R.string.EthereumTransaction_Error_CannotEstimate_Title),
+                Translator.getString(R.string.EthereumTransaction_Error_CannotEstimate, tokenIn.coin.code), CautionViewItem.Type.Error)
+        ) else sendTransactionState.cautions,
+        validQuote = error == null && !loading && sendTransactionState.sendable && (maxAmount == null || maxAmount.ready),
         expired = expired,
         priceImpact = priceImpactState.priceImpact,
         priceImpactLevel = priceImpactState.priceImpactLevel,
@@ -277,68 +280,97 @@ class SwapConfirmViewModel(
             emitState()
         }
 
+        maxAmount?.reset()
         sendTransactionService.refreshUuid()
         fetchFinalQuote()
 
         stat(page = StatPage.SwapConfirmation, event = StatEvent.Refresh)
     }
 
+    private fun updateTransactionState() {
+        loading = preparingQuote || sendTransactionState.loading
+        if (!loading) {
+            maxAmount?.let { maximum ->
+                val available = App.adapterManager.getAdapterForToken<IBalanceAdapter>(tokenIn)?.balanceData?.available
+                val fee = sendTransactionState.networkFee?.primary?.coinValue?.takeIf { it.coin.uid == tokenIn.coin.uid }?.value
+                val spendable = sendTransactionService.maxSendableAmount() ?: if (available != null && fee != null) available - fee else null
+                val next = maximum.reconcile(spendable?.minus(additionalNativeSpend), sendTransactionState.sendable)
+                if (next != null) {
+                    amountIn = next
+                    fiatServiceIn.setAmount(next)
+                    fetchFinalQuote()
+                }
+            }
+        }
+        initialLoading = initialLoading && loading
+        val sendable = !loading && sendTransactionState.sendable && (maxAmount == null || maxAmount.ready)
+        swapDefenseSystemService.setSendable(sendable)
+        if (sendable) timerService.start(20) else timerService.stop()
+        emitState()
+    }
+
     private fun fetchFinalQuote() {
         fetchFinalQuoteJob?.cancel()
+        preparingQuote = true
+        loading = true
+        maxAmount?.invalidate()
+        timerService.stop()
+        emitState()
+        val requestedAmount = amountIn
         fetchFinalQuoteJob = viewModelScope.launch(Dispatchers.Default) {
             try {
-                error = null
-
-                if (App.accountManager.activeAccount?.isWatchAccount != false) {
-                    throw WatchAccountException()
-                }
-
-                val finalQuote = swapProvider.fetchFinalQuote(
-                    tokenIn,
-                    tokenOut,
-                    amountIn,
-                    sendTransactionSettings,
-                    swapQuote,
-                    recipient,
-                    slippage ?: IMultiSwapProvider.DEFAULT_SLIPPAGE,
-                )
-
+                withContext(Dispatchers.Main) { error = null }
+                val account = App.accountManager.activeAccount
+                if (account?.isWatchAccount != false || account.id != confirmingAccountId) throw WatchAccountException()
+                val quote = if (requestedAmount.compareTo(swapQuote.amountIn) == 0) swapQuote
+                    else swapProvider.fetchQuote(tokenIn, tokenOut, requestedAmount)
+                val finalQuote = swapProvider.fetchFinalQuote(tokenIn, tokenOut, requestedAmount,
+                    sendTransactionSettings, quote, recipient, slippage ?: IMultiSwapProvider.DEFAULT_SLIPPAGE)
                 ensureActive()
-
-                expired = false
-                amountOut = finalQuote.amountOut
-                amountOutMin = finalQuote.amountOutMin
-                estimatedTime = finalQuote.estimatedTime
-                slippage = finalQuote.slippage
-                providerSwapId = finalQuote.providerSwapId
-                fromAsset = finalQuote.fromAsset
-                toAsset = finalQuote.toAsset
-                depositAddress = finalQuote.depositAddress
-                // The deposit target comes from the provider's server and is what the signed
-                // transaction actually pays; it must be on screen next to the recipient so a
-                // compromised or spoofed provider response cannot redirect funds unseen.
-                quoteFields = finalQuote.fields + listOfNotNull(
-                    finalQuote.depositAddress?.let { DataFieldDepositAddress(it) },
-                    finalQuote.depositMemo?.let { DataFieldDepositMemo(it) },
-                )
-                emitState()
-
-                fiatServiceOut.setAmount(amountOut)
-                fiatServiceOutMin.setAmount(amountOutMin)
+                if (maxAmount != null) {
+                    check(finalQuote.tokenIn == tokenIn && finalQuote.tokenOut == tokenOut &&
+                        finalQuote.amountIn.compareTo(requestedAmount) == 0) { "Maximum swap quote changed the requested input" }
+                }
+                withContext(Dispatchers.Main) {
+                    expired = false
+                    amountOut = finalQuote.amountOut
+                    amountOutMin = finalQuote.amountOutMin
+                    estimatedTime = finalQuote.estimatedTime
+                    slippage = finalQuote.slippage
+                    providerSwapId = finalQuote.providerSwapId
+                    fromAsset = finalQuote.fromAsset
+                    toAsset = finalQuote.toAsset
+                    depositAddress = finalQuote.depositAddress
+                    quoteFields = finalQuote.fields + listOfNotNull(
+                        finalQuote.depositAddress?.let { DataFieldDepositAddress(it) },
+                        finalQuote.depositMemo?.let { DataFieldDepositMemo(it) },
+                    )
+                    additionalNativeSpend = (finalQuote.sendTransactionData as? SendTransactionData.Evm)?.let {
+                        it.transactionData.value.toBigDecimal().movePointLeft(tokenIn.decimals) - requestedAmount
+                    }?.max(BigDecimal.ZERO) ?: BigDecimal.ZERO
+                    fiatServiceOut.setAmount(amountOut)
+                    fiatServiceOutMin.setAmount(amountOutMin)
+                    priceImpactService.setProviderTitle(swapProvider.title)
+                    emitState()
+                }
                 sendTransactionService.setSendTransactionData(finalQuote.sendTransactionData)
-
-                priceImpactService.setProviderTitle(swapProvider.title)
+                withContext(Dispatchers.Main) {
+                    preparingQuote = false
+                    sendTransactionState = sendTransactionService.stateFlow.value
+                    updateTransactionState()
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: RetryableSwapError) {
-                // in this case we should keep state as loading
-                // temp solution. need find better one
+                // The provider is preparing the route; its normal refresh will retry.
             } catch (t: Throwable) {
-                loading = false
-                initialLoading = false
-                error = t
-
-                emitState()
+                withContext(Dispatchers.Main) {
+                    preparingQuote = false
+                    loading = false
+                    initialLoading = false
+                    error = t
+                    emitState()
+                }
             }
         }
     }
@@ -359,6 +391,9 @@ class SwapConfirmViewModel(
             throw WatchAccountException()
         }
 
+        check(!loading && error == null && sendTransactionState.sendable && (maxAmount == null || maxAmount.ready)) {
+            "Swap amount or network fee is not ready"
+        }
         val result = sendTransactionService.sendTransaction(swapDefenseState.mevProtectionEnabled)
         saveSwapRecord(result)
 

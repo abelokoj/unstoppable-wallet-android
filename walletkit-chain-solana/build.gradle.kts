@@ -32,6 +32,8 @@ dependencies {
     api(project(":walletkit"))
 
     api(libs.kit.solana)
+    // Already shipped by SolanaKit; expose its codec to this module at compile time.
+    implementation("org.sol4k:sol4k:0.5.16")
 
     testImplementation(libs.junit)
 }

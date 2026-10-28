@@ -75,6 +75,7 @@ data class PrivateSendConfirmationPage(val input: Input) : HSPage() {
                     token = input.wallet.token,
                     recipient = input.recipient,
                     amountOut = input.amount,
+                    sendMax = input.sendMax,
                 ),
                 btcParams,
             )
@@ -89,6 +90,7 @@ data class PrivateSendConfirmationPage(val input: Input) : HSPage() {
         val recipient: String,
         @Serializable(with = BigDecimalSerializer::class) val amount: BigDecimal,
         @Serializable(with = HSScreenKClassSerializer::class) val sendEntryPointDestId: KClass<out HSPage>?,
+        val sendMax: Boolean = false,
     )
 }
 
@@ -125,7 +127,7 @@ private fun PrivateSendConfirmationScreen(
             null
         },
         buttonsSlot = {
-            if (uiState.expired) {
+            if (uiState.expired || uiState.refreshRequired) {
                 // The committed order is not honoured past its lifetime; Refresh commits a
                 // fresh order in place — the same recovery the swap confirmation offers.
                 HSButton(
@@ -325,6 +327,7 @@ private fun errorText(context: android.content.Context, error: Throwable): Strin
     )
 
     is PrivateSendError.NoRoute -> context.getString(R.string.PrivateSend_Caution_NoRoute)
+    is PrivateSendError.MaxUnavailable -> context.getString(R.string.PrivateSend_Caution_MaxUnavailable)
     is PrivateSendError.ExactOutputUnsupported -> context.getString(R.string.PrivateSend_Caution_ExactOutputUnsupported)
     is PrivateSendError.ProviderSuspended -> context.getString(R.string.PrivateSend_Caution_ProviderSuspended)
     is PrivateSendError.NetworkError -> context.getString(R.string.PrivateSend_Caution_NetworkError)

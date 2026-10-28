@@ -195,6 +195,7 @@ private fun ColumnScope.SendFormTab(
                         recipient = address.hex,
                         amount = amount,
                         sendEntryPointDestId = sendEntryPointDestId,
+                        sendMax = uiState.sendMax,
                     )
                 )
             } else {
@@ -253,6 +254,7 @@ private fun ColumnScope.SendFormTab(
                     focusManager.clearFocus()
                     viewModel.onEnterAmountPercentage(it)
                 },
+                percents = listOf(25, 50, 75, 100),
                 onClearClick = {
                     viewModel.onEnterAmount(null)
                 },

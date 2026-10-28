@@ -219,6 +219,32 @@ class PrivateSendManager(
         )
     }
 
+    /** Only /rate is used here; the caller commits one final affordable order afterwards. */
+    suspend fun maximumRequest(request: PrivateSendRequest, budget: BigDecimal): PrivateSendRequest {
+        if (request.token.blockchainType in privateChains || request.token.blockchainType in payoutUnsupportedChains)
+            throw PrivateSendError.TokenUnsupported
+        val providers = candidates().filter { it.supportsPrivateSend(request.token) }
+        if (providers.isEmpty()) throw PrivateSendError.TokenUnsupported
+        var output = budget.setScale(request.token.decimals, java.math.RoundingMode.DOWN).stripTrailingZeros()
+        repeat(4) {
+            val offers = coroutineScope {
+                providers.map { provider -> async {
+                    try { provider.privateSendRate(request.token, output, IMultiSwapProvider.DEFAULT_SLIPPAGE) }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Throwable) { null }
+                } }.mapNotNull { it.await() }
+            }
+            val required = offers.flatMap { it.routes.orEmpty() }
+                .filter { it.expectedBuyAmount?.compareTo(output) == 0 }
+                .mapNotNull { it.sellAmount?.takeIf { value -> value > BigDecimal.ZERO } }.minOrNull()
+                ?: run { reason(offers.flatMap { it.providerErrors.orEmpty() })?.let { throw it }; throw PrivateSendError.MaxUnavailable }
+            val next = privateSendMaximumOutput(output, required, budget, request.token.decimals)
+            if (next.compareTo(output) == 0) return request.copy(amountOut = output)
+            output = next
+        }
+        throw PrivateSendError.MaxUnavailable
+    }
+
     private fun candidates(): List<USwapProvider> {
         val serverIds = confidentialServerIds
         return MultiSwapProviderRegistry.confidentialProviders.filter { it.serverProviderId in serverIds }

@@ -2026,4 +2026,27 @@
     <string name="ApprovalAccess_RevokeError">Der Widerruf konnte nicht vorbereitet oder übermittelt werden. Die Berechtigung oder Wallet hat sich möglicherweise geändert, Tor ist möglicherweise getrennt oder das Netzwerk ist nicht verfügbar. Kehren Sie zur Liste zurück und prüfen Sie erneut. Falls eine Übermittlung unterbrochen wurde, prüfen Sie vor einem erneuten Versuch den Transaktionsverlauf.</string>
     <string name="ApprovalAccess_SubmittedButton">Transaktion übermittelt</string>
     <string name="ApprovalAccess_Submitted">Die Widerrufstransaktion wurde übermittelt, aber noch nicht bestätigt. Warten Sie auf die Bestätigung im Transaktionsverlauf und scannen oder prüfen Sie die Berechtigung dann erneut.</string>
+    <string name="ApprovalAccess_UnknownToken">Unbekannter Token</string>
+    <string name="ApprovalAccess_SelectHint">Zum Auswählen von Token gedrückt halten.</string>
+    <string name="ApprovalAccess_Selected">%1$d ausgewählt</string>
+    <string name="ApprovalAccess_PermissionCount">%1$d Freigaben</string>
+    <string name="ApprovalAccess_RevokeSelected">Auswahl widerrufen (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">Alle auswählen</string>
+    <string name="ApprovalAccess_ClearSelection">Auswahl aufheben</string>
+    <string name="ApprovalAccess_SelectionTitle">Widerrufe prüfen</string>
+    <string name="ApprovalAccess_SeparateTransactions">Jede Freigabe wird in einer eigenen Transaktion mit eigener Netzwerkgebühr widerrufen. Prüfe und bestätige jede Transaktion vor dem Senden.</string>
+    <string name="ApprovalAccess_SubmittedCount">%1$d von %2$d gesendet</string>
+    <string name="ApprovalAccess_ContinueScan">Scan fortsetzen</string>
+    <string name="ApprovalAccess_ManualShort">Manuell prüfen</string>
+    <string name="ApprovalAccess_PendingConfirmation">Bestätigung ausstehend</string>
+    <string name="ApprovalAccess_TokenNameValue">Tokenname: %1$s</string>
+    <string name="ApprovalAccess_SpenderContract">Vertrag des Ausgabeberechtigten: %1$s</string>
+    <string name="ApprovalAccess_ApprovalType">Freigabetyp: %1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞ (Unbegrenzt)</string>
+    <string name="ApprovalAccess_TokenAmount">Betrag in Token-Einheiten: %1$s</string>
+    <string name="ApprovalAccess_Unknown">Unbekannt</string>
+    <string name="ApprovalAccess_UnknownAmount">Nicht verfügbar (Token-Dezimalstellen unbekannt)</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s Basiseinheiten</string>
+    <string name="ApprovalAccess_NamesHelp">Namen stammen aus gespeicherten Adressbezeichnungen und können je nach Netzwerk abweichen. Ein Name ist kein Sicherheitsnachweis. Prüfe die vollständigen Vertragsadressen.</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">Der maximal verfügbare Betrag konnte nicht ermittelt werden. Prüfe die Gebühren und versuche einen kleineren Betrag oder aktualisiere das Angebot.</string>
 </resources>

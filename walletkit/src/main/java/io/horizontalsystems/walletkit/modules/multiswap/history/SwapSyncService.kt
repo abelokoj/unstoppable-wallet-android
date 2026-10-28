@@ -12,6 +12,7 @@ import io.horizontalsystems.walletkit.modules.multiswap.providers.AllBridgeAPI
 import io.horizontalsystems.walletkit.modules.multiswap.providers.AllBridgeProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.MultiSwapProviderRegistry
 import io.horizontalsystems.walletkit.modules.multiswap.providers.RelayProvider
+import io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeCrossChainProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.UnstoppableAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +58,10 @@ class SwapSyncService(
 
         if (record.providerId == AllBridgeProvider.id) {
             syncAllBridgeRecord(record)
+            return
+        }
+        if (record.providerId == PancakeCrossChainProvider.id) {
+            syncPancakeRecord(record)
             return
         }
         if (record.providerId == RelayProvider.id) {
@@ -146,6 +151,22 @@ class SwapSyncService(
             return if (send.confirmations >= send.confirmationsNeeded) SwapStatus.Swapping else SwapStatus.Depositing
         }
         return if (receive.blockTime != null) SwapStatus.Completed else SwapStatus.Sending
+    }
+
+    private suspend fun syncPancakeRecord(record: SwapRecord) {
+        try {
+            val (status, outboundHash) = PancakeCrossChainProvider.status(record) ?: return
+            if (outboundHash != null && outboundHash != record.outboundTransactionHash) {
+                swapRecordManager.updateOutboundTransactionHash(record.id, outboundHash)
+            }
+            if (status != runCatching { SwapStatus.valueOf(record.status) }.getOrNull()) {
+                swapRecordManager.updateStatus(record.id, status, null)
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Indexing can lag behind submission. Keep the last status without logging the request/hash.
+        }
     }
 
     private suspend fun syncRelayRecord(record: SwapRecord) {

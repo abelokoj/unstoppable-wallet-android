@@ -56,6 +56,7 @@ data class SendFormUiState(
     val hideAddress: Boolean,
     /** Percent buttons offered greyed out. */
     val disabledPercents: Set<Int>,
+    val sendMax: Boolean,
     val step: SendStep,
 )
 
@@ -83,6 +84,7 @@ class SendFormViewModel(
 ) : ViewModelUiState<SendFormUiState>() {
 
     private var currency = currencyManager.baseCurrency
+    private var sendMax = false
     private var amount: BigDecimal? = null
     private var fiatAmount: BigDecimal? = null
     private var fiatAmountInputEnabled = false
@@ -241,7 +243,8 @@ class SendFormViewModel(
         // A private send commits a provider order for the entered amount as is; nothing
         // later takes the fee out of it, so a coin that pays its own fee cannot send its
         // whole balance that way. A token whose fee is paid in the chain's coin can.
-        disabledPercents = if (mode == SendTab.Private && feePaidFromAsset(wallet.token.type)) setOf(100) else emptySet(),
+        disabledPercents = emptySet(),
+        sendMax = sendMax,
         step = step(),
     )
 
@@ -274,23 +277,21 @@ class SendFormViewModel(
         return SendStep.Proceed
     }
 
-    private fun feePaidFromAsset(type: TokenType) = when (type) {
-        TokenType.Native,
-        is TokenType.Derived,
-        is TokenType.AddressTyped -> true
-        else -> false
-    }
-
     fun onEnterAmount(amount: BigDecimal?) {
+        sendMax = false
         fiatService.setAmount(amount)
+        emitState()
     }
 
     fun onEnterFiatAmount(fiatAmount: BigDecimal?) {
+        sendMax = false
         fiatService.setFiatAmount(fiatAmount)
+        emitState()
     }
 
     fun onEnterAmountPercentage(percentage: Int) {
         val availableBalance = availableBalance() ?: return
+        sendMax = percentage == 100
 
         val amount = availableBalance
             .times(BigDecimal(percentage / 100.0))
@@ -298,6 +299,7 @@ class SendFormViewModel(
             .stripTrailingZeros()
 
         fiatService.setAmount(amount)
+        emitState()
     }
 
     // The address screen resolves the contact along with the address, so both arrive together.

@@ -1,0 +1,71 @@
+{
+  "quote": {
+    "requestId": "aca024769956a268e1807d3a81c4f148",
+    "srcToken": "0x55d398326f99059fF775485246999027B3197955",
+    "dstToken": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+    "chainId": 56,
+    "tradeType": "exactIn",
+    "inputAmount": "100000000000000000000",
+    "outputAmount": "99386231823750074282",
+    "gasUseEstimate": "95000",
+    "gasUseEstimateUsd": "3556161115270193",
+    "priceImpactBps": 25,
+    "priceImpactBpsWithoutFee": 1,
+    "aggregatorAddress": "0x2f68417A18dA681589F4eA64B9Cc9839209acfF7",
+    "swapFeeBps": "0",
+    "swapFee": "0",
+    "routes": [
+      {
+        "percent": 100,
+        "inputAmount": "100000000000000000000",
+        "outputAmount": "99386231823750074282",
+        "priceImpactBps": 25,
+        "priceImpactBpsWithoutFee": 1,
+        "path": [
+          {
+            "address": "0x55d398326f99059fF775485246999027B3197955",
+            "decimals": 18,
+            "symbol": "USDT"
+          },
+          {
+            "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+            "decimals": 18,
+            "symbol": "USDC"
+          }
+        ],
+        "pools": [
+          {
+            "address": "0xEc6557348085Aa57C72514D67070dC863C0a5A8c",
+            "type": "v2",
+            "fee": 2500,
+            "resolvedFee": 2500,
+            "provider": "pancakeswap",
+            "token0": "0x55d398326f99059fF775485246999027B3197955",
+            "token1": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+            "hooks": null,
+            "parameters": null
+          }
+        ]
+      }
+    ],
+    "minBlockNumber": 130299060,
+    "quoteSource": "aggregator"
+  },
+  "states": [
+    {
+      "address": "0xEc6557348085Aa57C72514D67070dC863C0a5A8c",
+      "data": "0x0902f1ac",
+      "result": "0x000000000000000000000000000000000000000000008c112893d627ae45d306000000000000000000000000000000000000000000008b9508eb9b696963a0d8000000000000000000000000000000000000000000000000000000006ae20b23"
+    },
+    {
+      "address": "0xEc6557348085Aa57C72514D67070dC863C0a5A8c",
+      "data": "0x0dfe1681",
+      "result": "0x00000000000000000000000055d398326f99059ff775485246999027b3197955"
+    },
+    {
+      "address": "0xEc6557348085Aa57C72514D67070dC863C0a5A8c",
+      "data": "0xd21220a7",
+      "result": "0x0000000000000000000000008ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+    }
+  ]
+}

@@ -46,6 +46,7 @@ class SendTransactionServiceSolana(private val token: Token) : AbstractSendTrans
 
     private var fee = SolanaKit.fee
     private var rawTransaction: ByteArray? = null
+    private var relayTransaction: SolanaRelayTransaction? = null
     private var simpleDataSet = false
 
     override fun start(coroutineScope: CoroutineScope) {
@@ -77,7 +78,23 @@ class SendTransactionServiceSolana(private val token: Token) : AbstractSendTrans
     override suspend fun setSendTransactionData(data: SendTransactionData) {
         check(data is SendTransactionData.Solana)
 
+        relayTransaction = null
+        rawTransaction = null
+        simpleDataSet = false
+        emitState()
         when (data) {
+            is SendTransactionData.Solana.WithRelayInstructions -> {
+                val plugin = ChainRegistry[BlockchainType.Solana] as SolanaChainPlugin
+                val wrapper = requireNotNull(plugin.kitManager.solanaKitWrapper)
+                require(wrapper.solanaKit.receiveAddress == data.senderAddress)
+                val account = requireNotNull(App.accountManager.activeAccount)
+                val prepared = SolanaRelayTransaction(data, account.id, plugin.rpcSourceManager.rpcSource.url.toString(),
+                    requireNotNull(wrapper.signer) { "This wallet cannot sign" })
+                prepared.prepare()
+                relayTransaction = prepared
+                fee = prepared.fee
+                emitState()
+            }
             is SendTransactionData.Solana.WithRawTransaction -> {
                 this.rawTransaction = data.rawTransaction
                 fee = adapter.estimateFee(data.rawTransaction)
@@ -96,7 +113,10 @@ class SendTransactionServiceSolana(private val token: Token) : AbstractSendTrans
         val tmpRawTransaction = rawTransaction
         val fullTransaction: io.horizontalsystems.solanakit.models.FullTransaction
 
-        if (tmpRawTransaction != null) {
+        val relay = relayTransaction
+        if (relay != null) {
+            fullTransaction = relay.send()
+        } else if (tmpRawTransaction != null) {
             fullTransaction = adapter.send(tmpRawTransaction)
         } else {
             val totalSolAmount = (if (token.type == TokenType.Native) amountState.amount!! else BigDecimal.ZERO) + SolanaKit.fee
@@ -115,8 +135,8 @@ class SendTransactionServiceSolana(private val token: Token) : AbstractSendTrans
         uuid = uuid,
         networkFee = getAmountData(CoinValue(solToken, fee)),
         cautions = listOf(),
-        sendable = rawTransaction != null || (amountState.canBeSend && addressState.canBeSend),
-        loading = rawTransaction == null && !simpleDataSet,
+        sendable = relayTransaction != null || rawTransaction != null || (amountState.canBeSend && addressState.canBeSend),
+        loading = relayTransaction == null && rawTransaction == null && !simpleDataSet,
         fields = listOf(),
     )
 }

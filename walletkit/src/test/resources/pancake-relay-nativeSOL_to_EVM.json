@@ -1,0 +1,95 @@
+{
+  "quote": {
+    "supported": true,
+    "requestId": "0x17931989784b41da9becfbdc1c644ea3eb0e189308b548acb0127cc48345053b",
+    "amount": "100000000",
+    "inputToken": "11111111111111111111111111111111",
+    "originChainId": 8000001001,
+    "outputToken": "0x0000000000000000000000000000000000000000",
+    "destinationChainId": 56,
+    "rate": "0.1334103168108133",
+    "expectedFillTimeSec": "1",
+    "bridgeTransactionData": {
+      "minimumOutputAmount": "13207621364270518",
+      "outputAmount": "13341031681081331",
+      "totalFeePct": "1.0336",
+      "totalFee": "0.104246",
+      "totalImpactPct": "-1.03"
+    }
+  },
+  "response": {
+    "requestId": "0x17931989784b41da9becfbdc1c644ea3eb0e189308b548acb0127cc48345053b",
+    "amount": "13341031681081331",
+    "inputToken": "11111111111111111111111111111111",
+    "originChainId": 8000001001,
+    "outputToken": "0x0000000000000000000000000000000000000000",
+    "destinationChainId": 56,
+    "expectedFillTimeSec": "1",
+    "rate": "0.1334103168108133",
+    "bridgeTransactionData": {
+      "outputAmount": "13341031681081331",
+      "minimumOutputAmount": "13207621364270518",
+      "totalFeePct": "1.0336",
+      "totalFee": "0.104246",
+      "totalImpactPct": "-1.03"
+    },
+    "steps": [
+      {
+        "id": "deposit",
+        "action": "Confirm transaction in your wallet",
+        "description": "Depositing funds to the relayer to execute the swap for BNB",
+        "kind": "transaction",
+        "items": [
+          {
+            "status": "incomplete",
+            "data": {
+              "instructions": [
+                {
+                  "keys": [
+                    {
+                      "pubkey": "Dodg2HifwU8rmaVVyMyUZDGTRbqAJTyVYxXPwcbNpBKc",
+                      "isSigner": false,
+                      "isWritable": false
+                    },
+                    {
+                      "pubkey": "6uzPkC5fsHgBwZLjpDjMgryfnioXo6uGEbMbEGVNk2GR",
+                      "isSigner": true,
+                      "isWritable": true
+                    },
+                    {
+                      "pubkey": "6uzPkC5fsHgBwZLjpDjMgryfnioXo6uGEbMbEGVNk2GR",
+                      "isSigner": false,
+                      "isWritable": false
+                    },
+                    {
+                      "pubkey": "7uTT8Xi5RWXzy7h9XL244GRgEycDYDhLjr3ZyNdXi8pZ",
+                      "isSigner": false,
+                      "isWritable": true
+                    },
+                    {
+                      "pubkey": "11111111111111111111111111111111",
+                      "isSigner": false,
+                      "isWritable": false
+                    }
+                  ],
+                  "programId": "99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2",
+                  "data": "0d9e0ddf5fd51c0600e1f5050000000072595290e83dd34cbc1df900ac268b16d9011fd8de16cd899c14bee916a42f50"
+                }
+              ],
+              "addressLookupTableAddresses": [
+                "Hm9fUgcn7qwDaiNTFiGh6pNtVATgnaRcmK6Bbx6EMZfP"
+              ]
+            },
+            "check": {
+              "endpoint": "/intents/status?requestId=0x17931989784b41da9becfbdc1c644ea3eb0e189308b548acb0127cc48345053b",
+              "method": "GET"
+            }
+          }
+        ],
+        "requestId": "0x17931989784b41da9becfbdc1c644ea3eb0e189308b548acb0127cc48345053b",
+        "depositAddress": ""
+      }
+    ]
+  },
+  "owner": "6uzPkC5fsHgBwZLjpDjMgryfnioXo6uGEbMbEGVNk2GR"
+}

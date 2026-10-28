@@ -136,7 +136,7 @@ enum class UProvider(
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
-        icon = R.drawable.ic_platform_placeholder_32
+        icon = R.drawable.swap_provider_lizex
     ),
     Bitania(
         "BITANIA",

@@ -25,6 +25,8 @@ interface IMultiSwapProvider {
         get() = false
     val isEvm: Boolean
         get() = false
+    val quoteTimeoutMillis: Long
+        get() = 5_000L
     val requireTerms: Boolean
     val riskLevel: RiskLevel
     fun isSingleTransactionSwap(tokenInBlockchainTypeUid: String, tokenOutBlockchainTypeUid: String): Boolean

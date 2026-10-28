@@ -1,0 +1,96 @@
+{
+  "quote": {
+    "requestId": "b0c05a830429c3b4df03a275e4f69d62",
+    "srcToken": "0x55d398326f99059fF775485246999027B3197955",
+    "dstToken": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+    "chainId": 56,
+    "tradeType": "exactIn",
+    "inputAmount": "100000000000000000000",
+    "outputAmount": "99875264365721361595",
+    "gasUseEstimate": "120000",
+    "gasUseEstimateUsd": "4491992987709717",
+    "priceImpactBps": 1,
+    "priceImpactBpsWithoutFee": 0,
+    "aggregatorAddress": "0x2f68417A18dA681589F4eA64B9Cc9839209acfF7",
+    "swapFeeBps": "0",
+    "swapFee": "0",
+    "routes": [
+      {
+        "percent": 100,
+        "inputAmount": "100000000000000000000",
+        "outputAmount": "99875264365721361595",
+        "priceImpactBps": 1,
+        "priceImpactBpsWithoutFee": 0,
+        "path": [
+          {
+            "address": "0x55d398326f99059fF775485246999027B3197955",
+            "decimals": 18,
+            "symbol": "USDT"
+          },
+          {
+            "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+            "decimals": 18,
+            "symbol": "USDC"
+          }
+        ],
+        "pools": [
+          {
+            "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+            "type": "stableswap",
+            "fee": 1000000,
+            "resolvedFee": 100,
+            "provider": "pancakeswap",
+            "token0": "0x55d398326f99059fF775485246999027B3197955",
+            "token1": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+            "hooks": null,
+            "parameters": null
+          }
+        ]
+      }
+    ],
+    "minBlockNumber": 130289677,
+    "quoteSource": "aggregator"
+  },
+  "states": [
+    {
+      "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+      "data": "0x4903b0d10000000000000000000000000000000000000000000000000000000000000000",
+      "result": "0x0000000000000000000000000000000000000000000021bf94ec07fa9994b100"
+    },
+    {
+      "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+      "data": "0x4903b0d10000000000000000000000000000000000000000000000000000000000000001",
+      "result": "0x000000000000000000000000000000000000000000000e5d040e634bc2bae6e3"
+    },
+    {
+      "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+      "data": "0xf446c1d0",
+      "result": "0x00000000000000000000000000000000000000000000000000000000000003e8"
+    },
+    {
+      "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+      "data": "0xddca3f43",
+      "result": "0x00000000000000000000000000000000000000000000000000000000000f4240"
+    },
+    {
+      "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+      "data": "0xd73792a9",
+      "result": "0x00000000000000000000000000000000000000000000000000000002540be400"
+    },
+    {
+      "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+      "data": "0x29357750",
+      "result": "0x0000000000000000000000000000000000000000000000000000000000000002"
+    },
+    {
+      "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+      "data": "0xc66106570000000000000000000000000000000000000000000000000000000000000000",
+      "result": "0x00000000000000000000000055d398326f99059ff775485246999027b3197955"
+    },
+    {
+      "address": "0x3EFebC418efB585248A0D2140cfb87aFcc2C63DD",
+      "data": "0xc66106570000000000000000000000000000000000000000000000000000000000000001",
+      "result": "0x0000000000000000000000008ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+    }
+  ]
+}

@@ -2030,4 +2030,27 @@
     <string name="ApprovalAccess_RevokeError">Не удалось подготовить или отправить отзыв. Возможно, разрешение или кошелёк изменились, Tor отключён или сеть недоступна. Вернитесь к списку и проверьте снова. Если отправка была прервана, проверьте историю транзакций перед повторной попыткой.</string>
     <string name="ApprovalAccess_SubmittedButton">Транзакция отправлена</string>
     <string name="ApprovalAccess_Submitted">Транзакция отзыва отправлена, но ещё не подтверждена. Дождитесь подтверждения в истории транзакций, затем снова просканируйте или проверьте разрешение.</string>
+    <string name="ApprovalAccess_UnknownToken">Неизвестный токен</string>
+    <string name="ApprovalAccess_SelectHint">Нажмите и удерживайте для выбора токенов.</string>
+    <string name="ApprovalAccess_Selected">Выбрано: %1$d</string>
+    <string name="ApprovalAccess_PermissionCount">Разрешений: %1$d</string>
+    <string name="ApprovalAccess_RevokeSelected">Отозвать выбранное (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">Выбрать все</string>
+    <string name="ApprovalAccess_ClearSelection">Снять выбор</string>
+    <string name="ApprovalAccess_SelectionTitle">Проверить отзывы</string>
+    <string name="ApprovalAccess_SeparateTransactions">Каждое разрешение отзывается отдельной транзакцией со своей сетевой комиссией. Проверьте и подтвердите каждую транзакцию перед отправкой.</string>
+    <string name="ApprovalAccess_SubmittedCount">Отправлено %1$d из %2$d</string>
+    <string name="ApprovalAccess_ContinueScan">Продолжить сканирование</string>
+    <string name="ApprovalAccess_ManualShort">Ручная проверка</string>
+    <string name="ApprovalAccess_PendingConfirmation">Ожидание подтверждения</string>
+    <string name="ApprovalAccess_TokenNameValue">Название токена: %1$s</string>
+    <string name="ApprovalAccess_SpenderContract">Контракт получателя разрешения: %1$s</string>
+    <string name="ApprovalAccess_ApprovalType">Тип разрешения: %1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞ (Без ограничений)</string>
+    <string name="ApprovalAccess_TokenAmount">Сумма в единицах токена: %1$s</string>
+    <string name="ApprovalAccess_Unknown">Неизвестно</string>
+    <string name="ApprovalAccess_UnknownAmount">Недоступно (число знаков после запятой неизвестно)</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s базовых единиц</string>
+    <string name="ApprovalAccess_NamesHelp">Названия берутся из сохранённых меток адресов и могут различаться в разных сетях. Название не гарантирует безопасность. Проверяйте полные адреса контрактов.</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">Не удалось определить доступный максимум. Проверьте комиссии и попробуйте меньшую сумму или обновите котировку.</string>
 </resources>

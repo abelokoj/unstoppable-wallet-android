@@ -2017,4 +2017,27 @@
     <string name="ApprovalAccess_RevokeError">철회를 준비하거나 제출하지 못했습니다. 권한이나 지갑이 변경되었거나, Tor 연결이 끊겼거나, 네트워크를 사용할 수 없을 수 있습니다. 목록으로 돌아가 다시 확인하세요. 제출이 중단된 경우 다시 시도하기 전에 거래 내역을 확인하세요.</string>
     <string name="ApprovalAccess_SubmittedButton">거래 제출됨</string>
     <string name="ApprovalAccess_Submitted">철회 거래가 제출되었지만 아직 확정되지 않았습니다. 거래 내역에서 확정을 기다린 후 다시 스캔하거나 권한을 확인하세요.</string>
+    <string name="ApprovalAccess_UnknownToken">알 수 없는 토큰</string>
+    <string name="ApprovalAccess_SelectHint">길게 눌러 토큰을 선택하세요.</string>
+    <string name="ApprovalAccess_Selected">%1$d개 선택됨</string>
+    <string name="ApprovalAccess_PermissionCount">승인 %1$d개</string>
+    <string name="ApprovalAccess_RevokeSelected">선택 항목 취소 (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">모두 선택</string>
+    <string name="ApprovalAccess_ClearSelection">선택 해제</string>
+    <string name="ApprovalAccess_SelectionTitle">승인 취소 검토</string>
+    <string name="ApprovalAccess_SeparateTransactions">각 승인은 별도의 트랜잭션으로 취소되며 각각 네트워크 수수료가 발생합니다. 전송 전에 각 트랜잭션을 검토하고 확인하세요.</string>
+    <string name="ApprovalAccess_SubmittedCount">%2$d개 중 %1$d개 전송됨</string>
+    <string name="ApprovalAccess_ContinueScan">계속 스캔</string>
+    <string name="ApprovalAccess_ManualShort">수동 확인</string>
+    <string name="ApprovalAccess_PendingConfirmation">확인 대기 중</string>
+    <string name="ApprovalAccess_TokenNameValue">토큰 이름: %1$s</string>
+    <string name="ApprovalAccess_SpenderContract">지출자 컨트랙트: %1$s</string>
+    <string name="ApprovalAccess_ApprovalType">승인 유형: %1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞ (무제한)</string>
+    <string name="ApprovalAccess_TokenAmount">토큰 단위 금액: %1$s</string>
+    <string name="ApprovalAccess_Unknown">알 수 없음</string>
+    <string name="ApprovalAccess_UnknownAmount">사용 불가 (토큰 소수 자릿수 알 수 없음)</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s 기본 단위</string>
+    <string name="ApprovalAccess_NamesHelp">이름은 저장된 주소 라벨에서 가져오며 네트워크에 따라 다를 수 있습니다. 이름이 안전을 보장하지는 않습니다. 전체 컨트랙트 주소를 확인하세요.</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">전송 가능한 최대 금액을 계산할 수 없습니다. 수수료를 확인하고 더 적은 금액을 입력하거나 견적을 새로고침하세요.</string>
 </resources>

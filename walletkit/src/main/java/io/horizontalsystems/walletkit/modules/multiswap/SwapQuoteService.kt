@@ -221,7 +221,7 @@ class SwapQuoteService(
             .map { provider ->
                 async {
                     try {
-                        withTimeout(5000) {
+                        withTimeout(provider.quoteTimeoutMillis) {
                             val quote = provider.fetchQuote(tokenIn, tokenOut, amountIn)
                             SwapProviderQuote(provider = provider, swapQuote = quote)
                         }

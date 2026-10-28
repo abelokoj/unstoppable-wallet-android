@@ -1,8 +1,57 @@
 # Open Swap TODO
 
+## Deferred Across integration
+
+- Across direct integration is deferred at the user's request on 2026-10-27 because Across requires a production API key and integrator ID. Upstream Unstoppable 0.52.2 provides neither a direct Across provider nor reusable Across credentials. Do not borrow another project's credentials.
+- The existing unfinished optional backend adapter remains unchanged. Do not describe it as a completed direct Across integration.
+- Revisit only if the user chooses to obtain production credentials or Across officially changes its integration requirements. Public legacy endpoint responses do not remove the documented production requirement.
+
+## PancakeSwap cross-chain development, updated 2026-10-28
+
+- The user chose existing wallet networks, including Solana; Linea is excluded. Direct Across remains deferred. PancakeSwap still depends on Across for EVM bridging and Relay for Solana routes.
+- [x] Retained the existing Uniswap V3 and PancakeSwap V3 providers for ordinary swaps.
+- [x] Extended PancakeSwap Cross-chain beyond bridge-token pairs with source/destination AMM trades across Ethereum, BNB Smart Chain, Base, Arbitrum and zkSync, plus EVM-to-Solana and Solana-to-EVM route handling. See [coverage, validation and privacy details](docs/PancakeSwap-CrossChain.md).
+- [x] Added V2/V3/classic StableSwap/Infinity CL/Bin codecs and registered BNB Infinity StableSwap discovery, with canonical contract and on-chain router authorization checks. Unknown/custom hooks remain rejected, with a classic-route fallback where available. Standalone Infinity and Uniswap v4 providers remain planned below.
+- [x] Kept initial quotes anonymous and routed requests through the existing Tor preference with fail-closed behavior. Final transaction preparation necessarily shares sender/recipient with the gateway; no new wallet fee, referral command or borrowed key is added.
+- [x] Added exact EVM transaction rebuilding and Relay deposit validation, plus Solana instruction/lookup-table validation, configured-RPC simulation/submission, existing signer use and pending-payload preservation.
+- [x] Captured unsigned public fixtures for ETH to BNB, BNB to ETH and Solana routes. Development build and all 288 selected tests passed (correcting the earlier aggregate of 287), including 25 focused PancakeSwap/Solana tests.
+- [x] Installed/opened the development update and confirmed PancakeSwap quotes for ETH to BNB, BNB to ETH, BNB to native SOL and native SOL to BNB. Confirmed manual selection when another provider won automatic routing. No approvals or signatures were submitted; this does not validate funded settlement.
+- [ ] Confirm supported third-party gateway use, production access conditions, fees and support. Current keyless website requests do not establish permission or future availability.
+- [ ] Run disposable funded swaps for EVM/EVM and both Solana directions, with destination receipt verification, actual NON-EVM status responses, Tor traffic observation and refund/recovery exercises before production release.
+- [ ] Test every enabled network and representative native/ERC20/SPL pairs against live providers. Current routing uses bounded candidate batches and rejects unrecognized hooks; do not claim identical website path selection, optimal net price or blanket support for arbitrary tokens.
+- Recommendation: retain V2/V3 when adding standalone PancakeSwap Infinity and Uniswap v4. Newer pools can improve individual quotes but do not guarantee a better net price.
+
+## Release 0.52.3 preparation
+
+- [x] Set the requested PancakeSwap Cross-chain route label to Excellent. Keep this manually configured label separate from security-review claims.
+- [x] Corrected the empty fiat placeholder's cursor mapping so it sits after the currency symbol, retaining the shadowed zero and existing input parsing.
+- [x] Reviewed cross-chain transaction, approval, RPC/Tor and signing boundaries. Fixed the Token-2022 extension-data validation gap with a regression covering modified and appended account data; see integration details for evidence and remaining trust assumptions.
+- [x] Added narrow release rules preserving the two JSON-read Solana instruction/account models through optimization.
+- [x] Incremented app version/build to 0.52.3 (184) and updated the pending public release notes.
+- [x] Passed all 392 selected walletkit/EVM/Solana/app tests for 0.52.3, including the new regressions; translation coverage passed for 1,811 strings across nine locales.
+- [x] Built Base Debug and Base Release as 0.52.3 (184), verified the existing signing certificate and inspected all six preserved JSON fields in release bytecode. Installed/opened only the development package; the user confirmed the corrected fiat cursor. Automated screenshot/rating checks were interrupted by USB disconnections.
+- [x] Prepared/staged the source and a proposed commit message for review.
+- [ ] Commit and push after the user's instruction. Do not publish a tag or replace earlier releases during preparation.
+
+## Private Send fee transparency
+
+- Client review found quoted provider/route cost plus the normal network fee and, when applicable, a refundable deposit buffer. No explicit client-side developer fee, affiliate basis-point parameter or separate developer payout was found in the Private Send request/deposit path.
+- [ ] Obtain an itemized backend/provider fee policy before claiming that no developer or partner receives any share. The app authenticates to USwap, and [NEAR's published policy](https://docs.near-intents.org/resources/fees) permits partner fees/revenue sharing; the deployed backend split was not available for this review. No fee parameters were changed by the investigation.
+
+## Device validation
+
+- [x] Installed/opened development version 0.52.2 (183) in place and checked PancakeSwap quotes/provider selection for ETH/BNB and BNB/SOL in both directions on 2026-10-28. This supersedes the earlier disconnection before quote testing.
+- [ ] Complete funded swap/approval confirmation, device rendering across themes/text sizes, all supported networks, settlement and recovery testing. No funded transaction or signature was submitted in the quote checks; installation and quoting do not establish end-to-end operation.
+
+## Revoke Access follow-up
+
+- Added a Balances shortcut, grouped token/contract rows, themed network selection, long-press multi-selection and separate per-approval review using the existing signing flow. The user chose separate transactions rather than EIP-7702 delegation; do not describe this as a single on-chain batch.
+- [ ] Check dark/light rendering, keyboard layout, long-press selection and navigation on a working device or emulator.
+- [ ] Verify scan continuation, token/NFT metadata, per-approval fees, cancellation, submission and eventual on-chain confirmation with a disposable funded test wallet before publishing.
+
 ## Next-generation EVM swap protocols
 
-Priority: implement after the PancakeSwap cross-chain/Across work is complete and stable.
+Priority: implement after active cross-chain swap work is complete and stable. Across is not a prerequisite while its integration is deferred.
 
 ### Uniswap v4
 

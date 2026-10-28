@@ -21,6 +21,7 @@ data class PrivateSendRequest(
     // The REAL recipient, never a deposit address.
     val recipient: String,
     val amountOut: BigDecimal,
+    val sendMax: Boolean = false,
 )
 
 /**
@@ -86,6 +87,7 @@ sealed class PrivateSendError : Exception() {
     class BelowMinimum(val minimum: BigDecimal) : PrivateSendError()
     class AboveMaximum(val maximum: BigDecimal) : PrivateSendError()
     object NoRoute : PrivateSendError()
+    object MaxUnavailable : PrivateSendError()
     object ExactOutputUnsupported : PrivateSendError()
     object ProviderSuspended : PrivateSendError()
     class NetworkError(override val cause: Throwable) : PrivateSendError()

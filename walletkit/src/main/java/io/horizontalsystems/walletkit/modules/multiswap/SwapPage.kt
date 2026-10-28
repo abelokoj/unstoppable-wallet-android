@@ -44,13 +44,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -85,8 +82,9 @@ import io.horizontalsystems.walletkit.uiv3.components.AlertCard
 import io.horizontalsystems.walletkit.uiv3.components.AlertFormat
 import io.horizontalsystems.walletkit.uiv3.components.AlertType
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
-import io.horizontalsystems.walletkit.uiv3.components.cell.CellMiddleInfo
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellMiddleInfoTextIcon
+import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftImage
+import io.horizontalsystems.walletkit.uiv3.components.cell.ImageType
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellRightControlsButtonText
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellRightInfo
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellSecondary
@@ -100,6 +98,7 @@ import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.walletkit.uiv3.components.BoxBordered
 import io.horizontalsystems.walletkit.uiv3.components.bottombars.ButtonsGroupVertical
 import io.horizontalsystems.walletkit.uiv3.components.controls.AvailableBalanceRow
+import io.horizontalsystems.walletkit.uiv3.components.controls.PercentageShortcuts
 import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CancellationException
@@ -454,16 +453,6 @@ private fun SwapScreenInner(
                             onEnterAmountPercentage(100)
                         }
                     },
-                    onPercentClick = {
-                        focusManager.clearFocus()
-                        onEnterAmountPercentage(it)
-                    },
-                    onPercentClickExact = {
-                        focusManager.clearFocus()
-                        onEnterAmountPercentageExact(it)
-                    },
-                    percentOptions = uiState.percentOptions,
-                    disabledPercents = uiState.disabledPercents,
                     onClearClick = {
                         onEnterAmount(null)
                     }
@@ -528,6 +517,20 @@ private fun SwapScreenInner(
                         onActionStarted = onActionStarted,
                         proceedEnabled = proceedEnabled,
                         onClickNext = onClickNext
+                    )
+                    PercentageShortcuts(
+                        percents = uiState.percentOptions,
+                        disabledPercents = uiState.disabledPercents,
+                        enabled = uiState.tokenIn != null &&
+                            uiState.availableBalance?.let { it > BigDecimal.ZERO } == true,
+                        onSelect = {
+                            focusManager.clearFocus()
+                            onEnterAmountPercentage(it)
+                        },
+                        onSelectExact = {
+                            focusManager.clearFocus()
+                            onEnterAmountPercentageExact(it)
+                        },
                     )
                     VSpacer(height = bottomPadding)
                 }
@@ -657,29 +660,23 @@ private fun ProviderCellInfo(
     Column(
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
-        CellSecondary(
-            middle = {
-                LeftSelector(
-                    title = stringResource(R.string.Swap_Providers),
-                    onClick = onClickProvider
-                )
-            },
-            right = {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ProviderSelector(
+                title = quote.provider.title,
+                icon = quote.provider.icon,
+                modifier = Modifier.weight(1f),
+                onClick = onClickProvider,
+            )
+            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                 CellRightControlsButtonText(
                     subhead = priceStr.hs(color = ComposeAppTheme.colors.leah),
                     onClick = onClickPrice
                 )
             }
-        )
-        if (App.localStorage.showSwapProviderName) {
-            CellSecondary(
-                middle = {
-                    CellMiddleInfo(eyebrow = "Provider".hs)
-                },
-                right = {
-                    CellRightInfo(titleSubheadSb = quote.provider.title.hs)
-                }
-            )
         }
         CellSecondary(
             middle = {
@@ -754,16 +751,28 @@ private fun SwapTime(
 }
 
 @Composable
-private fun LeftSelector(
+private fun ProviderSelector(
     title: String,
+    icon: Int?,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable { onClick.invoke() }
+        modifier = modifier.clickable(role = Role.Button, onClick = onClick).padding(vertical = 8.dp)
     ) {
-        subhead2_leah(title)
+        CellLeftImage(
+            painter = painterResource(icon ?: R.drawable.ic_platform_placeholder_32),
+            type = ImageType.Rectangle,
+            size = 32,
+        )
+        subhead2_leah(
+            text = title,
+            modifier = Modifier.weight(1f, fill = false),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         Icon(
             modifier = Modifier
                 .size(20.dp),
@@ -847,10 +856,6 @@ private fun SwapInput(
     focusRequester: FocusRequester,
     availableBalance: BigDecimal?,
     onAvailableBalanceClick: (() -> Unit)?,
-    onPercentClick: (Int) -> Unit,
-    onPercentClickExact: (BigDecimal) -> Unit,
-    percentOptions: List<Int>,
-    disabledPercents: Set<Int>,
     onClearClick: (() -> Unit)
 ) {
     Column(
@@ -860,10 +865,6 @@ private fun SwapInput(
             balanceToken = tokenIn,
             availableBalance = availableBalance,
             onAvailableBalanceClick = onAvailableBalanceClick,
-            onPercentClick = onPercentClick,
-            onPercentClickExact = onPercentClickExact,
-            percents = percentOptions,
-            disabledPercents = disabledPercents,
             onClearClick = onClearClick,
             showClear = amountIn != null
         )
@@ -879,7 +880,8 @@ private fun SwapInput(
                     onValueChange = onValueChange,
                     onFiatValueChange = onFiatValueChange,
                     amountExceedsBalance = false,
-                    onTokenClick = onClickCoinFrom
+                    onTokenClick = onClickCoinFrom,
+                    tokenOnRight = true,
                 )
                 SwapCoinInputTo(
                     coinAmount = amountOut,
@@ -922,9 +924,7 @@ private fun SwapCoinInputTo(
             modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TokenSelector(token = token, onClick = onClickCoin)
-            HSpacer(8.dp)
-            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
                 Text(
                     text = (coinAmount ?: BigDecimal.ZERO).toPlainString(),
                     style = ComposeAppTheme.typography.headline1,
@@ -957,6 +957,8 @@ private fun SwapCoinInputTo(
                     FiatLinePlaceholder(currency)
                 }
             }
+            HSpacer(8.dp)
+            TokenSelector(token = token, onClick = onClickCoin)
         }
     }
 }
@@ -967,28 +969,13 @@ fun FiatAmountInput(
     currency: Currency,
     onValueChange: (BigDecimal?) -> Unit,
     enabled: Boolean,
+    textAlign: TextAlign = TextAlign.End,
 ) {
     var text by remember(value) {
         mutableStateOf(value?.toPlainString() ?: "")
     }
     val displayTransformation = remember(currency.symbol) {
-        VisualTransformation { originalText ->
-            if (originalText.text.isEmpty()) {
-                TransformedText(originalText, OffsetMapping.Identity)
-            } else {
-                val prefixLen = currency.symbol.length
-                val visual = AnnotatedString(currency.symbol + originalText.text)
-                TransformedText(
-                    text = visual,
-                    offsetMapping = object : OffsetMapping {
-                        override fun originalToTransformed(offset: Int) =
-                            offset + prefixLen
-                        override fun transformedToOriginal(offset: Int) =
-                            (offset - prefixLen).coerceIn(0, originalText.text.length)
-                    }
-                )
-            }
-        }
+        FiatAmountTransformation(currency.symbol)
     }
     BasicTextField(
         modifier = Modifier.fillMaxWidth(),
@@ -1008,9 +995,9 @@ fun FiatAmountInput(
         },
         enabled = enabled,
         textStyle = ColoredTextStyle(
-            color = ComposeAppTheme.colors.grey,
+            color = if (text.isEmpty()) ComposeAppTheme.colors.andy else ComposeAppTheme.colors.grey,
             textStyle = ComposeAppTheme.typography.body,
-            textAlign = TextAlign.End,
+            textAlign = textAlign,
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -1018,18 +1005,6 @@ fun FiatAmountInput(
         ),
         cursorBrush = SolidColor(ComposeAppTheme.colors.leah),
         visualTransformation = displayTransformation,
-        decorationBox = { innerTextField ->
-            if (text.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                    Text(
-                        text = "${currency.symbol}0",
-                        style = ComposeAppTheme.typography.body,
-                        color = ComposeAppTheme.colors.andy,
-                    )
-                }
-            }
-            innerTextField()
-        }
     )
 }
 
@@ -1038,7 +1013,8 @@ fun AmountInput(
     value: BigDecimal?,
     onValueChange: (BigDecimal?) -> Unit,
     focusRequester: FocusRequester = FocusRequester(),
-    error: Boolean
+    error: Boolean,
+    textAlign: TextAlign = TextAlign.End,
 ) {
     val textColor = if (error) ComposeAppTheme.colors.lucian else ComposeAppTheme.colors.leah
     var amount by rememberSaveable {
@@ -1097,7 +1073,7 @@ fun AmountInput(
         textStyle = ColoredTextStyle(
             color = textColor,
             textStyle = ComposeAppTheme.typography.headline1,
-            textAlign = TextAlign.End,
+            textAlign = textAlign,
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -1106,7 +1082,7 @@ fun AmountInput(
         cursorBrush = SolidColor(textColor),
         decorationBox = { innerTextField ->
             if (textFieldValue.text.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = if (textAlign == TextAlign.Start) Alignment.CenterStart else Alignment.CenterEnd) {
                     Text(
                         text = "0",
                         style = ComposeAppTheme.typography.headline1,

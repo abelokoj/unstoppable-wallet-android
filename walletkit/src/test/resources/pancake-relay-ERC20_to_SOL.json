@@ -1,0 +1,90 @@
+{
+  "quote": {
+    "supported": true,
+    "requestId": "0x1793201280c71b24f3d3035024edf4315a9dc75397c3a2ad56043fcb5a769862",
+    "amount": "25000000",
+    "inputToken": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "originChainId": 1,
+    "outputToken": "11111111111111111111111111111111",
+    "destinationChainId": 8000001001,
+    "rate": "0.00985484248",
+    "expectedFillTimeSec": "1",
+    "bridgeTransactionData": {
+      "minimumOutputAmount": "243907351",
+      "outputAmount": "246371062",
+      "totalFeePct": "0.3342",
+      "totalFee": "0.083523",
+      "totalImpactPct": "-0.33"
+    }
+  },
+  "response": {
+    "requestId": "0x1793201280c71b24f3d3035024edf4315a9dc75397c3a2ad56043fcb5a769862",
+    "amount": "246371062",
+    "inputToken": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "originChainId": 1,
+    "outputToken": "11111111111111111111111111111111",
+    "destinationChainId": 8000001001,
+    "expectedFillTimeSec": "1",
+    "rate": "0.00985484248",
+    "bridgeTransactionData": {
+      "outputAmount": "246371062",
+      "minimumOutputAmount": "243907351",
+      "totalFeePct": "0.3342",
+      "totalFee": "0.083523",
+      "totalImpactPct": "-0.33"
+    },
+    "steps": [
+      {
+        "id": "approve",
+        "action": "Confirm transaction in your wallet",
+        "description": "Sign an approval for USDC",
+        "kind": "transaction",
+        "items": [
+          {
+            "status": "incomplete",
+            "data": {
+              "from": "0x1111111111111111111111111111111111111111",
+              "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+              "data": "0x095ea7b30000000000000000000000004cd00e387622c35bddb9b4c962c136462338bc3100000000000000000000000000000000000000000000000000000000017d7840",
+              "value": "0",
+              "chainId": 1,
+              "gas": "73284",
+              "maxFeePerGas": "191098279",
+              "maxPriorityFeePerGas": "38267957"
+            }
+          }
+        ],
+        "requestId": "0x1793201280c71b24f3d3035024edf4315a9dc75397c3a2ad56043fcb5a769862"
+      },
+      {
+        "id": "deposit",
+        "action": "Confirm transaction in your wallet",
+        "description": "Depositing funds to the relayer to execute the swap for SOL",
+        "kind": "transaction",
+        "items": [
+          {
+            "status": "incomplete",
+            "data": {
+              "from": "0x1111111111111111111111111111111111111111",
+              "to": "0x4cd00e387622c35bddb9b4c962c136462338bc31",
+              "data": "0xe80179520000000000000000000000001111111111111111111111111111111111111111000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000017d78408672314958e75bd8433900b17ebcc1d6092994d641b8ec0a3ce101caecf49e79",
+              "value": "0",
+              "chainId": 1,
+              "gas": "76368",
+              "maxFeePerGas": "191098279",
+              "maxPriorityFeePerGas": "38267957"
+            },
+            "check": {
+              "endpoint": "/intents/status?requestId=0x1793201280c71b24f3d3035024edf4315a9dc75397c3a2ad56043fcb5a769862",
+              "method": "GET"
+            }
+          }
+        ],
+        "requestId": "0x1793201280c71b24f3d3035024edf4315a9dc75397c3a2ad56043fcb5a769862",
+        "depositAddress": ""
+      }
+    ]
+  },
+  "owner": "0x1111111111111111111111111111111111111111",
+  "recipient": "6uzPkC5fsHgBwZLjpDjMgryfnioXo6uGEbMbEGVNk2GR"
+}

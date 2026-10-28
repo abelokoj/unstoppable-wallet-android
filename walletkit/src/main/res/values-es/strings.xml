@@ -2021,4 +2021,27 @@
     <string name="ApprovalAccess_RevokeError">No se pudo preparar o enviar la revocación. El permiso o la billetera pueden haber cambiado, Tor puede estar desconectado o la red puede no estar disponible. Vuelve a la lista y comprueba de nuevo. Si se interrumpió un envío, comprueba el historial de transacciones antes de reintentarlo.</string>
     <string name="ApprovalAccess_SubmittedButton">Transacción enviada</string>
     <string name="ApprovalAccess_Submitted">La transacción de revocación se ha enviado, pero aún no está confirmada. Espera la confirmación en el historial de transacciones y después vuelve a analizar o comprobar el permiso.</string>
+    <string name="ApprovalAccess_UnknownToken">Token desconocido</string>
+    <string name="ApprovalAccess_SelectHint">Mantén pulsado para seleccionar tokens.</string>
+    <string name="ApprovalAccess_Selected">%1$d seleccionados</string>
+    <string name="ApprovalAccess_PermissionCount">%1$d autorizaciones</string>
+    <string name="ApprovalAccess_RevokeSelected">Revocar selección (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">Seleccionar todo</string>
+    <string name="ApprovalAccess_ClearSelection">Borrar selección</string>
+    <string name="ApprovalAccess_SelectionTitle">Revisar revocaciones</string>
+    <string name="ApprovalAccess_SeparateTransactions">Cada autorización se revoca en una transacción independiente con su propia comisión de red. Revisa y confirma cada transacción antes de enviarla.</string>
+    <string name="ApprovalAccess_SubmittedCount">%1$d de %2$d enviadas</string>
+    <string name="ApprovalAccess_ContinueScan">Continuar análisis</string>
+    <string name="ApprovalAccess_ManualShort">Comprobación manual</string>
+    <string name="ApprovalAccess_PendingConfirmation">Pendiente de confirmación</string>
+    <string name="ApprovalAccess_TokenNameValue">Nombre del token: %1$s</string>
+    <string name="ApprovalAccess_SpenderContract">Contrato del autorizado: %1$s</string>
+    <string name="ApprovalAccess_ApprovalType">Tipo de autorización: %1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞ (Ilimitada)</string>
+    <string name="ApprovalAccess_TokenAmount">Cantidad en unidades del token: %1$s</string>
+    <string name="ApprovalAccess_Unknown">Desconocido</string>
+    <string name="ApprovalAccess_UnknownAmount">No disponible (decimales del token desconocidos)</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s unidades mínimas</string>
+    <string name="ApprovalAccess_NamesHelp">Los nombres proceden de etiquetas de direcciones guardadas y pueden variar según la red. Un nombre no garantiza la seguridad. Verifica las direcciones completas de los contratos.</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">No se pudo calcular un máximo disponible. Revisa las comisiones e intenta una cantidad menor o actualiza la cotización.</string>
 </resources>

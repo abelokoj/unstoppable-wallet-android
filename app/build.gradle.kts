@@ -25,8 +25,8 @@ android {
         applicationId = "money.openswap.wallet"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
-        versionCode = 183
-        versionName = "0.52.2"
+        versionCode = 184
+        versionName = "0.52.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         resourceConfigurations += listOf("de", "es", "en", "fa", "fr", "ko", "pt", "pt-rBR", "ru", "tr", "zh")

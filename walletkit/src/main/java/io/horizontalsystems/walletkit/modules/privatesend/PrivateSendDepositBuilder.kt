@@ -2,6 +2,8 @@ package io.horizontalsystems.walletkit.modules.privatesend
 
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.marketkit.models.BlockchainType
+import io.horizontalsystems.marketkit.models.Token
+import java.math.BigDecimal
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
 import io.horizontalsystems.walletkit.modules.multiswap.providers.UnstoppableAPI
 import io.horizontalsystems.walletkit.modules.multiswap.providers.XrpDestinationTag
@@ -17,18 +19,18 @@ import io.horizontalsystems.walletkit.modules.privatesend.PrivateSendDepositBuil
  */
 object PrivateSendDepositBuilder {
 
-    fun build(order: PrivateSendOrder, btcParams: PrivateSendBtcParams? = null): SendTransactionData {
-        val token = order.request.token
-        val memo = deliverableMemo(order.attachment, token.blockchainType)
+    fun build(order: PrivateSendOrder, btcParams: PrivateSendBtcParams? = null): SendTransactionData =
+        transfer(order.request.token, order.depositAmount, order.depositAddress, order.attachment, btcParams)
+
+    internal fun transfer(token: Token, amount: BigDecimal, address: String,
+        attachment: UnstoppableAPI.Response.Attachment? = null, btcParams: PrivateSendBtcParams? = null): SendTransactionData {
+        val memo = deliverableMemo(attachment, token.blockchainType)
 
         // EVM needs the kit for ERC20 transfer calldata, so its plugin builds the data.
         // (No EVM path carries a memo, and the gate above already rejected any attachment.)
-        ChainRegistry[token.blockchainType]?.depositTransferData(token, order.depositAmount, order.depositAddress)?.let {
+        ChainRegistry[token.blockchainType]?.depositTransferData(token, amount, address)?.let {
             return it
         }
-
-        val address = order.depositAddress
-        val amount = order.depositAmount
 
         return when (token.blockchainType) {
             BlockchainType.Bitcoin,
@@ -81,7 +83,7 @@ object PrivateSendDepositBuilder {
             BlockchainType.Xrp -> SendTransactionData.Xrp(
                 address = address,
                 amount = amount,
-                destinationTag = deliverableDestinationTag(order.attachment),
+                destinationTag = deliverableDestinationTag(attachment),
             )
 
             // No Zcash/Monero/Zano branches: those chains' own transactions already hide the

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -27,6 +28,7 @@ import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTran
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldFeeTemplate
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
+import io.horizontalsystems.walletkit.modules.nav3.LocalResultEventBus
 import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
@@ -45,6 +47,11 @@ data class ApprovalRevokePage(val accountId: String, val blockchainType: Blockch
     @Composable
     override fun GetContent(navigation: HSNavigation) {
         val model = viewModel<ApprovalRevokeViewModel>(factory = ApprovalRevokeViewModel.Factory(this))
+        val results = LocalResultEventBus.current
+        LaunchedEffect(model.hash) {
+            val hash = model.hash
+            if (hash != null && resultKey != null) results.sendResult(Result(target.key, hash))
+        }
         val network = App.evmBlockchainManager.getBlockchain(blockchainType)?.name ?: blockchainType.uid
         val authorize = navigation.authorizedAction(model::submit)
         ConfirmTransactionScreen(
@@ -54,10 +61,10 @@ data class ApprovalRevokePage(val accountId: String, val blockchainType: Blockch
             buttonsSlot = {
                 HSButton(
                     modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(if (model.submitted) R.string.ApprovalAccess_SubmittedButton else R.string.Swap_Revoke),
-                    enabled = model.ready && !model.submitting && !model.submitted && model.feeState?.sendable == true,
+                    title = stringResource(if (model.submitted) R.string.Button_Done else R.string.Swap_Revoke),
+                    enabled = model.submitted || (model.ready && !model.submitting && model.feeState?.sendable == true),
                     loadingIndicator = model.submitting,
-                    onClick = authorize,
+                    onClick = { if (model.submitted) navigation.removeLastOrNull() else authorize() },
                 )
             },
         ) {
@@ -86,9 +93,11 @@ data class ApprovalRevokePage(val accountId: String, val blockchainType: Blockch
                 TextBlock(stringResource(R.string.ApprovalAccess_Submitted))
                 model.hash?.let { TextBlock(it) }
             }
-            TextBlock(stringResource(R.string.ApprovalAccess_Limits))
         }
     }
+
+    @Serializable
+    data class Result(val targetKey: String, val transactionHash: String)
 }
 
 class ApprovalRevokeViewModel(private val page: ApprovalRevokePage) : ViewModel() {

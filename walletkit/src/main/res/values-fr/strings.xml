@@ -2023,4 +2023,27 @@
     <string name="ApprovalAccess_RevokeError">La révocation n\'a pas pu être préparée ou envoyée. L\'autorisation ou le portefeuille a peut-être changé, Tor est peut-être déconnecté ou le réseau est indisponible. Revenez à la liste et vérifiez à nouveau. Si un envoi a été interrompu, consultez l\'historique des transactions avant de réessayer.</string>
     <string name="ApprovalAccess_SubmittedButton">Transaction envoyée</string>
     <string name="ApprovalAccess_Submitted">La transaction de révocation a été envoyée, mais n\'est pas encore confirmée. Attendez sa confirmation dans l\'historique des transactions, puis analysez ou vérifiez à nouveau l\'autorisation.</string>
+    <string name="ApprovalAccess_UnknownToken">Jeton inconnu</string>
+    <string name="ApprovalAccess_SelectHint">Appuyez longuement pour sélectionner des jetons.</string>
+    <string name="ApprovalAccess_Selected">%1$d sélectionnés</string>
+    <string name="ApprovalAccess_PermissionCount">%1$d autorisations</string>
+    <string name="ApprovalAccess_RevokeSelected">Révoquer la sélection (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">Tout sélectionner</string>
+    <string name="ApprovalAccess_ClearSelection">Effacer la sélection</string>
+    <string name="ApprovalAccess_SelectionTitle">Vérifier les révocations</string>
+    <string name="ApprovalAccess_SeparateTransactions">Chaque autorisation est révoquée dans une transaction distincte avec ses propres frais réseau. Vérifiez et confirmez chaque transaction avant son envoi.</string>
+    <string name="ApprovalAccess_SubmittedCount">%1$d sur %2$d envoyées</string>
+    <string name="ApprovalAccess_ContinueScan">Continuer l’analyse</string>
+    <string name="ApprovalAccess_ManualShort">Vérification manuelle</string>
+    <string name="ApprovalAccess_PendingConfirmation">En attente de confirmation</string>
+    <string name="ApprovalAccess_TokenNameValue">Nom du token : %1$s</string>
+    <string name="ApprovalAccess_SpenderContract">Contrat du bénéficiaire : %1$s</string>
+    <string name="ApprovalAccess_ApprovalType">Type d\'autorisation : %1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞ (Illimitée)</string>
+    <string name="ApprovalAccess_TokenAmount">Montant en unités du token : %1$s</string>
+    <string name="ApprovalAccess_Unknown">Inconnu</string>
+    <string name="ApprovalAccess_UnknownAmount">Indisponible (décimales du token inconnues)</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s unités brutes</string>
+    <string name="ApprovalAccess_NamesHelp">Les noms proviennent des libellés d\'adresses enregistrés et peuvent varier selon le réseau. Un nom ne garantit pas la sécurité. Vérifiez les adresses complètes des contrats.</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">Impossible de calculer le montant maximal disponible. Vérifiez les frais et essayez un montant inférieur ou actualisez le devis.</string>
 </resources>

@@ -126,6 +126,7 @@ class SendTransactionServiceEvm(
     override val sendTransactionSettingsFlow = _sendTransactionSettingsFlow.asStateFlow()
     override val supportsMevProtection = evmKitWrapper.merkleTransactionAdapter != null
 
+    private var requestedTransactionData: TransactionData? = null
     private var transaction: SendEvmSettingsService.Transaction? = null
     private var feeAmountData: SendModule.AmountData? = null
     private var cautions: List<CautionViewItem> = listOf()
@@ -194,6 +195,10 @@ class SendTransactionServiceEvm(
     }
 
     private fun handleTransactionState(transactionState: DataState<SendEvmSettingsService.Transaction>) {
+        val prepared = transactionState.dataOrNull?.transactionData
+        val requested = requestedTransactionData
+        if (prepared != null && requested != null && (prepared.to != requested.to || prepared.value != requested.value ||
+                !prepared.input.contentEquals(requested.input))) return
         loading = transactionState.loading
         transaction = transactionState.dataOrNull
         feeAmountData = transaction?.let {
@@ -231,8 +236,22 @@ class SendTransactionServiceEvm(
     override suspend fun setSendTransactionData(data: SendTransactionData) {
         check(data is SendTransactionData.Evm)
 
+        val requested = data.transactionData.toKitTransactionData()
+        requestedTransactionData = requested
+        transaction = null
+        sendable = false
+        loading = true
+        feeAmountData = null
+        cautions = emptyList()
+        emitState()
         feeService.setGasLimit(data.gasLimit)
-        feeService.setTransactionData(data.transactionData.toKitTransactionData())
+        feeService.setTransactionData(requested)
+    }
+
+    override fun maxSendableAmount(): BigDecimal? {
+        val prepared = transaction ?: return null
+        val balance = evmKitWrapper.evmKit.accountState?.balance ?: return null
+        return (balance - prepared.gasData.fee).toBigDecimal().movePointLeft(token.decimals)
     }
 
     suspend fun signTransaction(): EvmKitManager.SignedTx {

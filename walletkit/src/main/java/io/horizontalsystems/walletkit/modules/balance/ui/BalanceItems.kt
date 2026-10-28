@@ -351,7 +351,6 @@ fun BalanceItems(
                 }
             }
 
-            if (balanceViewItems.isNotEmpty()) {
                 stickyHeader {
                     TabsSectionButtons(
                         left = {
@@ -375,6 +374,15 @@ fun BalanceItems(
                                     )
                                 }
                             )
+                            HSIconButton(
+                                variant = ButtonVariant.Secondary,
+                                size = ButtonSize.Small,
+                                icon = painterResource(R.drawable.ic_shield_off_24),
+                                contentDescription = stringResource(R.string.ApprovalAccess_Title),
+                                onClick = {
+                                    navigation.slideFromRight(io.horizontalsystems.walletkit.modules.approvals.ApprovalAccessPage)
+                                },
+                            )
                         },
                         right = {
                             if (!uiState.networkAvailable) {
@@ -391,8 +399,6 @@ fun BalanceItems(
                         }
                     )
                 }
-            }
-
             if (balanceViewItems.isEmpty()) {
                 item {
                     NoCoinsBlock(

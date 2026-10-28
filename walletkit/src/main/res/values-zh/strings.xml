@@ -2020,4 +2020,27 @@
     <string name="ApprovalAccess_RevokeError">无法准备或提交撤销操作。权限或钱包可能已更改，Tor 可能已断开，或网络可能不可用。请返回列表重新检查。如果提交中断，请先检查交易历史再重试。</string>
     <string name="ApprovalAccess_SubmittedButton">交易已提交</string>
     <string name="ApprovalAccess_Submitted">撤销交易已提交，但尚未确认。请等待交易历史中显示确认，然后重新扫描或检查权限。</string>
+    <string name="ApprovalAccess_UnknownToken">未知代币</string>
+    <string name="ApprovalAccess_SelectHint">长按以选择代币。</string>
+    <string name="ApprovalAccess_Selected">已选择 %1$d 项</string>
+    <string name="ApprovalAccess_PermissionCount">%1$d 项授权</string>
+    <string name="ApprovalAccess_RevokeSelected">撤销所选授权 (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">全选</string>
+    <string name="ApprovalAccess_ClearSelection">清除选择</string>
+    <string name="ApprovalAccess_SelectionTitle">检查撤销操作</string>
+    <string name="ApprovalAccess_SeparateTransactions">每项授权通过单独的交易撤销，并分别产生网络费用。请在发送前检查并确认每笔交易。</string>
+    <string name="ApprovalAccess_SubmittedCount">已提交 %1$d/%2$d 笔</string>
+    <string name="ApprovalAccess_ContinueScan">继续扫描</string>
+    <string name="ApprovalAccess_ManualShort">手动检查</string>
+    <string name="ApprovalAccess_PendingConfirmation">等待确认</string>
+    <string name="ApprovalAccess_TokenNameValue">代币名称：%1$s</string>
+    <string name="ApprovalAccess_SpenderContract">获授权方合约：%1$s</string>
+    <string name="ApprovalAccess_ApprovalType">授权类型：%1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞（无限）</string>
+    <string name="ApprovalAccess_TokenAmount">代币单位金额：%1$s</string>
+    <string name="ApprovalAccess_Unknown">未知</string>
+    <string name="ApprovalAccess_UnknownAmount">不可用（代币小数位数未知）</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s 最小单位</string>
+    <string name="ApprovalAccess_NamesHelp">名称来自已保存的地址标签，可能因网络而异。名称不代表安全保证。请核对完整的合约地址。</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">无法确定可支付的最大金额。请检查费用，尝试较小金额或刷新报价。</string>
 </resources>

@@ -72,6 +72,23 @@ class EvmApprovalAccessService private constructor(
         ApprovalAbi.revoke(target)
     }
 
+    override suspend fun metadata(target: ApprovalTarget): ApprovalAssetMetadata? = mutex.withLock {
+        ApprovalAbi.validate(target)
+        val rpc = openRpc()
+        suspend fun text(selector: String, maxLength: Int): String? = try {
+            ApprovalMetadataParser.text(rpc.contractCall(target.contract, selector).asString, maxLength)
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { null }
+        val name = text("06fdde03", 128)
+        val symbol = text("95d89b41", 32)
+        if (name == null && symbol == null) return@withLock null
+        val decimals = if (target.kind == ApprovalKind.Token) try {
+            word(rpc.contractCall(target.contract, "313ce567")).intValueExact().takeIf { it in 0..255 }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { null } else null
+        ApprovalAssetMetadata(name ?: symbol!!, symbol ?: "", decimals)
+    }
+
     private fun remember(targets: List<ApprovalTarget>) {
         require((candidates.keys + targets.map { it.key }).size <= 5000) {
             "Too many permissions to scan in one session"

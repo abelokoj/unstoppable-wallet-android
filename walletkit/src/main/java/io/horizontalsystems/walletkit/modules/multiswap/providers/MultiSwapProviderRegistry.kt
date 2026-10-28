@@ -28,6 +28,7 @@ object MultiSwapProviderRegistry {
             supportsSourceToken = { it.blockchainType.isEvm || it.blockchainType == BlockchainType.Tron },
         ),
         RelayProvider,
+        PancakeCrossChainProvider,
         // Axelar ITS' Stellar leg is a server-built XDR envelope (signed_transaction), so
         // Stellar joins the default sourceAddress build signal (EVM covers the other leg).
         USwapProvider(

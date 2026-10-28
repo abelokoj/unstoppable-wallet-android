@@ -2,7 +2,9 @@ package io.horizontalsystems.walletkit.modules.approvals
 
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.EvmTransactionData
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
 import java.math.BigInteger
+import io.horizontalsystems.marketkit.models.Token
 
 @Serializable
 enum class ApprovalKind { Token, Nft, NftCollection }
@@ -18,7 +20,35 @@ data class ApprovalTarget(
     val key: String get() = "${contract.lowercase()}:${spender.lowercase()}:$kind:$tokenId"
 }
 
+@Serializable
 data class ActiveApproval(val target: ApprovalTarget, val rawAllowance: String)
+
+data class ApprovalAssetMetadata(val name: String, val symbol: String, val decimals: Int?)
+
+@Serializable
+data class ApprovalTokenInfo(val name: String? = null, val symbol: String? = null, val decimals: Int? = null) {
+    fun amount(rawAllowance: String): BigDecimal? {
+        val scale = decimals?.takeIf { it in 0..255 } ?: return null
+        if (rawAllowance.length !in 1..78 || rawAllowance.any { it !in '0'..'9' }) return null
+        val raw = rawAllowance.toBigIntegerOrNull()?.takeIf { it <= ApprovalAbi.maxUint256 } ?: return null
+        return BigDecimal(raw, scale)
+    }
+}
+
+data class ApprovalAccessItem(
+    val contract: String,
+    val token: Token?,
+    val approvals: List<ActiveApproval>,
+    val name: String? = null,
+    val imageUrl: String? = null,
+) {
+    val tokenInfo: ApprovalTokenInfo
+        get() = ApprovalTokenInfo(token?.coin?.name ?: name, token?.coin?.code, token?.decimals)
+}
+
+internal fun groupApprovalItems(approvals: List<ActiveApproval>): List<ApprovalAccessItem> =
+    approvals.distinctBy { it.target.key }.groupBy { it.target.contract.lowercase() }
+        .map { (contract, permissions) -> ApprovalAccessItem(contract, null, permissions) }
 
 data class ApprovalScan(
     val approvals: List<ActiveApproval>,
@@ -33,6 +63,7 @@ interface ApprovalAccessService {
     suspend fun scan(onProgress: (Long) -> Unit): ApprovalScan
     suspend fun check(target: ApprovalTarget): ActiveApproval?
     suspend fun revokeData(target: ApprovalTarget): EvmTransactionData
+    suspend fun metadata(target: ApprovalTarget): ApprovalAssetMetadata? = null
 }
 
 /** Pure, allowlisted ABI construction shared by scan validation and transaction review. */

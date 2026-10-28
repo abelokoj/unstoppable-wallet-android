@@ -7,6 +7,7 @@ import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.walletkit.entities.TransactionDataSortMode
 import org.json.JSONObject
 import java.math.BigDecimal
+import java.math.BigInteger
 
 sealed class SendTransactionData {
     data class Evm(
@@ -49,6 +50,15 @@ sealed class SendTransactionData {
 
             override fun hashCode() = rawTransaction.contentHashCode()
         }
+        data class WithRelayInstructions(
+            val instructions: List<SolanaInstruction>,
+            val lookupTables: List<String>,
+            val senderAddress: String,
+            val inputMint: String,
+            val inputAmount: BigInteger,
+            val requestId: String,
+            val slippageBps: Int,
+        ) : Solana()
         data class Simple(val address: String, val amount: BigDecimal) : Solana()
     }
 
@@ -136,3 +146,12 @@ data class EvmTransactionData(
     val value: java.math.BigInteger,
     val input: ByteArray,
 )
+
+/** Uncompiled instructions are validated and compiled by the Solana chain module. */
+data class SolanaInstruction(
+    val programId: String,
+    val keys: List<SolanaAccountMeta>,
+    val data: String,
+)
+
+data class SolanaAccountMeta(val pubkey: String, val isSigner: Boolean, val isWritable: Boolean)

@@ -2009,4 +2009,27 @@
     <string name="ApprovalAccess_RevokeError">آماده‌سازی یا ارسال لغو ممکن نشد. شاید مجوز یا کیف پول تغییر کرده، Tor قطع شده یا شبکه در دسترس نیست. به فهرست برگردید و دوباره بررسی کنید. اگر ارسال قطع شده است، پیش از تلاش مجدد تاریخچه تراکنش‌ها را بررسی کنید.</string>
     <string name="ApprovalAccess_SubmittedButton">تراکنش ارسال شد</string>
     <string name="ApprovalAccess_Submitted">تراکنش لغو ارسال شده، اما هنوز تأیید نشده است. منتظر تأیید در تاریخچه تراکنش‌ها بمانید، سپس دوباره اسکن کنید یا مجوز را بررسی کنید.</string>
+    <string name="ApprovalAccess_UnknownToken">توکن ناشناخته</string>
+    <string name="ApprovalAccess_SelectHint">برای انتخاب توکن‌ها لمس کنید و نگه دارید.</string>
+    <string name="ApprovalAccess_Selected">%1$d انتخاب‌شده</string>
+    <string name="ApprovalAccess_PermissionCount">%1$d مجوز</string>
+    <string name="ApprovalAccess_RevokeSelected">لغو موارد انتخابی (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">انتخاب همه</string>
+    <string name="ApprovalAccess_ClearSelection">پاک کردن انتخاب</string>
+    <string name="ApprovalAccess_SelectionTitle">بررسی لغو مجوزها</string>
+    <string name="ApprovalAccess_SeparateTransactions">هر مجوز در تراکنشی جداگانه با کارمزد شبکه مستقل لغو می‌شود. هر تراکنش را پیش از ارسال بررسی و تأیید کنید.</string>
+    <string name="ApprovalAccess_SubmittedCount">%1$d از %2$d ارسال شد</string>
+    <string name="ApprovalAccess_ContinueScan">ادامه اسکن</string>
+    <string name="ApprovalAccess_ManualShort">بررسی دستی</string>
+    <string name="ApprovalAccess_PendingConfirmation">در انتظار تأیید</string>
+    <string name="ApprovalAccess_TokenNameValue">نام توکن: %1$s</string>
+    <string name="ApprovalAccess_SpenderContract">قرارداد خرج‌کننده: %1$s</string>
+    <string name="ApprovalAccess_ApprovalType">نوع مجوز: %1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞ (نامحدود)</string>
+    <string name="ApprovalAccess_TokenAmount">مقدار بر حسب واحد توکن: %1$s</string>
+    <string name="ApprovalAccess_Unknown">ناشناخته</string>
+    <string name="ApprovalAccess_UnknownAmount">در دسترس نیست (تعداد اعشار توکن نامشخص است)</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s واحد پایه</string>
+    <string name="ApprovalAccess_NamesHelp">نام‌ها از برچسب‌های ذخیره‌شده آدرس‌ها می‌آیند و ممکن است در شبکه‌های مختلف متفاوت باشند. نام، تضمین امنیت نیست. آدرس کامل قراردادها را بررسی کنید.</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">حداکثر مقدار قابل پرداخت مشخص نشد. کارمزدها را بررسی کنید و مقدار کمتری وارد کنید یا قیمت را تازه‌سازی کنید.</string>
 </resources>

@@ -1,0 +1,81 @@
+{
+  "quote": {
+    "requestId": "bd28bcdb50c1c30d5bd562b130a93264",
+    "srcToken": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+    "dstToken": "0x0000000000000000000000000000000000000000",
+    "chainId": 56,
+    "tradeType": "exactIn",
+    "inputAmount": "9993634129437591",
+    "outputAmount": "31120161797214702",
+    "gasUseEstimate": "112600",
+    "gasUseEstimateUsd": "4214095105050813",
+    "priceImpactBps": 1,
+    "priceImpactBpsWithoutFee": 0,
+    "aggregatorAddress": "0x2f68417A18dA681589F4eA64B9Cc9839209acfF7",
+    "swapFeeBps": "0",
+    "swapFee": "0",
+    "routes": [
+      {
+        "percent": 100,
+        "inputAmount": "9993634129437591",
+        "outputAmount": "31120161797214702",
+        "priceImpactBps": 1,
+        "priceImpactBpsWithoutFee": 0,
+        "path": [
+          {
+            "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+            "decimals": 18,
+            "symbol": "ETH"
+          },
+          {
+            "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "decimals": 18,
+            "symbol": "WBNB"
+          }
+        ],
+        "pools": [
+          {
+            "address": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+            "type": "v3",
+            "fee": 100,
+            "resolvedFee": 100,
+            "provider": "pancakeswap",
+            "token0": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+            "token1": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "hooks": null,
+            "parameters": null
+          }
+        ]
+      }
+    ],
+    "minBlockNumber": 130299024,
+    "quoteSource": "aggregator"
+  },
+  "states": [
+    {
+      "address": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+      "data": "0x0dfe1681",
+      "result": "0x0000000000000000000000002170ed0880ac9a755fd29b2688956bd959f933f8"
+    },
+    {
+      "address": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+      "data": "0xd21220a7",
+      "result": "0x000000000000000000000000bb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
+    },
+    {
+      "address": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+      "data": "0xddca3f43",
+      "result": "0x0000000000000000000000000000000000000000000000000000000000000064"
+    },
+    {
+      "address": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+      "data": "0x3850c7bd",
+      "result": "0x0000000000000000000000000000000000000001c3b0b62232352d8317806a450000000000000000000000000000000000000000000000000000000000002c5c000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000ce40ce40000000000000000000000000000000000000000000000000000000000000001"
+    },
+    {
+      "address": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+      "data": "0x1a686502",
+      "result": "0x0000000000000000000000000000000000000000000000ba71055634ff975121"
+    }
+  ]
+}

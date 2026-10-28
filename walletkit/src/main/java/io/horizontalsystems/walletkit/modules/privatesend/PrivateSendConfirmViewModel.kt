@@ -2,6 +2,13 @@ package io.horizontalsystems.walletkit.modules.privatesend
 
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.core.providers.Translator
+import io.horizontalsystems.walletkit.core.IBalanceAdapter
+import io.horizontalsystems.walletkit.modules.multiswap.swapFeePaidFromAsset
+import io.horizontalsystems.walletkit.modules.multiswap.providers.SwapHelper
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeout
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.WatchAccountException
 import io.horizontalsystems.walletkit.core.ViewModelUiState
@@ -63,6 +70,7 @@ class PrivateSendConfirmViewModel(
         .firstOrNull()
 
     private var order: PrivateSendOrder? = null
+    private var preparingDeposit = true
     private var depositData: SendTransactionData? = null
     private var error: Throwable? = null
     private var initialLoading = true
@@ -94,7 +102,7 @@ class PrivateSendConfirmViewModel(
         viewModelScope.launch {
             sendTransactionService.stateFlow.collect {
                 sendTransactionState = it
-                if (order != null) {
+                if (order != null && !preparingDeposit) {
                     initialLoading = initialLoading && it.loading
                 }
                 emitState()
@@ -138,10 +146,12 @@ class PrivateSendConfirmViewModel(
 
     override fun createState(): PrivateSendConfirmUiState {
         val order = order
+        val refreshRequired = order != null && !preparingDeposit && !sendTransactionState.loading &&
+            !maximumAffordable(order, sendTransactionState)
 
         return PrivateSendConfirmUiState(
             initialLoading = initialLoading,
-            loading = sendTransactionState.loading,
+            loading = preparingDeposit || sendTransactionState.loading,
             token = token,
             recipient = request.recipient,
             amountOut = order?.amountOut ?: request.amountOut,
@@ -151,10 +161,14 @@ class PrivateSendConfirmViewModel(
             estimatedTime = order?.estimatedTime,
             currency = currency,
             networkFee = sendTransactionState.networkFee,
-            cautions = sendTransactionState.cautions,
+            cautions = sendTransactionState.cautions + if (refreshRequired) listOf(CautionViewItem(
+                Translator.getString(R.string.EthereumTransaction_Error_CannotEstimate_Title),
+                Translator.getString(R.string.PrivateSend_Caution_MaxUnavailable), CautionViewItem.Type.Error)) else emptyList(),
             transactionFields = sendTransactionState.fields,
-            canSend = order != null && sendTransactionState.sendable && !expired && error == null,
+            canSend = order != null && !preparingDeposit && sendTransactionState.sendable && !sendTransactionState.loading &&
+                maximumAffordable(order, sendTransactionState) && !expired && error == null,
             expired = expired,
+            refreshRequired = refreshRequired,
             hasSettings = sendTransactionService.hasSettings,
             hasNonceSettings = sendTransactionService.hasNonceSettings,
             error = error,
@@ -173,6 +187,7 @@ class PrivateSendConfirmViewModel(
         }
 
         expired = false
+        preparingDeposit = true
         order = null
         depositData = null
         recordId = null
@@ -202,7 +217,12 @@ class PrivateSendConfirmViewModel(
                     throw WatchAccountException()
                 }
 
-                val order = manager.commit(request)
+                val effectiveRequest = if (request.sendMax) withTimeout(45_000) { prepareMaximumRequest() } else request
+                ensureActive()
+                val confirmingAccount = App.accountManager.activeAccount
+                if (confirmingAccount?.isWatchAccount != false || confirmingAccount.id != request.accountId)
+                    throw WatchAccountException()
+                val order = manager.commit(effectiveRequest)
 
                 ensureActive()
 
@@ -212,6 +232,10 @@ class PrivateSendConfirmViewModel(
                 val data = PrivateSendDepositBuilder.build(order, btcParams)
                 depositData = data
                 sendTransactionService.setSendTransactionData(data)
+                preparingDeposit = false
+                sendTransactionState = sendTransactionService.stateFlow.value
+                initialLoading = sendTransactionState.loading
+                emitState()
 
                 // CountDownTimer binds to the current thread's Looper, so the expiry timer
                 // must start on Main — this coroutine runs on Default.
@@ -226,6 +250,39 @@ class PrivateSendConfirmViewModel(
                 emitState()
             }
         }
+    }
+
+    private suspend fun prepareMaximumRequest(): PrivateSendRequest {
+        val available = App.adapterManager.getAdapterForToken<IBalanceAdapter>(token)?.balanceData?.available
+            ?: throw PrivateSendError.MaxUnavailable
+        var budget = request.amountOut.min(available)
+        if (budget <= BigDecimal.ZERO) throw PrivateSendError.MaxUnavailable
+        if (swapFeePaidFromAsset(token.type)) {
+            val ownAddress = SwapHelper.getReceiveAddressForToken(token)
+            val probe = PrivateSendDepositBuilder.transfer(token, budget, ownAddress, btcParams = btcParams)
+            sendTransactionService.refreshUuid()
+            sendTransactionService.setSendTransactionData(probe)
+            val settled = withTimeout(30_000) { sendTransactionService.stateFlow.first { !it.loading } }
+            val fee = settled.networkFee?.primary?.coinValue?.takeIf { it.coin.uid == token.coin.uid }?.value
+            val spendable = sendTransactionService.maxSendableAmount() ?: fee?.let { available - it }
+                ?: throw PrivateSendError.MaxUnavailable
+            budget = budget.min(spendable)
+        }
+        if (budget <= BigDecimal.ZERO) throw PrivateSendError.MaxUnavailable
+        return manager.maximumRequest(request, budget)
+    }
+
+    private fun maximumAffordable(order: PrivateSendOrder,
+        state: io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionServiceState): Boolean {
+        if (!request.sendMax) return true
+        val available = App.adapterManager.getAdapterForToken<IBalanceAdapter>(token)?.balanceData?.available ?: return false
+        var budget = request.amountOut.min(available)
+        if (swapFeePaidFromAsset(token.type)) {
+            val fee = state.networkFee?.primary?.coinValue?.takeIf { it.coin.uid == token.coin.uid }?.value
+            val spendable = sendTransactionService.maxSendableAmount() ?: fee?.let { available - it } ?: return false
+            budget = budget.min(spendable)
+        }
+        return order.depositAmount <= budget
     }
 
     override fun onCleared() {
@@ -252,6 +309,9 @@ class PrivateSendConfirmViewModel(
                 throw WatchAccountException()
             }
 
+            val state = sendTransactionService.stateFlow.value
+            if (preparingDeposit || state.loading || !state.sendable || expired || error != null || !maximumAffordable(order, state))
+                throw PrivateSendError.MaxUnavailable
             timerService.stop()
 
             // Pre-saved before broadcasting so the record survives the app dying between the
@@ -386,6 +446,7 @@ data class PrivateSendConfirmUiState(
     val transactionFields: List<DataField>,
     val canSend: Boolean,
     val expired: Boolean,
+    val refreshRequired: Boolean,
     val hasSettings: Boolean,
     val hasNonceSettings: Boolean,
     val error: Throwable?,

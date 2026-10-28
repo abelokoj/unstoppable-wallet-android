@@ -2022,4 +2022,27 @@
     <string name="ApprovalAccess_RevokeError">İptal hazırlanamadı veya gönderilemedi. İzin ya da cüzdan değişmiş, Tor bağlantısı kesilmiş veya ağ kullanılamıyor olabilir. Listeye dönüp tekrar kontrol edin. Gönderim kesintiye uğradıysa tekrar denemeden önce işlem geçmişini kontrol edin.</string>
     <string name="ApprovalAccess_SubmittedButton">İşlem gönderildi</string>
     <string name="ApprovalAccess_Submitted">İptal işlemi gönderildi ancak henüz onaylanmadı. İşlem geçmişinde onaylanmasını bekleyin, ardından izni yeniden tarayın veya kontrol edin.</string>
+    <string name="ApprovalAccess_UnknownToken">Bilinmeyen token</string>
+    <string name="ApprovalAccess_SelectHint">Token seçmek için basılı tutun.</string>
+    <string name="ApprovalAccess_Selected">%1$d seçildi</string>
+    <string name="ApprovalAccess_PermissionCount">%1$d izin</string>
+    <string name="ApprovalAccess_RevokeSelected">Seçilenleri iptal et (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">Tümünü seç</string>
+    <string name="ApprovalAccess_ClearSelection">Seçimi temizle</string>
+    <string name="ApprovalAccess_SelectionTitle">İptalleri incele</string>
+    <string name="ApprovalAccess_SeparateTransactions">Her izin, kendi ağ ücreti olan ayrı bir işlemle iptal edilir. Göndermeden önce her işlemi inceleyip onaylayın.</string>
+    <string name="ApprovalAccess_SubmittedCount">%2$d işlemin %1$d tanesi gönderildi</string>
+    <string name="ApprovalAccess_ContinueScan">Taramaya devam et</string>
+    <string name="ApprovalAccess_ManualShort">Manuel kontrol</string>
+    <string name="ApprovalAccess_PendingConfirmation">Onay bekleniyor</string>
+    <string name="ApprovalAccess_TokenNameValue">Token adı: %1$s</string>
+    <string name="ApprovalAccess_SpenderContract">Harcama yetkilisinin sözleşmesi: %1$s</string>
+    <string name="ApprovalAccess_ApprovalType">Onay türü: %1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞ (Sınırsız)</string>
+    <string name="ApprovalAccess_TokenAmount">Token birimi cinsinden tutar: %1$s</string>
+    <string name="ApprovalAccess_Unknown">Bilinmiyor</string>
+    <string name="ApprovalAccess_UnknownAmount">Kullanılamıyor (token ondalık basamakları bilinmiyor)</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s temel birim</string>
+    <string name="ApprovalAccess_NamesHelp">Adlar kayıtlı adres etiketlerinden gelir ve ağa göre değişebilir. Bir ad güvenliğin kanıtı değildir. Sözleşme adreslerinin tamamını doğrulayın.</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">Kullanılabilir en yüksek tutar hesaplanamadı. Ücretleri kontrol edip daha küçük bir tutar deneyin veya teklifi yenileyin.</string>
 </resources>

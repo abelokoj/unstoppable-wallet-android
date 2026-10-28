@@ -2380,4 +2380,27 @@
     <string name="ApprovalAccess_RevokeError">The revoke could not be prepared or submitted. The permission or wallet may have changed, Tor may be disconnected, or the network may be unavailable. Return to the list and check again. If a submission was interrupted, check transaction history before retrying.</string>
     <string name="ApprovalAccess_SubmittedButton">Transaction submitted</string>
     <string name="ApprovalAccess_Submitted">The revoke transaction was submitted, not yet confirmed. Wait for confirmation in transaction history, then scan or check the permission again.</string>
+    <string name="ApprovalAccess_UnknownToken">Unknown token</string>
+    <string name="ApprovalAccess_SelectHint">Touch and hold to select tokens.</string>
+    <string name="ApprovalAccess_Selected">%1$d selected</string>
+    <string name="ApprovalAccess_PermissionCount">%1$d approvals</string>
+    <string name="ApprovalAccess_RevokeSelected">Revoke selected (%1$d)</string>
+    <string name="ApprovalAccess_SelectAll">Select all</string>
+    <string name="ApprovalAccess_ClearSelection">Clear selection</string>
+    <string name="ApprovalAccess_SelectionTitle">Review revocations</string>
+    <string name="ApprovalAccess_SeparateTransactions">Each approval is revoked in a separate transaction with its own network fee. Review and confirm each transaction before it is sent.</string>
+    <string name="ApprovalAccess_SubmittedCount">%1$d of %2$d submitted</string>
+    <string name="ApprovalAccess_ContinueScan">Continue scanning</string>
+    <string name="ApprovalAccess_ManualShort">Manual check</string>
+    <string name="ApprovalAccess_PendingConfirmation">Pending confirmation</string>
+    <string name="ApprovalAccess_TokenNameValue">Token name: %1$s</string>
+    <string name="ApprovalAccess_SpenderContract">Spender contract: %1$s</string>
+    <string name="ApprovalAccess_ApprovalType">Approval type: %1$s</string>
+    <string name="ApprovalAccess_UnlimitedValue">∞ (Unlimited)</string>
+    <string name="ApprovalAccess_TokenAmount">Amount in token units: %1$s</string>
+    <string name="ApprovalAccess_Unknown">Unknown</string>
+    <string name="ApprovalAccess_UnknownAmount">Unavailable (token decimals unknown)</string>
+    <string name="ApprovalAccess_RawAmountValue">%1$s raw units</string>
+    <string name="ApprovalAccess_NamesHelp">Names come from saved address labels and may differ by network. A name is not proof of safety. Verify the full contract addresses.</string>
+    <string name="PrivateSend_Caution_MaxUnavailable">Could not determine an affordable maximum. Check the fees and try a smaller amount or refresh the quote.</string>
 </resources>

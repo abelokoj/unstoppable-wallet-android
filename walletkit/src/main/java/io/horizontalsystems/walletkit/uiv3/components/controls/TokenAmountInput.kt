@@ -3,6 +3,8 @@ package io.horizontalsystems.walletkit.uiv3.components.controls
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +20,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.walletkit.R
@@ -46,21 +49,25 @@ fun TokenAmountInput(
     onValueChange: (BigDecimal?) -> Unit,
     onFiatValueChange: (BigDecimal?) -> Unit,
     amountExceedsBalance: Boolean,
-    onTokenClick: (() -> Unit)?
+    onTokenClick: (() -> Unit)?,
+    tokenOnRight: Boolean = false,
 ) {
     BoxBordered(bottom = true) {
         Row(
             modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TokenSelector(token = token, onClick = onTokenClick)
-            HSpacer(8.dp)
-            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+            if (!tokenOnRight) {
+                TokenSelector(token = token, onClick = onTokenClick)
+                HSpacer(8.dp)
+            }
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = if (tokenOnRight) Alignment.Start else Alignment.End) {
                 AmountInput(
                     value = amount,
                     onValueChange = onValueChange,
                     focusRequester = focusRequester,
-                    error = amountExceedsBalance
+                    error = amountExceedsBalance,
+                    textAlign = if (tokenOnRight) TextAlign.Start else TextAlign.End,
                 )
                 if (fiatAmountInputEnabled || fiatAmount != null) {
                     FiatAmountInput(
@@ -68,15 +75,21 @@ fun TokenAmountInput(
                         currency = currency,
                         onValueChange = onFiatValueChange,
                         enabled = fiatAmountInputEnabled,
+                        textAlign = if (tokenOnRight) TextAlign.Start else TextAlign.End,
                     )
                 } else {
                     FiatLinePlaceholder(currency)
                 }
             }
+            if (tokenOnRight) {
+                HSpacer(8.dp)
+                TokenSelector(token = token, onClick = onTokenClick)
+            }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AvailableBalanceRow(
     balanceToken: Token?,
@@ -91,11 +104,12 @@ fun AvailableBalanceRow(
 ) {
     Column {
         if (availableBalance != null && balanceToken != null) {
-            Row(
+            FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
                     modifier = if (onAvailableBalanceClick != null) {

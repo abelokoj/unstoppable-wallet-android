@@ -23,6 +23,7 @@ class SwapProviderIdMappingTest {
         // These fork-only ids are not part of the captured upstream response.
         UnstoppableAPI.Response.Provider(provider = "ACROSS"),
         UnstoppableAPI.Response.Provider(provider = "RELAY"),
+        UnstoppableAPI.Response.Provider(provider = "PANCAKE_CROSSCHAIN"),
     )
 
     // The registry cannot be built in a unit test — its providers reach for App at construction —
@@ -32,6 +33,7 @@ class SwapProviderIdMappingTest {
         if (it == UProvider.Relay) it.id else "u_${it.id}"
     } + listOf(
         "u_STELLARBROKER",
+        "pancake_crosschain",
         THORCHAIN_PROVIDER_ID,
         MAYA_PROVIDER_ID,
         ONEINCH_PROVIDER_ID,

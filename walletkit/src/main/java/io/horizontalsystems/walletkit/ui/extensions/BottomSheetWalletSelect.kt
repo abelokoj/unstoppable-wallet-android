@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.ui.extensions
 
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Velocity
 import io.horizontalsystems.walletkit.R
@@ -30,7 +32,7 @@ import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.components.CellUniversalLawrenceSection
 import io.horizontalsystems.walletkit.ui.compose.components.HeaderText
-import io.horizontalsystems.walletkit.ui.compose.components.HsRadioButton
+import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftSelectors
 import io.horizontalsystems.walletkit.ui.compose.components.RowUniversal
 import io.horizontalsystems.walletkit.ui.compose.components.headline2_leah
 import io.horizontalsystems.walletkit.ui.compose.components.subhead2_grey
@@ -151,17 +153,13 @@ private fun Section(
 ) {
     CellUniversalLawrenceSection(items, showFrame = true) { item ->
         RowUniversal(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            onClick = {
-                onSelectListener.invoke(item)
-            },
-        ) {
-            HsRadioButton(
+            modifier = Modifier.selectable(
                 selected = item == selectedItem,
-                onClick = {
-                    onSelectListener.invoke(item)
-                }
-            )
+                role = Role.RadioButton,
+                onClick = { onSelectListener.invoke(item) },
+            ).padding(horizontal = 16.dp),
+        ) {
+            CellLeftSelectors(selected = item == selectedItem)
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 headline2_leah(text = item.name)
