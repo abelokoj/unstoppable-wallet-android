@@ -1,95 +1,87 @@
-# Open Swap Wallet
+# Open Swap
 
-A personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT). **Not affiliated with or endorsed by Horizontal Systems. This is not exactly the Unstoppable Wallet. _A few modifications have been made_ (see below for changes/additions that were made)**
+A self-custody, multi-chain Android wallet with decentralized swaps, cross-chain routes and privacy controls.
 
-Package: `money.openswap.wallet` — installs alongside the original.
+Forked from [Unstoppable Wallet](https://github.com/horizontalsystems/unstoppable-wallet-android) and updated through upstream version 0.52.2. Open Swap is an independent personal fork and is not affiliated with or endorsed by Horizontal Systems.
 
-## Fork notes
-
-This is a personal fork of [unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android) (MIT). It is **not** affiliated with or endorsed by Horizontal Systems, and it is not exactly the unstoppable wallet, as a few modifications/changes have been made.
-
-App name: Open Swap. Package: `money.openswap.wallet` — installs alongside the original.
-
-### Changes
-
-- Restored the Uniswap V2, PancakeSwap V2 and QuickSwap swap providers, which upstream disabled. Tax and meme tokens overwhelmingly have liquidity in V2 pairs, not V3 pools.
-- Fixed selling fee-on-transfer (tax) tokens, which previously failed with `PancakeSwap: K` / `UniswapV2: K`. Swaps encode the router's `...SupportingFeeOnTransferTokens` functions through a wallet-side compatibility adapter, using the upstream Ethereum kit pinned by this repository.
-- Enabled WalletConnect in the fdroid flavor.
-- Swap provider name shown by default.
-- Updated to upstream 0.52.2, including XRP, Arc, CrossPay, unified sending, Zcash Names and privacy/signing fixes. See [release notes](RELEASE_NOTES.md) for the user-facing changes and [changelog](CHANGELOG.md) for validation and limitations.
-
-### Known behaviour
-
-**Taxed tokens need higher slippage.** Quotes come from standard constant-product math and do not account for a token's transfer tax, so the displayed output is optimistic. If slippage is below the token's own sell tax, the swap reverts with `INSUFFICIENT_OUTPUT_AMOUNT`. Raise slippage above the tax rate.
-
-All ERC20-input V2 swaps route through the fee-on-transfer router functions, including untaxed tokens. This is safe (for an untaxed token the result is identical) but costs marginally more gas.
-
-### Installing
-
-1. Go to [Releases](https://github.com/abelokoj/unstoppable-wallet-android/releases) and download `app-fdroid-release.apk` from the latest release.
-2. Verify the signature before installing (see below). Do not skip this.
-3. On your Android device, open the downloaded file. You will be prompted to allow installing from this source; Android blocks it by default.
-4. Requires Android 9 (API 28) or newer.
-
-This installs alongside the official Unstoppable Wallet rather than replacing it, since the package name differs. Your existing wallet is untouched.
-
-Updates are not automatic. Check the Releases page, download the new APK, and install over the top. Your data is preserved as long as each release is signed with the same key.
-
-### Verifying a release
-
-Release APKs are signed with:
-
-    SHA-256: 277c10bbed425c98b8df4aa7372dfe483daeefdc6ddbc19b462ac83df8d8b295
-    SHA-1:   5f1d0cf868588fd989ddcf05d0996c43a8cd7bd1
-
-Check any download before installing:
-
-    apksigner verify --print-certs app-fdroid-release.apk
-
-If the SHA-256 does not match, do not install it.
-
-### Warning
-
-Unaudited software handling private keys and real funds. Use at your own risk.
+[Download APK](https://github.com/abelokoj/unstoppable-wallet-android/releases/latest) • [Release Notes](RELEASE_NOTES.md) • [Features](#-features) • [Security](#-security-and-privacy) • [Verify a Release](#-verify-a-release)
 
 ---
 
-# Upstream README
+## 🚀 Overview
 
-The original project's README follows, preserved for reference.
+Open Swap builds on Unstoppable Wallet's non-custodial multi-chain foundation while retaining Open Swap features for swapping, token discovery, wallet customization and approval management. It installs alongside the official Unstoppable Wallet under the package name `money.openswap.wallet`.
 
-# Unstoppable Wallet
+## ✨ Features
 
-We dream of a world… A world where private property is untouchable and market access is unconditional.
+### 🔄 Swaps and Cross-chain Routes
 
-That obsession led us to engineer a crypto wallet that is equally open to all, lives online forever and unconditionally protects your assets. Only the user is in control of the money.
+- **PancakeSwap Cross-chain Preview:** Swap supported tokens between Ethereum, BNB Smart Chain, Base, Arbitrum, zkSync and Solana. Routes can trade tokens before or after bridging.
+- **Relay Cross-chain Swaps:** Swap between supported EVM networks through Relay while honoring the app's Tor privacy setting when enabled.
+- **Direct Swap Providers:** Retains Uniswap V2 and V3, PancakeSwap V2 and V3, QuickSwap and other available providers, including fee-on-transfer token support on V2 routes.
+- **Token Discovery:** Paste a contract address into Swap or Coin Manager to find a supported token and enable it directly. Manual token entry remains available.
 
-Unstoppable is a powerful non-custodial multi-wallet for Bitcoin, Ethereum, Binance Smart Chain, Avalanche, Solana, Zcash, The Open Network several and other blockchains. It provides non-custodial crypto storage, on-chain decentralized swaps, institutional grade analytics for cryptocurrency markets, extensive privacy controls and human oriented design. 
+### 🛡️ Wallet Security and Control
 
-It is built with care and adheres to best programming practices and implementation standards in cryptocurrency world. Fully implemented on Kotlin.
+- **Revoke Access:** Review and revoke supported EVM token and NFT approvals from Balances or Security Center. Inspect token and spender details, then confirm each revocation with the existing signing flow.
+- **Full-balance Controls:** Use 100% in Standard Send, Private Send and Swap while the app reserves the required network fee.
+- **Cross-wallet Token Management:** Manually added tokens remain available when you switch wallets, while each wallet controls whether that token is enabled.
+- **Shared EVM Contacts:** Contacts saved on one EVM network are available across compatible EVM networks.
 
-More at [https://unstoppable.money](https://unstoppable.money)
+### 🎨 Everyday Use
 
-## Supported Android Versions
+- **Flexible Appearance:** Choose Manrope, System, Pretendard, Source Sans 3 or Public Sans, adjust font size, and use your selected app icon as the launch splash.
+- **Faster Wallet Switching:** Search from the long-press wallet switcher and see the active wallet with a circled checkmark.
+- **More Chains and Sending Options:** Includes upstream XRP with trust-line assets, Arc with native USDC, CrossPay, watch-only THORChain and MayaChain wallets, Zcash Names and unified sending.
 
-Devices with Android versions 8.1 and above
+---
 
-## Download
+## 📥 Download
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/io.horizontalsystems.bankwallet/)
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
-     alt="Get it on Google Play"
-     height="80">](https://play.google.com/store/apps/details?id=io.horizontalsystems.bankwallet)
-[<img src="docs/images/badge_obtainium.png"
-     alt="Get it on Obtainium"
-     height="80">](https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/horizontalsystems/unstoppable-wallet-android)
+1. Open the [latest release](https://github.com/abelokoj/unstoppable-wallet-android/releases/latest) and download the signed Open Swap APK.
+2. Verify the certificate fingerprint below before installing.
+3. Open the APK on an Android 9 or newer device and allow installation from your chosen source if Android asks.
+4. Install updates over the existing Open Swap app to retain its data. Do not install an APK with a different certificate.
 
-## Source Code
+Open Swap installs alongside the official Unstoppable Wallet. It does not replace or alter the official app or its wallet data.
 
-[https://github.com/horizontalsystems/unstoppable-wallet-android](https://github.com/horizontalsystems/unstoppable-wallet-android)
+---
 
-## License
+## 🔐 Verify a Release
 
-This wallet is open source and available under the terms of the MIT License.
+Official Open Swap release APKs use this signing certificate:
+
+```text
+SHA-256: 277c10bbed425c98b8df4aa7372dfe483daeefdc6ddbc19b462ac83df8d8b295
+SHA-1:   5f1d0cf868588fd989ddcf05d0996c43a8cd7bd1
+```
+
+Check a downloaded APK before installing it:
+
+```text
+apksigner verify --print-certs open-swap-v0.52.3.apk
+```
+
+Do not install the file if the SHA-256 fingerprint does not match.
+
+---
+
+## ⚠️ Security and Privacy
+
+Open Swap is self-custody software that handles private keys and real funds. Use only amounts you can afford to risk and verify transaction details, token contracts and spender addresses before signing.
+
+PancakeSwap Cross-chain is a preview. Availability depends on liquidity and provider limits, and pool, bridge, provider and network fees may apply. The Excellent route label is not a security guarantee. Funded settlement and refund recovery have not been tested. Direct Across integration remains in development and is not a working provider in this release.
+
+For fee-on-transfer tokens, set slippage above the token's own transfer tax. Quotes do not account for token taxes, so a lower tolerance can cause the swap to fail.
+
+Tor protects supported network requests only while enabled and connected. External providers and configured RPC services can still receive the information necessary to quote, simulate or submit transactions.
+
+---
+
+## 📚 Project Information
+
+- [Release notes](RELEASE_NOTES.md) describe each published version.
+- [Changelog](CHANGELOG.md) records implementation, validation and known limitations.
+- [PancakeSwap Cross-chain details](docs/PancakeSwap-CrossChain.md) documents current route coverage and its limits.
+- [Unstoppable Wallet](https://github.com/horizontalsystems/unstoppable-wallet-android) is the upstream project.
+- Open Swap is available under the [MIT License](LICENSE).

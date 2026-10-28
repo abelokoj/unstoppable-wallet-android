@@ -1,7 +1,28 @@
+# Release published - 2026-10-28T15:23:45-04:00
+
+- Published Open Swap 0.52.3 (184) as GitHub release 0.52.3, based on the preceding release commit and tag. GitHub Actions completed the signed APK build successfully and attached open-swap-v0.52.3.apk to the release.
+- Updated the live release body to match the published LeanType-style source notes. The accompanying README and developer-note guides remain local until their documentation commit is pushed. No post-build application code or APK changed.
+
+---
+# README landing-page guide - 2026-10-28T15:22:23-04:00
+
+- Reformatted the Open Swap GitHub landing page around the reader-facing structure used by LeanType: short product introduction, key links, overview, grouped features, download, certificate verification, financial-security disclosures and project links. Removed the duplicated upstream README from the landing page while preserving the upstream project link and fork disclaimer.
+- Added dev_notes/README_STYLE.md so future README revisions follow the same pattern. The guide keeps public text focused on user outcomes and requires visible fee, trust and untested-flow disclosures for financial features.
+- Documentation-only change. No application source, build metadata, tag or APK changed. Validation: reviewed the new links, statement of scope and staged documentation patch; no application rebuild or test rerun is needed.
+
+---
+
 # Release-note format refinement - 2026-10-28T15:20:00-04:00
 
 - Adopted the clearer reader-facing pattern observed in LeanType releases for Open Swap 0.52.3: concise headings for Updated, Added and Fixed, with a separate visible cross-chain preview limitation. The feature scope, upstream 0.52.2 attribution and risk disclosures remain unchanged.
 - This is a release-note and changelog-only follow-up. No source code, version metadata, tag or APK changes are included. Validation: checked the staged documentation patch and whitespace only; no application rebuild or test rerun is required.
+
+---
+
+# Developer release-note guide - 2026-10-28T15:16:44-04:00
+
+- Added `dev_notes/RELEASE_NOTES_STYLE.md` as the standing guide for LeanType-style public Open Swap release notes: concise Updated, Added and Fixed sections, with visible financial-feature limitations when needed. The existing untracked `dev notes/` folder remains untouched.
+- Documentation-only change. No application source, build metadata, tag or APK changed. Validation: reviewed the new guide and staged documentation patch; no application rebuild or test rerun is needed.
 
 ---
 
@@ -11,6 +32,7 @@
 - Preserved all previously listed release features and material preview limits. Kept the existing v0.52.3 tag and application sources unchanged; this is a documentation-only follow-up to the published release commit feb0a4484. Earlier notes and changelog entries remain intact.
 - Validation: checked release-note section/history preservation and patch whitespace; no app rebuild or test rerun is needed for these prose-only changes. The signed GitHub APK build for the unchanged release tag was still in progress at recording time. Recording time in America/New_York, before this documentation commit and release-body update.
 
+
 ---
 # Release preparation - 2026-10-28T14:59:06-04:00
 
@@ -18,6 +40,7 @@
 - Consolidated public release notes since the previous release, including the circled wallet-selection check, the requested PancakeSwap Cross-chain Excellent label and the remaining funded-settlement/refund limits. Updated the integration document to identify its preview status in 0.52.3. Historical notes and existing releases are preserved; unrelated installers and private development notes are excluded.
 - Validation performed earlier for the unchanged source in this batch: 392 selected tests passed; Base Debug and Base Release packaging passed, including release shrinking/lint and signing-certificate verification; translation coverage passed for 1,811 strings across nine locales. Publication preparation checked the staged patch, APK version metadata, existing GitHub releases, signing-secret names and release-workflow configuration. No funded transaction was tested.
 - Recording time in America/New_York for local publication preparation, before the release commit and push. Remote publication status is recorded by the GitHub commit, tag, Actions run and release; this entry does not claim those future steps have already succeeded.
+
 
 ---
 # Unreleased - 2026-10-28T13:53:13-04:00
@@ -31,6 +54,7 @@
 - Remaining limits: Relay destination intent and hosted settlement/refund status still require provider trust. Production gateway support/terms, funded settlement, every-network/pair coverage, recovery and observed Tor traffic remain unverified. This focused wallet-code review is not an independent audit of the bridge protocols or their infrastructure. See integration details for disclosures and bounds.
 - Correction to the 2026-10-28T12:45:26-04:00 entry: its component totals were 236 + 33 + 18 + 1, which equal 288 selected tests, not the reported aggregate of 287. Preserved that historical entry; corrected the current documentation/TODO aggregate transparently.
 - Updated pending public release notes, TODO and integration details, and staged the requested source/docs changes for review. No commit, push, tag, release publication or release-package installation was performed. Unrelated local installers and development notes remain excluded. Timestamp is the recording time in America/New_York for local, uncommitted work.
+
 
 ---
 
@@ -46,6 +70,7 @@
 - Production gateway access/support remains unconfirmed. Final funded signing, every-network/token coverage, destination receipt verification, live NON-EVM settlement status, Tor traffic capture and refund/recovery remain untested. The opaque Relay intent and hosted settlement status remain provider assertions; recovery is not automated. No blanket support for arbitrary hooks or future website routes is claimed.
 - Local, uncommitted changes only. Updated TODO, pending public release notes and integration documentation. No release build, commit, push, tag or publication was performed. Timestamp is the recording time in America/New_York.
 
+
 ---
 
 # Unreleased - 2026-10-28T07:22:33-04:00
@@ -57,6 +82,7 @@
 - Validation: the Base development APK built successfully as version 0.52.2 (183); all 254 selected tests passed (220 walletkit, 33 EVM and one navigation-serialization test), with zero failures, errors or skipped tests. Corrected the initial transaction encoding against the fixture before packaging. A mistyped navigation-test filter was rerun with the correct test name. Translation coverage passed for 1,811 strings across nine locales, and patch whitespace checks passed. Existing compiler/Room and Gradle warnings remain.
 - Installed and opened only the development package on the connected phone, preserving existing data. The USB connection dropped at the update screen before route selection or signing confirmation could be exercised; physical route testing remains pending. The public website gateway is undocumented, so third-party production access/support and future availability remain unconfirmed. Funded settlement, Tor traffic observation and refund/recovery testing remain required before production release; recovery transactions are not automated.
 - Local, uncommitted changes only. Updated TODO, pending public release notes and [integration details](docs/PancakeSwap-CrossChain.md). No release build, commit or push was performed. Timestamp is the recording time.
+
 
 ---
 
@@ -76,6 +102,7 @@ A personal fork of [unstoppable-wallet-android](https://github.com/horizontalsys
 
 Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `master` branches. The earlier custom kit forks are retained in their repositories but are no longer build dependencies as of this 0.52.2 merge.
 
+
 ---
 
 # Unreleased - 2026-10-28T06:21:19-04:00
@@ -90,6 +117,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Validation: the final Base development APK built successfully as version 0.52.2 (183), and all 247 tests passed (213 walletkit, 33 EVM and one navigation-serialization test), with zero failures, errors or skipped tests. Translation coverage passed for 1,811 strings across nine locales, and patch whitespace checks passed. Existing Room/compiler and Gradle warnings remain.
 - Local, uncommitted work only; pending public release notes and TODO were updated. No phone is connected, so no installation, native visual check or funded transaction was performed. Live maximum-send/provider behavior, RPC/Tor end-to-end checks, backend fee beneficiaries and native-speaker translations remain unverified. No release build, commit or push was performed. Timestamp is the recording time.
 
+
 ---
 
 # Unreleased - 2026-10-28T05:00:12-04:00
@@ -102,6 +130,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Validation: all 239 tests passed (205 walletkit, 33 EVM and one navigation-serialization test), with zero failures, errors or skipped tests. Coverage includes exact allowance scaling, malformed/overflow values, unknown decimals and metadata-independent review identity. The final Base development APK built successfully as version 0.52.2 (183); translation coverage passed for 1,810 strings across nine locales, and patch whitespace checks passed. An initial test compile used an unavailable JSON helper; removed that test-only dependency assumption and reused the existing serialization checks. Existing compiler/Room and Gradle warnings remain.
 - Local, uncommitted changes only. Updated the pending public release notes. No release build, installation, commit or push was performed. No phone is connected; native visual review and live RPC/Tor/funded revocation checks remain untested, and translations have not had native-speaker review. Timestamp is the recording time.
 
+
 ---
 
 # Unreleased - 2026-10-27T03:39:23-04:00
@@ -112,6 +141,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Validation: all 238 tests in the walletkit, EVM and navigation-serialization suites passed with zero failures, errors or skipped tests. The final Base development APK built successfully as version 0.52.2 (183). Translation coverage passed for 1,801 strings across nine locales, and patch whitespace checks passed. Existing Gradle/Kotlin and native-library warnings remain.
 - Local, uncommitted changes only. No release build, device installation, native visual review, live RPC/Tor end-to-end check, funded transaction, commit or push was performed for this batch. No phone is connected, and the previously recorded emulator startup failure remains unresolved. Historical scan coverage depends on the configured RPC provider, and translations have not had native-speaker review. Timestamp is the recording time.
 
+
 ---
 
 # Unreleased - 2026-10-27T02:38:06-04:00
@@ -120,6 +150,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Replaced the swap header's Routes label with the selected provider's 32dp icon, name and dropdown. The icon/name area opens provider selection, the exchange rate remains separately tappable on the right, and long names use ellipsis within a bounded column. Removed the duplicate Provider row and its obsolete debug-only visibility toggle.
 - Validation: the Base development APK built successfully and all three focused percentage regression tests passed. Patch whitespace checks passed. No phone is connected and the emulator failure recorded below remains unresolved, so visual/device validation was not performed. No release build, installation, commit or push was performed for this local, uncommitted UI change. Timestamp is the recording time.
 
+
 ---
 
 # Unreleased - 2026-10-27T02:00:21-04:00
@@ -127,6 +158,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Investigated a direct Across integration at the user's request. Across's current [credential documentation](https://docs.across.to/introduction/api-keys) requires a production API key and integrator ID; upstream Unstoppable 0.52.2 has no direct Across provider or credentials to reuse. Public legacy route/fee probes returned HTTP 200, but that does not establish production access or remove the documented requirement. The user then chose to skip the integration. No Across implementation or configuration was added; the unfinished optional adapter is unchanged. Recorded the deferral in `TODO.md` without marking it complete.
 - Attempted the requested emulator testing using a fresh isolated API 36 AVD. This bypassed the earlier instance-limit error, but hardware-accelerated boot stalled before adb became available. One software fallback crashed in emulator 37.1.11's `qemu-system-x86_64-headless.exe` with access violation `0xC0000005`, before APK installation. No app screen, live quote, signature or transaction was exercised. The personal AVD was not changed, and no emulator process remains running.
 - Validation: checked the upstream release's provider sources, current official Across documentation, public quote responses and emulator crash evidence. Updated documentation only; the previously validated 0.52.2 (183) app code/APKs remain unchanged. No new app build, commit or push was performed. Timestamp is the recording time for this local, uncommitted work.
+
 
 ---
 
@@ -141,6 +173,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Validation: all 411 unit tests passed (309 across nine wallet/chain modules and 102 app tests), with zero failures, errors or skipped tests. Both `:app:assembleBaseDebug` and `:app:assembleBaseRelease` succeeded, including release minification, resource shrinking and release lint. The final development APK is `money.openswap.wallet.dev`, `0.52.2 (183)`; the release APK retains the documented OpenSwap signing certificate. The translation check passed for 1,788 strings across nine locales, and patch whitespace checks passed. Existing Gradle/Kotlin, Room-index and native-library warnings remain. This validation record is prepared for the local merge commit and fast-forward to `master`; it is not a published release.
 - No phone is connected. Device rendering, live RPC/Tor reconnection, external bridge availability, upgrades with real wallet data and funded transaction flows have not been tested. Translations have not had native-speaker review. No installation, remote push, tag or release publication was performed. Timestamp is the recording time for local integration work, not a release time.
 
+
 ---
 
 # Unreleased - 2026-10-26T22:55:18-04:00
@@ -148,6 +181,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Fixed `SwapProviderIdMappingTest` by supplementing the captured upstream provider fixture with explicitly synthetic Across and Relay metadata. The upstream snapshot is preserved, and Relay is checked using its actual direct-provider ID, `RELAY`, rather than `u_RELAY`.
 - Added regression coverage confirming that suspension metadata for both fork-specific bridges applies to their runtime provider IDs without suspending unrelated providers. Production provider behavior is unchanged; this resolves the test failure recorded in the preceding entry.
 - Validation: reproduced the original failure, then passed all 137 walletkit and 11 EVM unit tests with zero failures, errors or skipped tests. Test-only change; no APK rebuild, device installation or live bridge swap performed. Synthetic metadata does not establish live backend availability. Recording time for local, uncommitted work; nothing from this batch was published.
+
 
 ---
 
@@ -163,12 +197,14 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Limitations: historical RPC range limits can make discovery slow or incomplete; a scan is not proof that a wallet is safe. This does not invalidate every off-chain permit, smart-account delegation or WalletConnect session, and cannot recover lost funds. Only standard EVM approvals are in scope, not TRON or other chain-specific permissions.
 - Timestamp is the final recording time for local, uncommitted work begun on October 24 and first recorded on October 26 at `22:18:52-04:00`; earlier edit timestamps are not reconstructed.
 
+
 ---
 
 # Release notes updated - 2026-09-30T08:54:00-04:00
 
 - Updated the existing `0.51.2` public release notes' appearance section to include Source Sans 3 and Public Sans and identify Default as Manrope. Kept the other release notes and historical changelog entries unchanged.
 - Recording time for local publication preparation. The new fonts and notes are being committed for GitHub publication; build and test results are recorded below. Validation: patch whitespace check passed. No new build or device installation needed for this documentation-only update.
+
 
 ---
 
@@ -180,6 +216,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Validation: all eight focused `AppFontTest` tests passed; `:app:assembleBaseDebug` succeeded; checked TTF headers, embedded weight metadata, packaged resources/licenses and patch whitespace. Existing Gradle deprecation and Room index warnings remain. The mobile audit script matched no Kotlin files and provides no coverage for this change. No device font-rendering review, installation or GitHub push performed in this batch.
 - Timestamp is the recording time for local, uncommitted work.
 
+
 ---
 
 # Unreleased - 2026-09-30T08:22:08-04:00
@@ -188,6 +225,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Recording time for this local, uncommitted change. Validation: confirmed the shared resource mapping and checked patch whitespace. No build or device installation performed for this text-only edit.
 - Update recorded at `2026-09-30T08:29:30-04:00`: the Base development APK built successfully, retaining existing Gradle deprecation warnings. This change is being folded into the previous release commit with its original message; earlier changelog entries and public release notes are preserved. No device installation performed in this batch.
 
+
 ---
 
 # Release notes prepared - 2026-09-30T08:04:52-04:00
@@ -195,6 +233,7 @@ Use the kit revisions pinned in `gradle/libs.versions.toml`, not their moving `m
 - Added the approved public notes for version `0.51.2` in `RELEASE_NOTES.md`, covering user-facing improvements and the remaining Across limitation.
 - Removed em dashes from the public notes and kept development validation details in this changelog.
 - Recording time for local release preparation; commit and publication are pending. Validation: staged patch whitespace check passed; the application build and device checks are recorded below.
+
 
 ---
 
@@ -207,6 +246,7 @@ Switch Wallet scrolling fix prepared for the next release.
 - Kept the original Switch Wallet selection behavior and dismisses search focus when list scrolling begins.
 - Validation: the Base development APK compiled, packaged and installed successfully on the connected Samsung SM-S928U. On-device review confirmed stable scrolling, including repeated high-velocity upward swipes.
 
+
 ---
 
 # Unreleased — 2026-09-30T07:09:00-04:00
@@ -218,6 +258,7 @@ Release metadata and font-size controls prepared for the next release.
 - Added a fixed bottom search field to the long-press **Switch Wallet** sheet while preserving that sheet's original wallet-switching behavior.
 - Increased the app version from `0.51.0 (180)` to `0.51.2 (182)` because `0.51.1` is already present in the GitHub repository.
 - Passed the focused font-size persistence, migration and bounds tests, assembled the Base development APK, and installed `money.openswap.wallet.dev` successfully on the connected Samsung SM-S928U. The build retained existing Android/Gradle deprecation and Room index warnings; no release build or store artifact was produced.
+
 
 ---
 
@@ -240,6 +281,7 @@ Changes prepared for the next release.
 - Passed the wallet and Base development Kotlin compilation, focused font-size persistence/migration/bounds tests, and `:app:assembleBaseDebug`.
 - Installed the updated `money.openswap.wallet.dev` APK successfully on the connected Samsung SM-S928U (`R5CX105K2CV`); no release APK was installed or replaced.
 
+
 ---
 
 # Unreleased — 2026-09-29T23:08:17-04:00
@@ -248,6 +290,7 @@ Local validation performed for the next release.
 
 - Built the `baseDebug` development variant and verified its application ID as `money.openswap.wallet.dev`.
 - Installed that development APK successfully on the newly connected Samsung SM-S928U (`R5CX105K2CV`). No release APK was installed or replaced.
+
 
 ---
 
@@ -258,6 +301,7 @@ Documentation prepared for the next release.
 - Added a root `TODO.md` implementation backlog for Uniswap v4 and PancakeSwap Infinity, including routing architecture, hook and dynamic-fee restrictions, exact approvals and Permit2 safeguards, calldata validation, simulation, Tor fail-closed privacy, UI expectations and release criteria.
 - Recorded that existing v2/v3 integrations must remain available and that no Uniswap v5 or PancakeSwap v5 provider should be created without an official production protocol.
 - Documentation only; no swap-provider behavior changed in this batch.
+
 
 ---
 
@@ -284,6 +328,7 @@ Changes prepared for the next release.
 - Passed `:walletkit:compileDebugKotlin`, the focused font preference tests and `:app:compileBaseDebugKotlin`; the Base debug build was installed successfully on the connected Samsung SM-A716U1 running Android 13 after the Relay/Tor changes.
 - Across cannot return direct routes until production credentials are supplied through a secure mechanism. Relay's API is a third-party trust boundary; the wallet validates the transaction envelope and approval target, but users should still review the confirmation screen and destination before signing.
 
+
 ---
 
 # Unreleased — 2026-09-29T21:59:14-04:00
@@ -305,6 +350,7 @@ Changes prepared for the next release.
 
 - Passed `:walletkit:compileDebugKotlin` and the focused swap-provider, provider-icon and percentage-selector unit tests.
 - Automatic contract discovery requires network access to the relevant chain services. Across and Relay remain unavailable in live route selection with the current backend configuration.
+
 
 ---
 
@@ -330,6 +376,7 @@ Changes prepared for the next release.
 - Built and installed `app-base-debug.apk` successfully on the connected Samsung SM-A716U1 running Android 13.
 - Initial contract discovery requires network access to the relevant chain services; tokens already saved in the custom-token catalog remain available offline. Clearing the app's data also clears this local catalog and the font preference.
 
+
 ---
 
 # Unreleased — 2026-09-29T19:56:50-04:00
@@ -352,6 +399,7 @@ Changes prepared for the next release.
 
 - Passed the focused contact, Jupiter-icon and percentage-option unit tests, `:app:compileBaseDebugKotlin`, `:app:processBaseDebugResources`, and `git diff --check`.
 - Across and Relay client integration is complete, but live route availability was not exercised with real funds. It depends on the configured uSwap backend advertising the `ACROSS` and `RELAY` adapters for the selected asset pair.
+
 
 ---
 
@@ -479,6 +527,7 @@ Builds, signs and attaches the APK on `v*` tags. Upstream's six inherited workfl
 **Upstream sync `0.50.1`** — 2026-08-28 · `37575b974`
 
 Five commits, all navigation and send-flow stability fixes.
+
 
 ---
 
