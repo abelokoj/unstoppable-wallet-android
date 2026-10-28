@@ -1,3 +1,10 @@
+# Release-note format refinement - 2026-10-28T15:20:00-04:00
+
+- Adopted the clearer reader-facing pattern observed in LeanType releases for Open Swap 0.52.3: concise headings for Updated, Added and Fixed, with a separate visible cross-chain preview limitation. The feature scope, upstream 0.52.2 attribution and risk disclosures remain unchanged.
+- This is a release-note and changelog-only follow-up. No source code, version metadata, tag or APK changes are included. Validation: checked the staged documentation patch and whitespace only; no application rebuild or test rerun is required.
+
+---
+
 # Release notes clarification - 2026-10-28T15:07:00-04:00
 
 - Reorganized the 0.52.3 public notes into New Features, Improvements and Fixes, and Cross-chain Preview. Explicitly identified upstream Unstoppable Wallet 0.52.2 as the integrated base and separated approval management from full-balance sending and other fixes, at the user's request.
