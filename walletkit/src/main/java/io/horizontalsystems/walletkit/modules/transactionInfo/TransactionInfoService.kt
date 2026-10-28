@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.transactionInfo
 
 import io.horizontalsystems.walletkit.core.ITransactionsAdapter
+import io.horizontalsystems.walletkit.core.adapters.NearTransactionRecord
 import io.horizontalsystems.walletkit.core.adapters.XrpTransactionRecord
 import io.horizontalsystems.walletkit.core.adapters.StellarTransactionRecord
 import io.horizontalsystems.walletkit.core.adapters.TonTransactionRecord
@@ -86,6 +87,13 @@ class TransactionInfoService(
             val txCoinTypes = when (val tx = transactionRecord) {
                 is StellarTransactionRecord -> listOf(tx.mainValue?.coinUid, tx.fee?.coinUid)
                 is XrpTransactionRecord -> listOf(tx.mainValue?.coinUid, tx.fee.coinUid)
+                is NearTransactionRecord -> buildList {
+                    add(tx.mainValue?.coinUid)
+                    add(tx.fee?.coinUid)
+                    (tx.type as? NearTransactionRecord.Type.ContractCall)?.let { call ->
+                        (call.incoming + call.outgoing).forEach { add(it.value.coinUid) }
+                    }
+                }
                 is TonTransactionRecord -> buildList {
                     add(tx.mainValue?.coinUid)
                     add(tx.fee.coinUid)

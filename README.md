@@ -2,11 +2,13 @@
 
 A self-custody, multi-chain Android wallet with decentralized swaps, cross-chain routes and privacy controls.
 
-Forked from [Unstoppable Wallet](https://github.com/horizontalsystems/unstoppable-wallet-android) and updated through upstream version 0.52.2. Open Swap is an independent personal fork and is not affiliated with or endorsed by Horizontal Systems.
+Forked from [Unstoppable Wallet](https://github.com/horizontalsystems/unstoppable-wallet-android) with source updated through upstream version 0.53.0. Open Swap is an independent personal fork and is not affiliated with or endorsed by Horizontal Systems.
 
 [Download APK](https://github.com/abelokoj/unstoppable-wallet-android/releases/latest) • [Release Notes](RELEASE_NOTES.md) • [Features](#-features) • [Security](#-security-and-privacy) • [Verify a Release](#-verify-a-release)
 
 ---
+
+Latest published APK: [v0.52.3](https://github.com/abelokoj/unstoppable-wallet-android/releases/tag/v0.52.3). The 0.53.0 update is currently available in source; its APK has not been published.
 
 ## 🚀 Overview
 
@@ -32,7 +34,7 @@ Open Swap builds on Unstoppable Wallet's non-custodial multi-chain foundation wh
 
 - **Flexible Appearance:** Choose Manrope, System, Pretendard, Source Sans 3 or Public Sans, adjust font size, and use your selected app icon as the launch splash.
 - **Faster Wallet Switching:** Search from the long-press wallet switcher and see the active wallet with a circled checkmark.
-- **More Chains and Sending Options:** Includes upstream XRP with trust-line assets, Arc with native USDC, CrossPay, watch-only THORChain and MayaChain wallets, Zcash Names and unified sending.
+- **More Chains and Sending Options:** Includes NEAR and NEP-141 tokens with named-account selection, XRP with trust-line assets, Arc with native USDC, CrossPay, watch-only THORChain and MayaChain wallets, Zcash Names and unified sending.
 
 ---
 
@@ -71,6 +73,8 @@ Do not install the file if the SHA-256 fingerprint does not match.
 Open Swap is self-custody software that handles private keys and real funds. Use only amounts you can afford to risk and verify transaction details, token contracts and spender addresses before signing.
 
 PancakeSwap Cross-chain is a preview. Availability depends on liquidity and provider limits, and pool, bridge, provider and network fees may apply. The Excellent route label is not a security guarantee. Funded settlement and refund recovery have not been tested. Direct Across integration remains in development and is not a working provider in this release.
+
+NEAR device flows, funded sends and failure recovery have not been exercised in the 0.53.0 integration. Account discovery shares the derived public key with FastNEAR; configured services receive public account, contract and transaction data needed for their requests. See the [NEAR review record](docs/chain-integration/near/review.md) for the repairs and remaining checks.
 
 For fee-on-transfer tokens, set slippage above the token's own transfer tax. Quotes do not account for token taxes, so a lower tolerance can cause the swap to fail.
 

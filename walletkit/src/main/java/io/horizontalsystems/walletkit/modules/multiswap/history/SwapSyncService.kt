@@ -8,12 +8,12 @@ import io.horizontalsystems.walletkit.core.managers.APIClient
 import io.horizontalsystems.walletkit.core.providers.IAppConfigProvider
 import io.horizontalsystems.walletkit.entities.SimulateFailSwapMode
 import io.horizontalsystems.walletkit.entities.SwapRecord
-import io.horizontalsystems.walletkit.modules.multiswap.providers.AllBridgeAPI
-import io.horizontalsystems.walletkit.modules.multiswap.providers.AllBridgeProvider
+import io.horizontalsystems.walletkit.modules.multiswap.providers.IMultiSwapProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.MultiSwapProviderRegistry
 import io.horizontalsystems.walletkit.modules.multiswap.providers.RelayProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeCrossChainProvider
 import io.horizontalsystems.walletkit.modules.multiswap.providers.UnstoppableAPI
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -44,6 +44,23 @@ class SwapSyncService(
         }
     }
 
+    /**
+     * Reports a broadcast inbound tx hash to the provider's backend, off the send path: funds have
+     * moved, so the screen must not wait on it, and a failure only costs the server its head start
+     * on tracking (it discovers the deposit on its own).
+     */
+    fun reportInboundTxHash(provider: IMultiSwapProvider, providerSwapId: String, txHash: String) {
+        coroutineScope.launch {
+            try {
+                provider.reportInboundTxHash(providerSwapId, txHash)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                Log.e("SwapSyncService", "Failed to report inbound tx hash for $providerSwapId: ${e.message}", e)
+            }
+        }
+    }
+
     private suspend fun syncPending() {
         val pending = swapRecordManager.getPending()
         for (record in pending) {
@@ -56,7 +73,7 @@ class SwapSyncService(
         // tracking service — the server tracker must leave it alone.
         if (record.trackingHandle != null) return
 
-        if (record.providerId == AllBridgeProvider.id) {
+        if (record.providerId == AllBridgeTracker.PROVIDER_ID) {
             syncAllBridgeRecord(record)
             return
         }
@@ -71,7 +88,11 @@ class SwapSyncService(
         try {
             val call = SwapTrackRequestBuilder.build(record)
             var request = call.request
-            if (BuildConfig.DEBUG && App.localStorage.simulateFailSwap == SimulateFailSwapMode.Server) {
+            // Only the stateless readers take the debug flag; /v3/track accepts the uuid alone.
+            if (BuildConfig.DEBUG &&
+                App.localStorage.simulateFailSwap == SimulateFailSwapMode.Server &&
+                call.endpoint != SwapTrackRequestBuilder.Endpoint.Recorded
+            ) {
                 request = request.copy(testActionRequired = true)
             }
             val response = when (call.endpoint) {
@@ -121,8 +142,8 @@ class SwapSyncService(
     private suspend fun syncAllBridgeRecord(record: SwapRecord) {
         try {
             val txId = record.transactionHash ?: return
-            val chain = AllBridgeProvider.chainSymbol(record.tokenInBlockchainTypeUid) ?: return
-            val response = AllBridgeProvider.fetchTransferStatus(chain, txId)
+            val chain = AllBridgeTracker.chainSymbol(record.tokenInBlockchainTypeUid) ?: return
+            val response = AllBridgeTracker.fetchTransferStatus(chain, txId)
 
             val outboundTxId = response.receive?.txId
             if (outboundTxId != null && outboundTxId != record.outboundTransactionHash) {
@@ -143,7 +164,7 @@ class SwapSyncService(
         }
     }
 
-    private fun mapAllBridgeStatus(response: AllBridgeAPI.Response.TransferStatus): SwapStatus {
+    private fun mapAllBridgeStatus(response: AllBridgeTracker.TransferStatus): SwapStatus {
         if (response.isSuspended) return SwapStatus.Failed
         val receive = response.receive
         if (receive == null) {
@@ -198,7 +219,8 @@ class SwapSyncService(
     }
 
     private fun mapStatus(response: UnstoppableAPI.Response.Track): SwapStatus? = when (response.status) {
-        "not_started" -> SwapStatus.Depositing
+        // `signed`: the inbound tx hash is on the record, the deposit is not yet observed.
+        "not_started", "signed" -> SwapStatus.Depositing
         "pending", "swapping" -> {
             val activeLeg = response.legs?.firstOrNull { it.status != "completed" }
             when (activeLeg?.type) {
@@ -218,6 +240,7 @@ class SwapSyncService(
         "completed" -> SwapStatus.Completed
         "refunded" -> SwapStatus.Refunded
         "failed" -> SwapStatus.Failed
+        "expired" -> SwapStatus.Expired
         "action_required" -> SwapStatus.ActionRequired
         else -> null // "unknown" — leave status unchanged
     }

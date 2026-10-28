@@ -1,12 +1,16 @@
 package io.horizontalsystems.walletkit.modules.backuplocal
 
 import com.google.gson.annotations.SerializedName
+import io.horizontalsystems.walletkit.R
+import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.core.managers.EncryptDecryptManager
 import io.horizontalsystems.walletkit.core.managers.RestoreSettingType
 import io.horizontalsystems.walletkit.toHexString
 import io.horizontalsystems.walletkit.core.toPrivateKeyBytes
 import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.hdwalletkit.Base58
+import io.horizontalsystems.marketkit.models.BlockchainType
+import io.horizontalsystems.marketkit.models.TokenQuery
 import java.math.BigInteger
 
 object BackupLocalModule {
@@ -20,6 +24,7 @@ object BackupLocalModule {
     private const val TON_ADDRESS = "ton_address"
     private const val STELLAR_ADDRESS = "stellar_address"
     private const val XRP_ADDRESS = "xrp_address"
+    private const val NEAR_ADDRESS = "near_address"
     private const val THORCHAIN_ADDRESS = "thorchain_address"
     private const val MAYACHAIN_ADDRESS = "mayachain_address"
     private const val BITCOIN_ADDRESS = "bitcoin_address"
@@ -87,6 +92,7 @@ object BackupLocalModule {
         is AccountType.TonAddress -> TON_ADDRESS
         is AccountType.StellarAddress -> STELLAR_ADDRESS
         is AccountType.XrpAddress -> XRP_ADDRESS
+        is AccountType.NearAddress -> NEAR_ADDRESS
         is AccountType.ThorchainAddress -> THORCHAIN_ADDRESS
         is AccountType.MayachainAddress -> MAYACHAIN_ADDRESS
         is AccountType.BitcoinAddress -> BITCOIN_ADDRESS
@@ -118,6 +124,7 @@ object BackupLocalModule {
             TON_ADDRESS -> AccountType.TonAddress(String(data, Charsets.UTF_8))
             STELLAR_ADDRESS -> AccountType.StellarAddress(String(data, Charsets.UTF_8))
             XRP_ADDRESS -> AccountType.XrpAddress(String(data, Charsets.UTF_8))
+            NEAR_ADDRESS -> AccountType.NearAddress(String(data, Charsets.UTF_8).also(::validateNearAccountId))
             THORCHAIN_ADDRESS -> AccountType.ThorchainAddress(String(data, Charsets.UTF_8))
             MAYACHAIN_ADDRESS -> AccountType.MayachainAddress(String(data, Charsets.UTF_8))
             BITCOIN_ADDRESS -> AccountType.BitcoinAddress.fromSerialized(String(data, Charsets.UTF_8))
@@ -131,6 +138,29 @@ object BackupLocalModule {
             }
             PASSKEY -> AccountType.Passkey(String(data, Charsets.UTF_8))
             else -> throw IllegalStateException("Unknown account type")
+        }
+    }
+
+    internal class InvalidNearAccountIdException : IllegalArgumentException() {
+        override val message: String get() = Translator.getString(R.string.NearAccountName_Invalid)
+    }
+
+    // Same grammar as near-kit AccountId; core cannot depend on a chain module. Parity is tested there.
+    private val nearAccountIdPattern = Regex("^(([a-z\\d]+[-_])*[a-z\\d]+\\.)*([a-z\\d]+[-_])*[a-z\\d]+$")
+
+    private fun validateNearAccountId(value: String) {
+        if (value.length !in 2..64 || !nearAccountIdPattern.matches(value)) throw InvalidNearAccountIdException()
+    }
+
+    internal fun validateNearBackupAccount(type: AccountType, wallets: List<EnabledWalletBackup>) {
+        (type as? AccountType.NearAddress)?.address?.let(::validateNearAccountId)
+        wallets.forEach { wallet ->
+            if (TokenQuery.fromId(wallet.tokenQueryId)?.blockchainType == BlockchainType.Near) {
+                val settings = wallet.settings.orEmpty()
+                if (settings.containsKey(RestoreSettingType.NearAccountId)) {
+                    validateNearAccountId(settings[RestoreSettingType.NearAccountId] ?: throw InvalidNearAccountIdException())
+                }
+            }
         }
     }
 
@@ -154,6 +184,7 @@ object BackupLocalModule {
         is AccountType.TonAddress -> accountType.address.toByteArray(Charsets.UTF_8)
         is AccountType.StellarAddress -> accountType.address.toByteArray(Charsets.UTF_8)
         is AccountType.XrpAddress -> accountType.address.toByteArray(Charsets.UTF_8)
+        is AccountType.NearAddress -> accountType.address.toByteArray(Charsets.UTF_8)
         is AccountType.ThorchainAddress -> accountType.address.toByteArray(Charsets.UTF_8)
         is AccountType.MayachainAddress -> accountType.address.toByteArray(Charsets.UTF_8)
         is AccountType.BitcoinAddress -> accountType.serialized.toByteArray(Charsets.UTF_8)

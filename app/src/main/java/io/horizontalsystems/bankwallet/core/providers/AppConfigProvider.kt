@@ -53,7 +53,6 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
     override val openSeaApiKey = BuildConfig.OPEN_SEA_API_KEY
     override val trongridApiKeys: List<String> = BuildConfig.TRONGRID_API_KEYS.split(",")
     override val udnApiKey = BuildConfig.UDN_API_KEY
-    override val oneInchApiKey = BuildConfig.ONE_INCH_API_KEY
     override val thorchainApiKey = BuildConfig.THORCHAIN_API_KEY
     override val appLinksHost = BuildConfig.APP_LINKS_HOST
 
@@ -157,6 +156,7 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
         "POL" to BigDecimal("1"),
         "BNB" to BigDecimal("0.0002"),
         "SOL" to BigDecimal("0.0001"),
+        "NEAR" to BigDecimal("0.01"),
     )
 
     // Cent-sized stablecoin transfers are common test sends, so their micro dust is not
@@ -177,9 +177,12 @@ class AppConfigProvider(localStorage: ILocalStorage) : IAppConfigProvider {
 
     override val uswapApiKey = BuildConfig.USWAP_API_KEY
 
+    override val fastNearApiKey = BuildConfig.FASTNEAR_API_KEY.ifBlank { null }
+
     override val tonApiKey = BuildConfig.TONAPI_KEY
 
-    override val oneInchPartnerFeeAddress = BuildConfig.ONE_INCH_PARTNER_FEE_ADDRESS
 
+    override val oneInchPartnerFeeAddress = ""
+    override val oneInchApiKey = BuildConfig.ONE_INCH_API_KEY
     override val fdroidBuild: Boolean = BuildConfig.FDROID_BUILD
 }

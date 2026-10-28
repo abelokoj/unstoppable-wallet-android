@@ -243,6 +243,7 @@
 -keep class io.horizontalsystems.tronkit.** { *; }
 -keep class io.horizontalsystems.thorchainkit.** { *; }
 -keep class io.horizontalsystems.xrpkit.** { *; }
+-keep class io.horizontalsystems.nearkit.** { *; }
 -keep class io.horizontalsystems.stellarkit.** { *; }
 -keep class io.horizontalsystems.tonkit.** { *; }
 # TonKit's generated tonapi client parses JSON with Moshi's KotlinJsonAdapterFactory,
@@ -290,6 +291,7 @@
 -keep class io.horizontalsystems.walletkit.modules.backuplocal.** { *; }
 -keep class io.horizontalsystems.walletkit.modules.contacts.** { *; }
 -keep class io.horizontalsystems.walletkit.modules.multiswap.providers.** { *; }
+-keep class io.horizontalsystems.walletkit.modules.multiswap.history.AllBridgeTracker** { *; }
 -keep class io.horizontalsystems.walletkit.modules.opencryptopay.** { *; }
 -keep class io.horizontalsystems.walletkit.modules.privatesend.** { *; }
 -keep class io.horizontalsystems.walletkit.modules.restorelocal.** { *; }

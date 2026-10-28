@@ -11,7 +11,10 @@ data class SwapFinalQuote(
     val amountIn: BigDecimal,
     val amountOut: BigDecimal,
     val amountOutMin: BigDecimal?,
-    val sendTransactionData: SendTransactionData,
+    // The transaction to estimate and sign, or null when nothing can be built before the order
+    // exists: a transfer provider's deposit address arrives with the commit, and the server named
+    // no stand-in to price the transfer against. Such a quote is shown without a network fee.
+    val sendTransactionData: SendTransactionData?,
     val priceImpact: BigDecimal?,
     val fields: List<DataField>,
     val estimatedTime: Long?,
@@ -26,4 +29,11 @@ data class SwapFinalQuote(
     // Spender of the committed route's approval, when the provider reports one —
     // it can differ from the transaction's `to` (routers vs. dedicated spenders).
     val approvalSpender: String? = null,
+    // Provider-private state carried from the preview to [IMultiSwapProvider.commit], such as the
+    // token that turns the previewed route into an order. Opaque to everything else.
+    val providerContext: Any? = null,
+    // Whether this route can be broadcast through the MEV-protected RPC: a property of the
+    // quote, decided by the provider from the route, never of the provider. The confirmation
+    // offers the toggle only when it is true and the sell chain has a protected sender.
+    val mevProtectionAllowed: Boolean = false,
 )

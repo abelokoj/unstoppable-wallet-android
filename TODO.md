@@ -1,5 +1,18 @@
 # Open Swap TODO
 
+## Upstream 0.53 integration, started 2026-10-28
+
+- [x] Compared upstream 0.53.0 with the published Open Swap baseline and resolved the local merge on `codex/merge-upstream-0.53.0`.
+- [x] Preserved current layouts, direct providers, Relay, PancakeSwap Cross-chain, configured ratings, bottom swap percentages, maximum controls, fiat cursor, wallet switching, fonts, token/contact features and Revoke Access.
+- [x] Integrated the approved NEAR account flows, conditional Zcash shielding, receiving-token activation, hosted-swap v3 lifecycle, route-specific MEV eligibility, XSwap and ordinary-swap NEAR Confidential.
+- [x] Repaired the NEAR review findings before publication: issuer/spam identity, genuine outgoing poisoning context, independently verified token balances, metadata failures, backup validation, account isolation and bounded discovery. See [NEAR decisions](docs/chain-integration/near/review.md).
+- [x] Passed all 596 selected walletkit/chain/app tests, including 26 NEAR tests, and translation coverage for 1,849 strings across nine locales.
+- [x] Built Base Debug and Base Release, including shrinking/vital lint, and verified 0.53.0 (185) plus the unchanged release certificate. Prepared the changelog and reviewed commit message for the authorized source merge/push. See [merge plan](dev_notes/UPSTREAM_0_53_MERGE_PLAN.md).
+- [x] Installed/opened the development update in place on the connected test device and checked the Balances shortcut, retained swap layout, bottom percentages and an unsigned PancakeSwap Cross-chain ETH-to-BNB quote with the configured Excellent label. No approval, signature or send occurred.
+- [ ] Complete user manual testing and exercise NEAR live watch-history vectors, full backup restore, rapid wallet switching, token RPC failure/recovery and observed Tor routing on Android. The user is reviewing the development update; a separate test emulator remains open for later work.
+- [ ] Test disposable funded NEAR sends, registration/reserve boundaries, ambiguous submission, pending expiry and restart recovery. No funded transaction is authorized by the merge task.
+- [ ] Compare NEAR derivation/backup/history with iOS through an authorized paired-platform handoff. No external developer message has been sent.
+- [ ] Publish a new 0.53.0 tag and APK only when requested. Existing release tags and APKs remain unchanged.
 ## Deferred Across integration
 
 - Across direct integration is deferred at the user's request on 2026-10-27 because Across requires a production API key and integrator ID. Upstream Unstoppable 0.52.2 provides neither a direct Across provider nor reusable Across credentials. Do not borrow another project's credentials.
@@ -31,7 +44,7 @@
 - [x] Passed all 392 selected walletkit/EVM/Solana/app tests for 0.52.3, including the new regressions; translation coverage passed for 1,811 strings across nine locales.
 - [x] Built Base Debug and Base Release as 0.52.3 (184), verified the existing signing certificate and inspected all six preserved JSON fields in release bytecode. Installed/opened only the development package; the user confirmed the corrected fiat cursor. Automated screenshot/rating checks were interrupted by USB disconnections.
 - [x] Prepared/staged the source and a proposed commit message for review.
-- [ ] Commit and push after the user's instruction. Do not publish a tag or replace earlier releases during preparation.
+- [x] Published the separately authorized v0.52.3 commit, tag and signed APK on 2026-10-28; the publication entry in CHANGELOG.md records the completed release. Earlier releases remain intact.
 
 ## Private Send fee transparency
 

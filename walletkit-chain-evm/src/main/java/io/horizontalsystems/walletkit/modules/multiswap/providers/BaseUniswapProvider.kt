@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
 import io.horizontalsystems.walletkit.core.blockTime
+import io.horizontalsystems.walletkit.modules.multiswap.SwapMevProtection
 import io.horizontalsystems.walletkit.entities.getEthereumKitAddress
 import io.horizontalsystems.walletkit.modules.multiswap.EvmBlockchainHelper
 import io.horizontalsystems.walletkit.modules.multiswap.SwapFinalQuote
@@ -27,6 +28,9 @@ abstract class BaseUniswapProvider : IMultiSwapProvider {
     private val uniswapKit by lazy { UniswapKit.getInstance() }
 
     override fun isSingleTransactionSwap(tokenInBlockchainTypeUid: String, tokenOutBlockchainTypeUid: String) = true
+
+    override fun mevProtectionAllowed(tokenIn: Token, tokenOut: Token): Boolean =
+        SwapMevProtection.allowedForPair(tokenIn, tokenOut)
 
     final override suspend fun fetchQuote(
         tokenIn: Token,
@@ -95,8 +99,18 @@ abstract class BaseUniswapProvider : IMultiSwapProvider {
             bestTrade.tradeData.priceImpact,
             fields,
             tokenIn.blockchainType.blockTime,
-            slippage
+            slippage,
+            fromAsset = assetId(tokenIn),
+            toAsset = assetId(tokenOut),
+            approvalSpender = uniswapKit.routerAddress(bestTrade.chain).hex,
+            mevProtectionAllowed = mevProtectionAllowed(tokenIn, tokenOut),
         )
+    }
+
+    private fun assetId(token: Token): String? = when (val type = token.type) {
+        is TokenType.Eip20 -> type.address
+        TokenType.Native -> "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        else -> null
     }
 
     @Throws

@@ -47,6 +47,9 @@ import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import io.horizontalsystems.walletkit.modules.send.zcash.shield.ShieldZcashPage
+import io.horizontalsystems.walletkit.modules.send.zcash.shield.ActionShield
+import io.horizontalsystems.walletkit.core.chain.SpendPurpose
+import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderAction
 
 class ZcashChainPlugin(
     private val context: () -> Context,
@@ -88,6 +91,7 @@ class ZcashChainPlugin(
 
     // One resolver per plugin: its HTTP client is created lazily on the first lookup.
     private val znsResolver = ZnsResolver()
+    private val addressHandler = AddressHandlerZcash()
 
     override val blockchainType: BlockchainType = BlockchainType.Zcash
 
@@ -99,6 +103,11 @@ class ZcashChainPlugin(
     private val transparentAddressMutex = Mutex()
     private val unifiedAddressCache = ConcurrentHashMap<String, String>()
     private val unifiedAddressMutex = Mutex()
+    // The shielded-only unified address of the operation in progress, per account. The SDK
+    // stores a fresh diversified address on every request and a confirmation re-previews
+    // every 15 s, so one address is kept from the first preview until the deposit is sent.
+    private val shieldedRefundAddressCache = ConcurrentHashMap<String, String>()
+    private val shieldedRefundAddressMutex = Mutex()
 
     override fun createAdapter(wallet: Wallet, restoreSettings: RestoreSettings): IAdapter =
         ZcashAdapter(
@@ -169,9 +178,9 @@ class ZcashChainPlugin(
         }
     }
 
-    override fun addressHandlers(): List<IAddressHandler> = listOf(AddressHandlerZcash())
+    override fun addressHandlers(): List<IAddressHandler> = listOf(addressHandler)
 
-    override fun domainAddressHandlers(): List<IAddressHandler> = listOf(AddressHandlerZns(znsResolver))
+    override fun domainAddressHandlers(): List<IAddressHandler> = listOf(AddressHandlerZns(znsResolver, addressHandler))
 
     override fun addressValidator(token: Token): EnterAddressValidator =
         ZcashAddressValidator(token, App.adapterManager)
@@ -225,6 +234,20 @@ class ZcashChainPlugin(
 
     override fun unshieldedBalanceThreshold(): BigDecimal = ZcashAdapter.minimalShieldThreshold
 
+    override fun spendBalance(token: Token): BigDecimal? =
+        App.adapterManager.getAdapterForToken<ZcashAdapter>(token)?.shieldBalance?.balance
+
+    override fun spendStep(
+        token: Token,
+        amount: BigDecimal,
+        purpose: SpendPurpose,
+    ): ISwapProviderAction? {
+        val adapter = App.adapterManager.getAdapterForToken<ZcashAdapter>(token) ?: return null
+        val step = adapter.shieldBalance?.step(amount) ?: return null
+        val wallet = App.walletManager.activeWallets.firstOrNull { it.token == token } ?: return null
+        return ActionShield(wallet = wallet, purpose = purpose, step = step)
+    }
+
     override fun migrationRequiredBalance(wallet: Wallet): BigDecimal? =
         App.adapterManager.getAdapterForWallet<ZcashAdapter>(wallet)?.ironwoodMigrationRequiredBalance
 
@@ -248,10 +271,27 @@ class ZcashChainPlugin(
         }
     }
 
+    // No fallback: without an adapter or while the wallet syncs there is nothing shielded-only
+    // to name, and the default unified address would carry a transparent receiver. Under a
+    // concurrent miss the mutex lets the first stored address win, so one operation names one.
+    override suspend fun swapShieldedRefundAddress(token: Token): String {
+        val adapter = App.adapterManager.getAdapterForToken<ZcashAdapter>(token)
+            ?: throw IllegalStateException("Zcash wallet is not available")
+        val account = App.accountManager.activeAccount ?: throw NoActiveAccount()
+
+        return cachedAddress(account.id, shieldedRefundAddressCache, shieldedRefundAddressMutex) {
+            adapter.shieldedUnifiedAddress()
+        }
+    }
+
     override fun sendTransactionService(token: Token): AbstractSendTransactionService {
         val adapter = App.adapterManager.getAdapterForToken<ZcashAdapter>(token)
             ?: throw IllegalStateException("ZcashAdapter is null")
-        return SendTransactionServiceZcash(adapter)
+        val accountId = App.accountManager.activeAccount?.id
+        return SendTransactionServiceZcash(adapter) {
+            // The deposit is sent: the next operation names a new shielded-only address.
+            accountId?.let { shieldedRefundAddressCache.remove(it) }
+        }
     }
 
 

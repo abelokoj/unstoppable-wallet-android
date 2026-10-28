@@ -1,6 +1,32 @@
+# Upstream 0.53 integration - 2026-10-28T17:22:32-04:00
+
+- Integrated upstream Unstoppable Wallet 0.53.0 at `d6661c8d0dc02d259767f58b7cd73cabb877da18`, adapting the merge to preserve Open Swap's current layouts, direct providers, Relay, PancakeSwap Cross-chain, configured route ratings, bottom percentages, maximum-amount controls, fiat cursor, wallet switching, appearance, token/contact features and Revoke Access. Version metadata is 0.53.0 (185), advancing beyond 0.52.3 (184).
+- Added the approved NEAR/native and NEP-141 account flows, XSwap, ordinary-swap NEAR Confidential, conditional Zcash shielding and receiving-token activation. Updated hosted Swap, Private Send and CrossPay to the v3 preview/commit/signed lifecycle while retaining account guards, exact committed amounts, fee reserves, existing signing and uncertain-broadcast tracking. Retained direct Maya shielded delivery and migrated the retained Stellar provider to the new lifecycle. Existing 1inch configuration remains intact; FastNEAR is keyless and no borrowed credential is configured.
+- Repaired the source-confirmed NEAR review findings before publication: unknown-token issuer identity and spam classification, genuine outgoing poisoning context, independent contract-balance verification with visible failure states, raw units after metadata failure, backup account-ID validation, atomic account/kit ownership and bounded discovery. Added the design, four role reports, final finding dispositions and explicit executed/unrun vector records under `docs/chain-integration/near/`.
+- Prepared reader-focused, unreleased 0.53.0 notes and updated the source homepage without claiming a new downloadable release. Added WMKeyboard alongside LeanType as the standing release/homepage formatting reference. Preserved previous release notes, tags and changelog entries.
+- Validation: all 596 selected tests passed with zero failures, errors or skips: walletkit 304, EVM 33, Solana 19, Stellar 16, THORChain 1, NEAR 26, Zcash 75, Tron 7, XRP 4, Zano 8 and app 103. Bitcoin and Monero test tasks contain no tests; their modules compiled with the app. Translation coverage passed for 1,849 strings across nine locales. Base Debug and Base Release packaging passed, including release optimization and vital lint. Both APKs report 0.53.0 (185); the release certificate matches the existing Open Swap fingerprint. Fixed a stale NEAR fallback-order assertion against the pinned SDK rather than changing its configured order. Existing compiler/Room/Gradle warnings remain.
+- Recording time in America/New_York for local, staged merge preparation before committing or pushing. The user subsequently connected a test device: installed and opened only the development update in place, then checked the Balances Revoke Access shortcut, amount-left/token-right layout, bottom 25/50/75/100% controls and an unsigned ETH-to-BNB PancakeSwap Cross-chain quote with the retained Excellent label. No approval, signature or transaction was submitted. The user took over further manual testing; the separate emulator was left running for later use. This device-check update was recorded at 2026-10-28T17:40:18-04:00. Funded transfers, bridge settlement/refunds, controlled pending/recovery failures, observed Tor traffic and iOS parity remain untested. Configured RPC/indexer/provider services still receive the public request data described in the integration records. No new release tag or GitHub APK is published by this source-merge batch.
+
+---
+# Documentation reference update - 2026-10-28T16:05:48-04:00
+
+- Added WMKeyboard's v0.6.4 release and repository homepage alongside LeanType in both `dev_notes/RELEASE_NOTES_STYLE.md` and `dev_notes/README_STYLE.md`, as requested. The guides now record concise release summaries, suitable change or feature-area groupings, prominent download links and reader-focused descriptions.
+- Reviewed both supplied public pages and the existing guides. These guide edits are local and uncommitted within the ongoing upstream 0.53 merge; they do not change the app, current published homepage or existing release notes. No publication is claimed by this entry. Recording time in America/New_York.
+
+---
+
+# Upstream 0.53 merge preflight - 2026-10-28T15:32:53-04:00
+
+- Prepared local integration branch `codex/merge-upstream-0.53.0` from the current published Open Swap baseline and compared upstream release 0.53.0 at `d6661c8d0dc02d259767f58b7cd73cabb877da18`. A merge-tree preview identified 35 conflicted paths without changing checked-out application files.
+- Recorded the user's decision to preserve existing direct swap routes, Relay, PancakeSwap Cross-chain and current ratings. The user requires existing UI preservation and a decision before changes that affect current functionality; NEAR/Zcash flows and USwap execution/MEV changes remain pending user decisions.
+- Added the implementation/preservation plan to `dev_notes/UPSTREAM_0_53_MERGE_PLAN.md` and tracked unfinished integration work in TODO. No application code, version, APK, signing settings or released tag was changed. No actual upstream merge, build, test run, commit or push was performed in this preflight batch.
+- Corrected an accidental control character preceding the v0.52.3 tag in the earlier publication entry. That typo came from escaped prose during release documentation; the actual released tag remains v0.52.3. Recording time for local, uncommitted preflight documentation in America/New_York.
+
+---
+
 # Release published - 2026-10-28T15:23:45-04:00
 
-- Published Open Swap 0.52.3 (184) as GitHub release 0.52.3, based on the preceding release commit and tag. GitHub Actions completed the signed APK build successfully and attached open-swap-v0.52.3.apk to the release.
+- Published Open Swap 0.52.3 (184) as GitHub release `v0.52.3`, based on the preceding release commit and tag. GitHub Actions completed the signed APK build successfully and attached `open-swap-v0.52.3.apk` to the release.
 - Updated the live release body to match the published LeanType-style source notes. The accompanying README and developer-note guides remain local until their documentation commit is pushed. No post-build application code or APK changed.
 
 ---

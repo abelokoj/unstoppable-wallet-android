@@ -2,6 +2,7 @@ package io.horizontalsystems.walletkit.core.chain
 
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.marketkit.models.TokenType
 import io.horizontalsystems.marketkit.models.Blockchain
 import io.horizontalsystems.walletkit.core.AdapterState
 import io.horizontalsystems.walletkit.core.App
@@ -14,16 +15,17 @@ import io.horizontalsystems.walletkit.core.managers.RestoreSettings
 import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.entities.Wallet
+import io.horizontalsystems.walletkit.core.IBalanceAdapter
 import androidx.compose.runtime.Composable
 import io.horizontalsystems.walletkit.entities.Address
 import io.horizontalsystems.walletkit.modules.address.IAddressHandler
 import io.horizontalsystems.walletkit.modules.balance.BalanceModule
 import io.horizontalsystems.walletkit.modules.blockchainsettings.BlockchainSettingsModule
 import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderAction
-import io.horizontalsystems.walletkit.modules.multiswap.providers.IMultiSwapProvider
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.AbstractSendTransactionService
 import io.horizontalsystems.walletkit.modules.walletconnect.handler.IWCHandler
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
+import io.horizontalsystems.walletkit.modules.enablecoin.restoresettings.AccountPickerResult
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.send.address.EnterAddressValidator
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +46,8 @@ import kotlin.reflect.KClass
  */
 interface ChainPlugin {
     val blockchainType: BlockchainType
+
+    fun swapProviders(): List<io.horizontalsystems.walletkit.modules.multiswap.providers.IMultiSwapProvider> = emptyList()
 
     /**
      * Creates the balance/send adapter for a wallet of this chain. [restoreSettings] holds
@@ -83,6 +87,20 @@ interface ChainPlugin {
     fun unshieldedBalanceThreshold(): BigDecimal? = null
 
     /**
+     * The balance of [token] that send and swap forms and token pickers offer, when it
+     * differs from the adapter's available balance, or null to use that. Zcash counts funds
+     * still confirming and transparent funds, which become spendable through [spendStep].
+     */
+    fun spendBalance(token: Token): BigDecimal? = null
+
+    /**
+     * What a form must wait for or start before it can spend [amount] of [token], or null
+     * when the amount is spendable now or exceeds [spendBalance]. An action in progress
+     * keeps the form waiting, the way swap waits on an approval.
+     */
+    fun spendStep(token: Token, amount: BigDecimal, purpose: SpendPurpose): ISwapProviderAction? = null
+
+    /**
      * Balance the chain requires the user to migrate (e.g. Zcash Orchard→Ironwood after a
      * network upgrade), or null when no migration is pending for [wallet].
      */
@@ -90,6 +108,13 @@ interface ChainPlugin {
 
     /** Confirmation page executing the pending migration reported by [migrationRequiredBalance]. */
     fun migrationPage(wallet: Wallet, entryPoint: KClass<out HSPage>): HSPage? = null
+
+    /**
+     * Page that picks which on-chain account [accountType] opens on this chain, shown when the
+     * chain's first wallet is enabled for a restored account; null when there is nothing to pick.
+     * The page sends back an [AccountPickerResult].
+     */
+    fun accountPickerPage(accountType: AccountType): HSPage? = null
 
     /** Lowest accepted birthday height for the restore date picker. */
     fun minBirthdayHeight(): Long? = null
@@ -99,6 +124,15 @@ interface ChainPlugin {
 
     /** The wallet's unified/shielded receive address for swap delivery, or null. */
     suspend fun swapUnifiedReceiveAddress(token: Token): String? = null
+
+    /**
+     * The wallet's unified address with shielded receivers only, named as the refund (and source)
+     * of a sell to a provider that takes a unified refund, or null for chains without one. One
+     * address per account per operation: every re-preview of one operation gets the same address,
+     * and the chain's send service forgets it once the deposit is sent. Throws instead of falling
+     * back to an address with a transparent receiver.
+     */
+    suspend fun swapShieldedRefundAddress(token: Token): String? = null
 
     /** Birthday height stored when a NEW wallet of this chain is created, or null if unused. */
     fun newWalletBirthdayHeight(): Long? = null
@@ -261,6 +295,20 @@ interface ChainPlugin {
     /** Address reported to market analytics for this chain, or null. */
     fun analyticsAddress(accountType: AccountType): String? = null
 
+    /**
+     * The token type behind a swap server's asset identifier on this chain, for chains whose
+     * identifiers are an asset notation rather than an address (THORChain's `THOR.RUNE`,
+     * `BTC-BTC`), or null when the identifier names nothing this chain serves.
+     */
+    fun swapAssetTokenType(assetIdentifier: String): TokenType? = null
+
+    /**
+     * Pre-swap step the account needs before it can receive [token] (a Stellar trustline), or
+     * null when none is needed or the state cannot be read. Keyed on the buy token alone: every
+     * route delivering it to the account needs the same step.
+     */
+    suspend fun swapActivationAction(token: Token): ISwapProviderAction? = null
+
     /** Current EIP-20 allowance granted to spender, or null when not applicable. */
     suspend fun eip20Allowance(token: Token, spenderAddress: String): BigDecimal? = null
 
@@ -289,9 +337,6 @@ interface ChainPlugin {
 
     /** Silent handler for wallet_* WalletConnect requests, or null. */
     fun wcWalletRequestHandler(): io.horizontalsystems.walletkit.modules.walletconnect.IWCWalletRequestHandler? = null
-
-    /** Swap providers contributed to the multiswap registry. */
-    fun swapProviders(): List<IMultiSwapProvider> = emptyList()
 
     /** Account types restorable from a pasted private key. */
     fun privateKeyAccountTypes(privateKey: String): List<AccountType> = emptyList()
@@ -413,3 +458,11 @@ class ChainKeyRow(
     val page: HSPage,
     val statPage: io.horizontalsystems.walletkit.core.stats.StatPage,
 )
+
+
+/** What the funds checked by a send or swap form are about to be spent on. */
+enum class SpendPurpose { Send, Swap }
+
+/** The balance of [token] a form or token picker offers; see [ChainPlugin.spendBalance]. */
+fun IBalanceAdapter.spendBalance(token: Token): BigDecimal? =
+    ChainRegistry[token.blockchainType]?.spendBalance(token) ?: balanceData?.available

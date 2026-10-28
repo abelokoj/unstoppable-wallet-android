@@ -2,6 +2,8 @@ package io.horizontalsystems.walletkit.modules.multiswap.providers
 
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.entities.Address
+import io.horizontalsystems.walletkit.modules.multiswap.SwapCommitFailedException
+import io.horizontalsystems.walletkit.modules.multiswap.SwapCommitment
 import io.horizontalsystems.walletkit.modules.multiswap.SwapFinalQuote
 import io.horizontalsystems.walletkit.modules.multiswap.SwapQuote
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionSettings
@@ -57,6 +59,10 @@ interface IMultiSwapProvider {
 
     suspend fun checkAmlAddresses(addresses: List<String>): Boolean? = null
 
+    /**
+     * The confirmation screen's quote. Has no side effects: it is re-requested on every refresh,
+     * fee-setting or slippage change, so a provider must not create an order here.
+     */
     suspend fun fetchFinalQuote(
         tokenIn: Token,
         tokenOut: Token,
@@ -66,6 +72,19 @@ interface IMultiSwapProvider {
         recipient: Address?,
         slippage: BigDecimal,
     ): SwapFinalQuote
+
+    /**
+     * Creates the order for a previewed quote when the user presses Swap. Resolves to the quote
+     * whose transaction is broadcast (the same one, or a rebuilt one when a transfer provider
+     * learns the deposit address only here) and the order id the record tracks by. Providers
+     * without an order step confirm the quote as it is. Throws [SwapCommitFailedException] when
+     * the order could not be created; the quote is then stale and must be previewed again.
+     */
+    suspend fun commit(finalQuote: SwapFinalQuote): SwapCommitment =
+        SwapCommitment(finalQuote, finalQuote.providerSwapId)
+
+    /** Reports the broadcast inbound tx hash to the provider's backend. Best-effort. */
+    suspend fun reportInboundTxHash(providerSwapId: String, txHash: String) = Unit
 
     companion object {
         val DEFAULT_SLIPPAGE: BigDecimal = BigDecimal("1")
@@ -80,5 +99,10 @@ enum class SwapProviderType(val title: String) {
 enum class RiskLevel(val title: Int, val icon: Int) {
     EXCELLENT(R.string.RiskLevel_Excellent, R.drawable.star_filled_24),
     GOOD(R.string.RiskLevel_Good, R.drawable.shield_check_filled_24),
-    FAIR(R.string.RiskLevel_Fair, R.drawable.thumbsup_24)
+    FAIR(R.string.RiskLevel_Fair, R.drawable.thumbsup_24);
+
+    companion object {
+        /** The server's `amlPolicy` value (`excellent` | `good` | `fair`); null for anything else. */
+        fun fromAmlPolicy(value: String): RiskLevel? = entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
+    }
 }

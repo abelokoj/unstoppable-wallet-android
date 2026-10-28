@@ -165,6 +165,10 @@ class SendV2ConfirmViewModel(
                 val data = chainPlugin?.sendTransactionData(token, value, address.hex, memo, extraInput, chainSettings)
                     ?: throw UnsupportedOperationException(token.blockchainType.uid)
                 submittedAmount = value
+                // reconcileMaxSend only runs when the service's StateFlow emits, and StateFlow
+                // drops a value equal to the current one. A reduced amount whose estimate
+                // matches the previous one would leave the screen adjusting forever.
+                sendTransactionService.refreshUuid()
                 sendTransactionService.setSendTransactionData(data)
             } catch (e: CancellationException) {
                 throw e
@@ -284,7 +288,10 @@ class SendV2ConfirmViewModel(
         val result = try {
             sendTransactionService.sendTransaction()
         } catch (e: Throwable) {
-            sendResult = SendResult.Failed(createCaution(e))
+            sendResult = SendResult.Failed(
+                createCaution(e),
+                expected = e is UnknownHostException || e is LocalizedException,
+            )
             return
         }
         sendResult = SendResult.Sent(txHash = txHash(result))
@@ -303,6 +310,7 @@ class SendV2ConfirmViewModel(
         is SendTransactionResult.Tron -> result.txHash
         is SendTransactionResult.Stellar -> result.txHash
         is SendTransactionResult.Xrp -> result.txHash
+        is SendTransactionResult.Near -> result.txHash
         is SendTransactionResult.Solana -> result.txHash
         is SendTransactionResult.Zcash -> result.transactionHash
         is SendTransactionResult.Monero -> result.txHash

@@ -1,6 +1,13 @@
 # Release Notes Style
 
-Use the LeanType release-note style for every Open Swap release.
+Use LeanType and WMKeyboard as the formatting references for every Open Swap release.
+
+References:
+
+- [LeanType releases](https://github.com/LeanBitLab/LeanType/releases).
+- [WMKeyboard 0.6.4 release notes](https://github.com/wasi-master/wmkeyboard/releases/tag/v0.6.4).
+
+Combine LeanType's clear change categories with WMKeyboard's short opening summary and feature-area grouping when a release is large. Describe what users can now do, where they will find it, and the behavior a fix corrects. Use real issue links where useful; do not invent them. Choose headings that suit the actual release instead of reproducing every reference section.
 
 Start with a version heading and a short one-sentence summary when it helps readers understand the release. Organize user-visible changes under these headings, including only headings that have content:
 

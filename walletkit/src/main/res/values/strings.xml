@@ -705,7 +705,6 @@
     <string name="FeeInfo_TronResourcesConsumed_Description">Bandwidth is the unit that measures the size of the transaction bytes stored in the blockchain database. The larger the transaction, the more bandwidth resources will be consumed.\n\nEnergy is the unit that measures the amount of computation required by the TRON virtual machine to perform specific operations on the TRON network.\n\nSince smart contract transactions require computing resources to execute, each smart contract transaction requires to pay for the energy fee.</string>
 
     <!--Tron-->
-    <string name="Tron_SelfSendTrxNotAllowed">Cannot transfer TRX to yourself</string>
     <string name="Tron_ZeroAmountTrxNotAllowed">Cannot transfer 0 %s</string>
     <string name="Tron_TokenPage_AddressNotActivated">Not Activated</string>
     <string name="Tron_TokenPage_AddressNotActive_Title">TRON Not Activated</string>
@@ -1658,7 +1657,7 @@
     <string name="ImportBackupFile_BackupPassword">Backup Password</string>
 
     <string name="WatchWallet">Watch Wallet</string>
-    <string name="Watch_Address_Hint">Paste your address (EVM, Tron, TON, Stellar, XRP, Monero, BTC, LTC, BCH, Dash) or XPUB</string>
+    <string name="Watch_Address_Hint">Paste your address (EVM, Tron, TON, Stellar, XRP, NEAR, Monero, BTC, LTC, BCH, Dash) or XPUB</string>
     <string name="Watch_ViewKey">Private View Key</string>
     <string name="Watch_Select_Blockchains">Choose Blockchains</string>
     <string name="Watch_Select_Coins">Choose Coins</string>
@@ -2403,4 +2402,43 @@
     <string name="ApprovalAccess_RawAmountValue">%1$s raw units</string>
     <string name="ApprovalAccess_NamesHelp">Names come from saved address labels and may differ by network. A name is not proof of safety. Verify the full contract addresses.</string>
     <string name="PrivateSend_Caution_MaxUnavailable">Could not determine an affordable maximum. Check the fees and try a smaller amount or refresh the quote.</string>
+    <string name="NearSend_ReceiverRegistration">Receiver registration</string>
+    <string name="NearSend_StorageDepositTooHigh">This token asks for an unusually large deposit to register the receiver and may be a scam.</string>
+    <string name="NearSend_StorageDepositChanged">The receiver registration fee has changed. Check the updated fee and send again.</string>
+    <string name="NearSend_PreviousTransactionPending">A previous transaction is still pending. Check your transaction history before sending again.</string>
+    <string name="Transactions_NotProcessed">Not processed</string>
+    <string name="NearSend_Rejected">The network rejected this transaction. Nothing was sent.</string>
+    <string name="NearSend_TooManyDecimals">This token supports up to %d decimal places.</string>
+    <string name="NearAccount_Title">NEAR Account</string>
+    <string name="NearAccount_Description">This recovery phrase controls more than one NEAR account. Choose the one to use in this wallet.</string>
+    <string name="NearAccount_Searching">Searching for accounts linked to this recovery phrase…</string>
+    <string name="NearAccount_SearchFailed">Couldn\'t search for accounts linked to this recovery phrase. Try again, enter the account name, or use the default account.</string>
+    <string name="NearAccount_DefaultAccount">Default account</string>
+    <string name="NearAccount_UseDefault">Use Default Account</string>
+    <string name="NearAccount_EnterName">Enter Account Name</string>
+    <string name="NearAccountName_Title">Account Name</string>
+    <string name="NearAccountName_Description">Enter a NEAR account this recovery phrase controls, such as alice.near.</string>
+    <string name="NearAccountName_Invalid">Not a valid NEAR account name</string>
+    <string name="NearAccountName_NotFound">This account does not exist</string>
+    <string name="NearAccountName_NoAccess">This recovery phrase has no full access to this account</string>
+    <string name="NearAccountName_CheckFailed">Couldn\'t check the account. Try again.</string>
+    <string name="NearAccount_OtherKeysWarning">Other keys also have full access to this account. Whoever holds them can move its funds or remove your recovery phrase\'s access.</string>
+    <string name="NearAccount_ContractWarning">A smart contract is deployed on this account. Depending on its code, it can move the account\'s funds. Continue only if you know what it does.</string>
+    <string name="NearAccount_AccessLost">This recovery phrase no longer has access to this account. It may have been removed in another wallet.</string>
+    <string name="NearSend_NotFullAccessKey">This recovery phrase has only limited access to this account and can\'t send funds.</string>
+    <string name="Zcash_ShieldToSend">Shield ZEC to Send</string>
+    <string name="Zcash_ShieldToSwap">Shield ZEC to Swap</string>
+    <string name="Zcash_Shielding">Shielding ZEC</string>
+    <string name="Zcash_ShieldZec">Shield ZEC</string>
+    <string name="Zcash_ConfirmShielding">Confirm Shielding</string>
+    <string name="Zcash_ToShieldedAddress">To your shielded address</string>
+    <string name="Swap_EnableToken">Enable %s</string>
+    <string name="NearSend_ReceiverIsTokenContract">This is the token\'s contract address, not a wallet. Tokens sent here can\'t be recovered.</string>
+    <string name="NearSend_ReceiverCheckFailed">Couldn\'t check that this account exists. Check your connection and try again.</string>
+    <string name="NearAccount_AccessCheckFailed">Couldn\'t check whether this recovery phrase still has access to this account. Tap to try again.</string>
+    <string name="SwapInfo_StatusExpired">Expired</string>
+    <string name="SwapConfirm_CommitRateChanged">The price moved. Review the updated quote and try again.</string>
+    <string name="SwapConfirm_CommitRefreshRequired">The quote expired. A new quote has been loaded.</string>
+    <string name="SwapConfirm_CommitFailed">The swap could not be started. A new quote has been loaded.</string>
+    <string name="Zcash_Confirming">Confirming</string>
 </resources>

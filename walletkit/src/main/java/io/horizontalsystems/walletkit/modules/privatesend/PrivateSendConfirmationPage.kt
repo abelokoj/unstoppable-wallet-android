@@ -22,6 +22,8 @@ import io.horizontalsystems.walletkit.modules.multiswap.FeeRow
 import io.horizontalsystems.walletkit.helpers.HudHelper
 import io.horizontalsystems.walletkit.modules.confirm.ConfirmTransactionScreen
 import io.horizontalsystems.walletkit.modules.confirm.ErrorSheet
+import io.horizontalsystems.walletkit.modules.multiswap.SwapCommitFailedException
+import io.horizontalsystems.walletkit.modules.multiswap.messageRes
 import io.horizontalsystems.walletkit.modules.evmfee.Cautions
 import io.horizontalsystems.walletkit.entities.Address
 import io.horizontalsystems.walletkit.modules.multiswap.QuoteInfoRow
@@ -127,9 +129,7 @@ private fun PrivateSendConfirmationScreen(
             null
         },
         buttonsSlot = {
-            if (uiState.expired || uiState.refreshRequired) {
-                // The committed order is not honoured past its lifetime; Refresh commits a
-                // fresh order in place — the same recovery the swap confirmation offers.
+            if (uiState.refreshRequired) {
                 HSButton(
                     variant = ButtonVariant.Secondary,
                     modifier = Modifier.fillMaxWidth(),
@@ -155,6 +155,10 @@ private fun PrivateSendConfirmationScreen(
                                 // showing the failure sheet then would invite a second send
                                 // of a deposit that already broadcast.
                                 throw t
+                            } catch (t: SwapCommitFailedException) {
+                                // No deposit was sent; a fresh preview is already loading, so the
+                                // reason is a passing notice rather than an error sheet.
+                                HudHelper.showErrorMessage(view, t.detail ?: context.getString(t.failure.messageRes))
                             } catch (t: Throwable) {
                                 navigation.slideFromBottom(
                                     ErrorSheet(ErrorSheet.Input(errorText(context, t)))
@@ -326,8 +330,8 @@ private fun errorText(context: android.content.Context, error: Throwable): Strin
         error.maximum.toPlainString(),
     )
 
-    is PrivateSendError.NoRoute -> context.getString(R.string.PrivateSend_Caution_NoRoute)
     is PrivateSendError.MaxUnavailable -> context.getString(R.string.PrivateSend_Caution_MaxUnavailable)
+    is PrivateSendError.NoRoute -> context.getString(R.string.PrivateSend_Caution_NoRoute)
     is PrivateSendError.ExactOutputUnsupported -> context.getString(R.string.PrivateSend_Caution_ExactOutputUnsupported)
     is PrivateSendError.ProviderSuspended -> context.getString(R.string.PrivateSend_Caution_ProviderSuspended)
     is PrivateSendError.NetworkError -> context.getString(R.string.PrivateSend_Caution_NetworkError)

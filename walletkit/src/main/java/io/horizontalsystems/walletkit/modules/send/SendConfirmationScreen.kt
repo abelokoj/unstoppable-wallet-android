@@ -98,6 +98,8 @@ fun SendConfirmationScreen(
     // Called once the failure sheet is up, so the caller can clear the result and a later
     // recomposition of this screen does not show the sheet again.
     onFailureShown: (() -> Unit)? = null,
+    sendButtonTitle: String? = null,
+    sendingButtonTitle: String? = null,
     additionalFields: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val closeUntilDestId = sendEntryPointDestId ?: SendV2Page::class
@@ -116,7 +118,11 @@ fun SendConfirmationScreen(
             }
 
             is SendResult.Failed -> {
-                navigation.slideFromBottom(ErrorSheet(ErrorSheet.Input(failureText.orEmpty())))
+                if (sendResult.expected) {
+                    HudHelper.showErrorMessage(view, failureText.orEmpty())
+                } else {
+                    navigation.slideFromBottom(ErrorSheet(ErrorSheet.Input(failureText.orEmpty())))
+                }
                 onFailureShown?.invoke()
             }
 
@@ -141,6 +147,8 @@ fun SendConfirmationScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     sendResult = sendResult,
+                    title = sendButtonTitle,
+                    sendingTitle = sendingButtonTitle,
                     onClickSend = {
                         onClickSend()
 
@@ -308,7 +316,9 @@ fun SendButton(
     modifier: Modifier,
     sendResult: SendResult?,
     onClickSend: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
+    title: String? = null,
+    sendingTitle: String? = null,
 ) {
     // The Sending/Sent branches below disable the button, but they are driven by sendResult, which
     // the view models assign on an IO dispatcher after onClickSend() returns. Between the tap and
@@ -327,7 +337,7 @@ fun SendButton(
         SendResult.Sending -> {
             HSButton(
                 modifier = modifier,
-                title = stringResource(R.string.Send_Sending),
+                title = sendingTitle ?: stringResource(R.string.Send_Sending),
                 onClick = { },
                 enabled = false
             )
@@ -345,7 +355,7 @@ fun SendButton(
         else -> {
             HSButton(
                 modifier = modifier,
-                title = stringResource(R.string.Send_Confirmation_Send_Button),
+                title = title ?: stringResource(R.string.Send_Confirmation_Send_Button),
                 onClick = {
                     if (!sent) {
                         sent = true

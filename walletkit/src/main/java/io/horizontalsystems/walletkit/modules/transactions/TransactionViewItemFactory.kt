@@ -3,6 +3,7 @@ package io.horizontalsystems.walletkit.modules.transactions
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.ILocalStorage
+import io.horizontalsystems.walletkit.core.adapters.NearTransactionRecord
 import io.horizontalsystems.walletkit.core.adapters.XrpTransactionRecord
 import io.horizontalsystems.walletkit.core.adapters.StellarTransactionRecord
 import io.horizontalsystems.walletkit.core.adapters.TonTransactionRecord
@@ -487,8 +488,82 @@ class TransactionViewItemFactory(
                 )
             }
 
+            is NearTransactionRecord -> {
+                createViewItemFromNearTransactionRecord(
+                    icon = icon,
+                    record = record,
+                    currencyValue = transactionItem.currencyValue,
+                    progress = progress,
+                )
+            }
+
             else -> throw IllegalArgumentException("Undefined record type ${record.javaClass.name}")
         }
+    }
+
+    private fun createViewItemFromNearTransactionRecord(
+        icon: TransactionViewItem.Icon.Failed?,
+        record: NearTransactionRecord,
+        currencyValue: CurrencyValue?,
+        progress: Float?,
+    ): TransactionViewItem {
+        val iconX: TransactionViewItem.Icon
+        val title: String
+        val subtitle: String
+        val primaryValue: ColoredValue?
+        var secondaryValue = currencyValue?.let { getColoredValue(it, ColorName.Grey) }
+        var sentToSelf = false
+
+        when (val recordType = record.type) {
+            is NearTransactionRecord.Type.Send -> {
+                title = Translator.getString(R.string.Transactions_Send)
+                subtitle = Translator.getString(R.string.Transactions_To, mapped(recordType.to, record.blockchainType))
+                sentToSelf = recordType.sentToSelf
+                primaryValue = if (sentToSelf) {
+                    ColoredValue(getCoinString(recordType.value, true), ColorName.Grey)
+                } else {
+                    getColoredValue(recordType.value, getAmountColorForSend(icon))
+                }
+                iconX = singleValueIconType(recordType.value)
+            }
+
+            is NearTransactionRecord.Type.Receive -> {
+                title = Translator.getString(R.string.Transactions_Receive)
+                subtitle = Translator.getString(R.string.Transactions_From, mapped(recordType.from, record.blockchainType))
+                primaryValue = getColoredValue(recordType.value, ColorName.Remus)
+                iconX = singleValueIconType(recordType.value)
+            }
+
+            is NearTransactionRecord.Type.ContractCall -> {
+                title = Translator.getString(R.string.Transactions_ContractCall)
+                subtitle = recordType.method?.let { "$it · ${recordType.contractId.shorten()}" } ?: recordType.contractId.shorten()
+                val incomingValues = recordType.incoming.map { it.value }
+                val outgoingValues = recordType.outgoing.map { it.value }
+                if (incomingValues.isEmpty() && outgoingValues.isEmpty()) {
+                    primaryValue = null
+                    secondaryValue = null
+                } else {
+                    val values = getValues(incomingValues, outgoingValues, currencyValue, mapOf())
+                    primaryValue = values.first
+                    secondaryValue = values.second
+                }
+                iconX = iconType(record.blockchainType, incomingValues, outgoingValues, mapOf())
+            }
+        }
+
+        return TransactionViewItem(
+            uid = record.uid,
+            progress = progress,
+            title = title,
+            subtitle = subtitle,
+            primaryValue = primaryValue,
+            secondaryValue = secondaryValue,
+            showAmount = showAmount,
+            sentToSelf = sentToSelf,
+            date = Date(record.timestamp * 1000),
+            icon = icon ?: iconX,
+            spam = record.spam
+        )
     }
 
     private fun createViewItemFromXrpTransactionRecord(
@@ -1599,6 +1674,15 @@ class TransactionViewItemFactory(
     }
 
     private fun getCoinString(transactionValue: TransactionValue, hideSign: Boolean = false): String {
+        if (transactionValue is TransactionValue.RawValue && transactionValue.contractId != null) {
+            val sign = when {
+                hideSign -> ""
+                transactionValue.value.signum() < 0 -> "-"
+                transactionValue.value.signum() > 0 -> "+"
+                else -> ""
+            }
+            return sign + Translator.getString(R.string.ApprovalAccess_RawAmountValue, transactionValue.value.abs().toString())
+        }
         return transactionValue.decimalValue?.let { decimalValue ->
             val sign = when {
                 hideSign -> ""

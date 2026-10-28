@@ -9,7 +9,6 @@ enum class UProvider(
     val aml: Boolean,
     val amlPrecheck: Boolean,
     val requireTerms: Boolean,
-    val riskLevel: RiskLevel,
     val isEvm: Boolean,
     val isSingleTransactionSwap: Boolean,
     // Provider accepts plain sends to its deposit address (any output type) on UTXO
@@ -19,6 +18,13 @@ enum class UProvider(
     // Restored from upstream 82f4fbc0d. Nullable with a default so entries that
     // use positional arguments are unaffected and unmapped providers still compile.
     val icon: Int? = null,
+    // Takes a unified ZEC address as the refund target of a ZEC sell. App data: /v3/providers
+    // does not publish which ZEC address types a provider accepts. Transfer venues validate a
+    // refund as transparent (QuickEx and StealthEX reject `u1`), Maya refunds to the address in
+    // the memo (Sapling receiver), NEAR's 1Click to an Orchard one. A provider with the flag also
+    // gets the refund address as `sourceAddress`, and the refund itself is the shielded-only
+    // unified address (see ZcashSellAddresses).
+    val acceptsUnifiedZcashRefund: Boolean = false,
 ) {
     Near(
         "NEAR",
@@ -27,14 +33,17 @@ enum class UProvider(
         false,
         false,
         true,
-        RiskLevel.FAIR,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
-        icon = R.drawable.swap_provider_near
+        icon = R.drawable.swap_provider_near,
+        acceptsUnifiedZcashRefund = true,
     ),
-    // Confidential rail behind private send. Registered so tracking and history rendering
-    // resolve it by id, but kept off the ordinary swap screen — see MultiSwapProviderRegistry.
+    // NEAR's confidential rail: the swap executes on a private shard, so the payout cannot be
+    // linked on-chain to the deposit. Quoted on the swap screen like any other provider and
+    // also the rail behind private send (see MultiSwapProviderRegistry.confidentialProviders).
+    // Refunds a ZEC sell to the transparent address: whether its payout bridge pays a unified
+    // address without a transparent receiver is unverified.
     NearConfidential(
         "NEAR_CONFIDENTIAL",
         "Near Confidential",
@@ -42,7 +51,6 @@ enum class UProvider(
         false,
         false,
         true,
-        RiskLevel.FAIR,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true
@@ -54,7 +62,6 @@ enum class UProvider(
         true,
         true,
         true,
-        RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -67,7 +74,6 @@ enum class UProvider(
         true,
         false,
         true,
-        RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -80,7 +86,6 @@ enum class UProvider(
         true,
         false,
         true,
-        RiskLevel.FAIR,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -93,7 +98,6 @@ enum class UProvider(
         true,
         false,
         true,
-        RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -106,7 +110,6 @@ enum class UProvider(
         true,
         false,
         true,
-        RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -119,7 +122,6 @@ enum class UProvider(
         false,
         false,
         true,
-        RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -132,7 +134,6 @@ enum class UProvider(
         true,
         false,
         true,
-        RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -145,7 +146,17 @@ enum class UProvider(
         true,
         false,
         true,
-        RiskLevel.GOOD,
+        isEvm = false,
+        isSingleTransactionSwap = false,
+        supportsSimpleUtxoTransactions = true
+    ),
+    XSwap(
+        id = "XSWAP",
+        title = "XSwap",
+        type = SwapProviderType.CEX,
+        aml = true,
+        amlPrecheck = false,
+        requireTerms = true,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -158,7 +169,6 @@ enum class UProvider(
         true,
         false,
         true,
-        RiskLevel.FAIR,
         isEvm = true,
         isSingleTransactionSwap = true,
         supportsSimpleUtxoTransactions = false,
@@ -171,7 +181,6 @@ enum class UProvider(
         false,
         false,
         true,
-        RiskLevel.EXCELLENT,
         isEvm = true,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = false,
@@ -184,7 +193,6 @@ enum class UProvider(
         aml = true,
         amlPrecheck = false,
         requireTerms = true,
-        riskLevel = RiskLevel.GOOD,
         isEvm = false,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = true,
@@ -197,7 +205,6 @@ enum class UProvider(
         aml = false,
         amlPrecheck = false,
         requireTerms = true,
-        riskLevel = RiskLevel.EXCELLENT,
         isEvm = false,
         isSingleTransactionSwap = true,
         supportsSimpleUtxoTransactions = false,
@@ -210,7 +217,6 @@ enum class UProvider(
         aml = false,
         amlPrecheck = false,
         requireTerms = true,
-        riskLevel = RiskLevel.EXCELLENT,
         isEvm = false,
         // Cross-chain default; a same-chain LI.FI pair IS a single tx —
         // USwapProvider.isSingleTransactionSwap resolves that per pair.
@@ -225,7 +231,6 @@ enum class UProvider(
         aml = false,
         amlPrecheck = false,
         requireTerms = true,
-        riskLevel = RiskLevel.EXCELLENT,
         isEvm = true,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = false,
@@ -238,7 +243,6 @@ enum class UProvider(
         aml = false,
         amlPrecheck = false,
         requireTerms = true,
-        riskLevel = RiskLevel.FAIR,
         isEvm = true,
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = false,
@@ -254,10 +258,96 @@ enum class UProvider(
         aml = false,
         amlPrecheck = false,
         requireTerms = true,
-        riskLevel = RiskLevel.EXCELLENT,
         isEvm = false,
         // Cross-chain: the signed inbound tx is followed by Axelar's GMP delivery leg.
         isSingleTransactionSwap = false,
         supportsSimpleUtxoTransactions = false
+    ),
+    // Routes execute as thorchain_deposit: a vault deposit carrying the swap memo. UTXO sells
+    // need the vault's input and change rules rather than a plain send (see USwapProvider).
+    ThorChain(
+        id = "THORCHAIN",
+        title = "THORChain",
+        type = SwapProviderType.DEX,
+        aml = false,
+        amlPrecheck = false,
+        requireTerms = false,
+        isEvm = false,
+        isSingleTransactionSwap = false,
+        supportsSimpleUtxoTransactions = false
+    ),
+    Maya(
+        id = "MAYACHAIN",
+        title = "Maya Protocol",
+        type = SwapProviderType.DEX,
+        aml = false,
+        amlPrecheck = false,
+        requireTerms = false,
+        isEvm = false,
+        isSingleTransactionSwap = false,
+        supportsSimpleUtxoTransactions = false,
+        acceptsUnifiedZcashRefund = true,
+    ),
+    // Same-chain EVM aggregator routes as server-built signed transactions. No token list:
+    // assets are the raw contract addresses on the sell token's chain.
+    OneInch(
+        id = "ONEINCH",
+        title = "1inch",
+        type = SwapProviderType.DEX,
+        aml = false,
+        amlPrecheck = false,
+        requireTerms = false,
+        isEvm = true,
+        isSingleTransactionSwap = true,
+        supportsSimpleUtxoTransactions = false
+    ),
+    Uniswap(
+        id = "UNISWAP",
+        title = "Uniswap",
+        type = SwapProviderType.DEX,
+        aml = false,
+        amlPrecheck = false,
+        requireTerms = false,
+        isEvm = true,
+        isSingleTransactionSwap = true,
+        supportsSimpleUtxoTransactions = false
+    ),
+    // One card for the Stellar-native DEX routes: /v3/rate fans out over SOROSWAP, AQUARIUS
+    // and STELLAR_DEX and the best-priced route is previewed with that provider. The id is
+    // the server's STELLARBROKER entry, which swap records made through this card carry.
+    Stellar(
+        id = "STELLARBROKER",
+        title = "StellarBroker",
+        type = SwapProviderType.DEX,
+        aml = false,
+        amlPrecheck = false,
+        requireTerms = true,
+        isEvm = false,
+        isSingleTransactionSwap = true,
+        supportsSimpleUtxoTransactions = false
     );
+
+    // Preserve Open Swap's configured ratings independently of hosted metadata.
+    val riskLevel: RiskLevel
+        get() = when (this) {
+            Across -> RiskLevel.EXCELLENT
+            AxelarIts -> RiskLevel.EXCELLENT
+            Barter -> RiskLevel.FAIR
+            Bitania -> RiskLevel.GOOD
+            Cce -> RiskLevel.GOOD
+            Circle -> RiskLevel.EXCELLENT
+            Exolix -> RiskLevel.GOOD
+            Jupiter -> RiskLevel.EXCELLENT
+            LetsExchange -> RiskLevel.GOOD
+            Lifi -> RiskLevel.EXCELLENT
+            Lizex -> RiskLevel.GOOD
+            Near -> RiskLevel.FAIR
+            NearConfidential -> RiskLevel.FAIR
+            Pegasus -> RiskLevel.GOOD
+            QuickEx -> RiskLevel.GOOD
+            Relay -> RiskLevel.FAIR
+            StealthEx -> RiskLevel.FAIR
+            Swapuz -> RiskLevel.GOOD
+            else -> RiskLevel.FAIR
+        }
 }

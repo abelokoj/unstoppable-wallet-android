@@ -1,41 +1,46 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
-import io.horizontalsystems.walletkit.chain.stellar.StellarChainPlugin
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
-import io.horizontalsystems.walletkit.core.adapters.StellarAssetAdapter
 import io.horizontalsystems.walletkit.core.managers.APIClient
+import io.horizontalsystems.walletkit.modules.multiswap.SwapCommitFailedException
+import io.horizontalsystems.walletkit.modules.multiswap.SwapCommitFailure
+import io.horizontalsystems.walletkit.modules.multiswap.SwapCommitment
 import io.horizontalsystems.walletkit.modules.multiswap.SwapFinalQuote
 import io.horizontalsystems.walletkit.modules.multiswap.SwapQuote
-import io.horizontalsystems.walletkit.modules.multiswap.action.ActionActivateStellarAsset
 import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderAction
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionSettings
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldRecipient
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldSlippage
-import io.horizontalsystems.walletkit.entities.Wallet
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.marketkit.models.TokenType
-import io.horizontalsystems.stellarkit.room.StellarAsset
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.math.BigDecimal
+import java.util.Collections
 
 /// Stellar-native swaps through uswap-server's Stellar providers, with the grant's
-/// StellarBroker-first waterfall: /v2/rate fans out to the requested set, the SB route is
+/// StellarBroker-first waterfall: /v3/rate fans out to the requested set, the SB route is
 /// preferred whenever present, the best-priced fallback (SOROSWAP / AQUARIUS / STELLAR_DEX)
 /// serves otherwise. One provider card in the UI, one route out.
 ///
 /// Execution: signed_transaction (kind `stellar`) — the server built the XDR (Soroswap
 /// /quote/build, Aquarius swap_chained assembly, Horizon path payment); we sign + submit
 /// via StellarKit (SendTransactionData.Stellar.WithTransactionEnvelope). Tracking is
-/// server-recorded: the committed route's uuid rides providerSwapId, and the "u_" id
-/// prefix routes SwapTrackRequestBuilder to POST /v2/track { uuid, inboundTxHash }.
-class StellarSwapProvider : IMultiSwapProvider {
+/// server-recorded: a read-only preview carries the XDR and a token, commit creates the
+/// tracking uuid, and the "u_" id prefix routes history to POST /v3/track { uuid }.
+class StellarSwapProvider(
+    private val unstoppableAPI: UnstoppableAPI = APIClient.build(
+        App.appConfigProvider.uswapApiBaseUrl,
+        mapOf("x-api-key" to App.appConfigProvider.uswapApiKey)
+    ).create(UnstoppableAPI::class.java),
+    private val sendingAddress: (Token) -> String? = SwapHelper::getSendingAddressForToken,
+) : IMultiSwapProvider {
     // "u_" prefix is load-bearing: SwapTrackRequestBuilder tracks any u_* provider's record
-    // by uuid alone. The server id (STELLARBROKER) is what /v2/rate and /v2/swap consume.
+    // by uuid alone. The server id (STELLARBROKER) is what /v3/rate and /v3/preview consume.
     override val id = "u_$SERVER_ID"
     override val title = "StellarBroker"
     override val type = SwapProviderType.DEX
@@ -44,10 +49,8 @@ class StellarSwapProvider : IMultiSwapProvider {
 
     override fun isSingleTransactionSwap(tokenInBlockchainTypeUid: String, tokenOutBlockchainTypeUid: String) = true
 
-    private val unstoppableAPI = APIClient.build(
-        App.appConfigProvider.uswapApiBaseUrl,
-        mapOf("x-api-key" to App.appConfigProvider.uswapApiKey)
-    ).create(UnstoppableAPI::class.java)
+    private val consumedPreviewTokens: MutableSet<String> = Collections.synchronizedSet(mutableSetOf())
+    private data class PreviewContext(val token: String)
 
     override fun supports(blockchainType: BlockchainType) = blockchainType == BlockchainType.Stellar
 
@@ -84,7 +87,7 @@ class StellarSwapProvider : IMultiSwapProvider {
     ): SwapFinalQuote {
         // sourceAddress is the build signal: the server returns the ready-to-sign XDR only
         // when it knows the trading account.
-        val source = SwapHelper.getSendingAddressForToken(tokenIn)
+        val source = sendingAddress(tokenIn)
             ?: throw IllegalStateException("No Stellar sending address")
         val destination = recipient?.hex ?: source
 
@@ -99,8 +102,8 @@ class StellarSwapProvider : IMultiSwapProvider {
 
         val provider = selectedProvider ?: throw IllegalStateException("No Stellar route selected")
 
-        val route = unstoppableAPI.swap(
-            UnstoppableAPI.Request.Swap(
+        val route = unstoppableAPI.preview(
+            UnstoppableAPI.Request.Preview(
                 sellAsset = asset(tokenIn) ?: throw IllegalStateException("No identifier for tokenIn"),
                 buyAsset = asset(tokenOut) ?: throw IllegalStateException("No identifier for tokenOut"),
                 sellAmount = amountIn.toPlainString(),
@@ -112,12 +115,8 @@ class StellarSwapProvider : IMultiSwapProvider {
             )
         )
 
-        // A committed /v2/swap must carry the tracking handle — it is what /v2/track receives
-        // as `uuid`, and the server resolves the record from it alone. Fail before any funds
-        // move rather than create an untrackable swap.
-        if (route.uuid.isNullOrEmpty()) {
-            throw IllegalStateException("Swap is not trackable (no uuid)")
-        }
+        val previewToken = route.previewToken?.takeIf { it.isNotEmpty() }
+            ?: throw IllegalStateException("Preview carries no token")
 
         val amountOut = route.expectedBuyAmountOrZero
 
@@ -143,11 +142,39 @@ class StellarSwapProvider : IMultiSwapProvider {
             fields = fields,
             estimatedTime = route.estimatedTime?.total,
             slippage = effectiveSlippage,
-            providerSwapId = route.uuid,
+            providerContext = PreviewContext(previewToken),
             fromAsset = asset(tokenIn),
             toAsset = asset(tokenOut),
             depositAddress = null,
         )
+    }
+
+    override suspend fun commit(finalQuote: SwapFinalQuote): SwapCommitment {
+        val context = finalQuote.providerContext as? PreviewContext
+            ?: throw SwapCommitFailedException(SwapCommitFailure.Failed)
+        if (!consumedPreviewTokens.add(context.token)) {
+            throw SwapCommitFailedException(SwapCommitFailure.RefreshRequired)
+        }
+        currentCoroutineContext().ensureActive()
+
+        val commit = try {
+            unstoppableAPI.commit(UnstoppableAPI.Request.Commit(context.token))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            val failure = UnstoppableAPI.CommitException.from(e)
+            throw SwapCommitFailedException(failure.toSwapCommitFailure(), failure)
+        }
+        val uuid = commit.uuid
+        // A signed route executes the exact XDR shown at preview, never a replacement from commit.
+        if (commit.status != "ok" || uuid.isNullOrEmpty() || commit.execution != null) {
+            throw SwapCommitFailedException(SwapCommitFailure.Failed)
+        }
+        return SwapCommitment(finalQuote.copy(providerSwapId = uuid, providerContext = null), uuid)
+    }
+
+    override suspend fun reportInboundTxHash(providerSwapId: String, txHash: String) {
+        unstoppableAPI.signed(UnstoppableAPI.Request.Signed(providerSwapId, txHash))
     }
 
     private fun sendTransactionData(route: UnstoppableAPI.Response.Route): SendTransactionData {
@@ -173,7 +200,7 @@ class StellarSwapProvider : IMultiSwapProvider {
         }
     }
 
-    /// /v2/rate over the given provider set, applying the waterfall: STELLARBROKER when it
+    /// /v3/rate over the given provider set, applying the waterfall: STELLARBROKER when it
     /// quoted (the grant's primary), otherwise the best-priced fallback.
     private suspend fun bestRoute(
         tokenIn: Token,
@@ -210,31 +237,8 @@ class StellarSwapProvider : IMultiSwapProvider {
         return fallback to providerId
     }
 
-    /// The trustline pre-swap step (the EIP-20 approve analogue): a classic-asset buy needs
-    /// the account's trustline BEFORE the swap. The trustline belongs to the ACCOUNT, not
-    /// the wallet list — when the buy token was never added as a wallet (no adapter), it is
-    /// resolved through the account-level kit, so the user gets the Activate button instead
-    /// of a raw server 4xx at confirmation. An unresolvable state does NOT block (null):
-    /// the server preflight remains the authority; this only drives the inline button UX.
-    private suspend fun activationAction(tokenOut: Token): ISwapProviderAction? {
-        val tokenType = tokenOut.type as? TokenType.Asset ?: return null // native XLM needs no trustline
-        val account = App.accountManager.activeAccount ?: return null
-
-        val established = try {
-            App.adapterManager.getAdapterForToken<StellarAssetAdapter>(tokenOut)?.isTrustlineEstablished()
-                ?: withContext(Dispatchers.IO) {
-                    (ChainRegistry[BlockchainType.Stellar] as StellarChainPlugin).kitManager.getStellarKitWrapper(account).stellarKit
-                        .isAssetEnabled(StellarAsset.Asset(tokenType.code, tokenType.issuer))
-                }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (_: Throwable) {
-            return null
-        }
-        if (established) return null
-
-        return ActionActivateStellarAsset(Wallet(tokenOut, account))
-    }
+    private suspend fun activationAction(tokenOut: Token): ISwapProviderAction? =
+        ChainRegistry[BlockchainType.Stellar]?.swapActivationAction(tokenOut)
 
     /// uswap-server's self-describing Stellar identifiers (parseStellarAssetIdentifier):
     /// native → `XLM.XLM`, classic asset → `XLM.CODE-GISSUER…`.
@@ -257,7 +261,7 @@ class StellarSwapProvider : IMultiSwapProvider {
         private const val CHAIN_ID = "stellar"
 
         // StellarBroker participation switch for THIS app — the ONE place SB is turned on or
-        // off. false = SB is never requested from /v2/rate nor picked, and the waterfall runs
+        // off. false = SB is never requested from /v3/rate nor picked, and the waterfall runs
         // over the fallbacks only.
         //
         // Why false (2026-07-24 decision, mirrored from iOS): SB has no service-fee mechanism,
@@ -266,7 +270,7 @@ class StellarSwapProvider : IMultiSwapProvider {
         // client (see sendTransactionData's stellar_broker arm).
         private const val stellarBrokerEnabled = false
 
-        // The full waterfall set requested from /v2/rate.
+        // The full waterfall set requested from /v3/rate.
         private val allProviders = if (stellarBrokerEnabled) {
             listOf(SERVER_ID, "SOROSWAP", "AQUARIUS", "STELLAR_DEX")
         } else {

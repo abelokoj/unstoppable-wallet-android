@@ -78,7 +78,7 @@ class SwapInfoViewModel(
         fiatAmountIn = fiatAmountIn,
         fiatAmountOut = fiatAmountOut,
         providerName = providerName,
-        showProvider = status in listOf(SwapStatus.Refunded, SwapStatus.Failed, SwapStatus.ActionRequired),
+        showProvider = status in listOf(SwapStatus.Refunded, SwapStatus.Failed, SwapStatus.ActionRequired, SwapStatus.Expired),
         formattedDate = formattedDate,
         status = status,
         operation = operation,
@@ -188,8 +188,8 @@ class SwapInfoViewModel(
     }
 
     private fun buildProviderTxUrl(providerId: String, txHash: String?, depositAddress: String?): String? = when (providerId) {
-        THORCHAIN_PROVIDER_ID -> txHash?.let { "https://thorchain.net/tx/$it" }
-        MAYA_PROVIDER_ID -> txHash?.let { "https://www.mayascan.org/tx/$it" }
+        THORCHAIN_PROVIDER_ID, "u_${UProvider.ThorChain.id}" -> txHash?.let { "https://thorchain.net/tx/$it" }
+        MAYA_PROVIDER_ID, "u_${UProvider.Maya.id}" -> txHash?.let { "https://www.mayascan.org/tx/$it" }
         "u_${UProvider.Near.id}" -> depositAddress?.let { "https://explorer.near-intents.org/transactions/$it" }
         else -> null
     }
@@ -220,6 +220,7 @@ class SwapInfoViewModel(
             BlockchainType.Ton -> "https://tonviewer.com/transaction/$txHash"
             BlockchainType.Stellar -> "https://stellar.expert/explorer/public/tx/$txHash"
             BlockchainType.Xrp -> "https://livenet.xrpl.org/transactions/$txHash"
+            BlockchainType.Near -> "https://nearblocks.io/txns/$txHash"
             BlockchainType.Thorchain -> "https://runescan.io/tx/$txHash"
             BlockchainType.Mayachain -> "https://www.mayascan.org/tx/$txHash"
             BlockchainType.Zano -> "https://explorer.zano.org/transaction/$txHash"

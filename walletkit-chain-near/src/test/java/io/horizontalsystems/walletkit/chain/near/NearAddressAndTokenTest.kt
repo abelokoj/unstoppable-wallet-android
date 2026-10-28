@@ -1,0 +1,91 @@
+package io.horizontalsystems.walletkit.chain.near
+
+import io.horizontalsystems.marketkit.models.Blockchain
+import io.horizontalsystems.marketkit.models.BlockchainType
+import io.horizontalsystems.marketkit.models.TokenType
+import io.horizontalsystems.nearkit.NearKit
+import io.horizontalsystems.nearkit.network.Network
+import io.horizontalsystems.walletkit.modules.backuplocal.BackupLocalModule
+import io.horizontalsystems.walletkit.core.managers.NearRpcSourceManager
+import io.horizontalsystems.walletkit.modules.address.AddressHandlerNear
+import io.horizontalsystems.walletkit.modules.address.AddressHandlerNearName
+import io.horizontalsystems.walletkit.modules.addtoken.AddNearTokenBlockchainService
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class NearAddressAndTokenTest {
+
+    private val handler = AddressHandlerNear()
+    private val addToken = AddNearTokenBlockchainService(Blockchain(BlockchainType.Near, "NEAR", null))
+
+    @Test
+    fun recognizesNearAccounts() {
+        assertTrue(handler.isSupported("alice.near"))
+        assertTrue(handler.isSupported("usdt.tether-token.near"))
+        assertTrue(handler.isSupported("5510e2b44cae6eb807e3e0e45d579dda058c274abcba15e5cb84636f5d1ee412"))
+        assertTrue(handler.isSupported("0x1234567890abcdef1234567890abcdef12345678"))
+    }
+
+    @Test
+    fun leavesOtherInputAlone() {
+        // single-label names are valid ids but would claim any lowercase word
+        assertFalse(handler.isSupported("alice"))
+        assertFalse(handler.isSupported("Alice.near"))
+        // names other name services may own are left to them
+        assertFalse(handler.isSupported("bob.tg"))
+        assertFalse(handler.isSupported("vitalik.eth"))
+        assertFalse(handler.isSupported("vitalik.zec"))
+        assertFalse(handler.isSupported("alice.sweat"))
+        assertFalse(handler.isSupported("GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"))
+        assertFalse(handler.isSupported("rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"))
+        assertFalse(handler.isSupported("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"))
+    }
+
+    @Test
+    fun nearOnlyFieldsTakeAnyNamedAccount() {
+        val nameHandler = AddressHandlerNearName()
+
+        assertTrue(nameHandler.isSupported("alice.near"))
+        assertTrue(nameHandler.isSupported("bob.tg"))
+        assertTrue(nameHandler.isSupported("token.sweat"))
+        assertTrue(nameHandler.isSupported("5510e2b44cae6eb807e3e0e45d579dda058c274abcba15e5cb84636f5d1ee412"))
+        assertFalse(nameHandler.isSupported("alice"))
+    }
+
+    @Test
+    fun parsesTokenReferences() {
+        assertEquals(TokenType.Nep141("usdt.tether-token.near"), addToken.tokenQuery("usdt.tether-token.near").tokenType)
+        assertEquals(TokenType.Nep141("wrap.near"), addToken.tokenQuery("  Wrap.Near ").tokenType)
+        assertEquals(TokenType.Nep141("usdt.tether-token.near"), addToken.tokenQuery("https://nearblocks.io/token/usdt.tether-token.near?tab=holders").tokenType)
+        assertFalse(addToken.isValid("not a contract"))
+        assertFalse(addToken.isValid(""))
+    }
+
+    @Test
+    fun rpcSourcesFollowTheKitFailoverOrder() {
+        val sources = NearRpcSourceManager.sources
+        assertEquals(listOf("FastNEAR", "dRPC", "NEAR.org", "Shitzu"), sources.map { it.name })
+        assertEquals(Network.MainNet.rpcUrls.map { it.toString() }, sources.map { it.url })
+    }
+
+    @Test
+    fun backupAddressGrammarMatchesThePinnedSdk() {
+        val addresses = listOf(
+            "aa", "alice.near", "alice-bob_near.test", "0".repeat(64),
+            "0x" + "1".repeat(40), "0s" + "1".repeat(40),
+            "", "a", "a".repeat(65), "Alice.near", "alice..near", "alice.-near",
+            "-alice.near", "alice_.near", "alice.near ", "not an account",
+        )
+        addresses.forEach { address ->
+            val acceptsBackup = try {
+                BackupLocalModule.getAccountTypeFromData("near_address", address.toByteArray())
+                true
+            } catch (_: IllegalArgumentException) {
+                false
+            }
+            assertEquals(address, NearKit.isValidAccountId(address), acceptsBackup)
+        }
+    }
+}

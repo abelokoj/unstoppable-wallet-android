@@ -12,9 +12,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.horizontalsystems.walletkit.modules.multiswap.providers.MultiSwapProviderRegistry
 import io.horizontalsystems.walletkit.modules.multiswap.providers.RiskLevel
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.components.HSpacer
+
+/** Open Swap keeps its configured ratings when hosted metadata changes. */
+@Composable
+fun routeScore(providerId: String): RiskLevel? {
+    return MultiSwapProviderRegistry.riskLevel(providerId)
+}
 
 @Composable
 fun riskLevelColor(riskLevel: RiskLevel): Color = when (riskLevel) {

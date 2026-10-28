@@ -3,7 +3,6 @@ package io.horizontalsystems.walletkit.modules.privatesend
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
-import java.math.BigDecimal
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
 import io.horizontalsystems.walletkit.modules.multiswap.providers.UnstoppableAPI
 import io.horizontalsystems.walletkit.modules.multiswap.providers.XrpDestinationTag
@@ -11,19 +10,23 @@ import io.horizontalsystems.walletkit.modules.multiswap.providers.memoDelivery
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.SendTransactionData
 import io.horizontalsystems.walletkit.modules.privatesend.PrivateSendDepositBuilder.deliverableDestinationTag
 import io.horizontalsystems.walletkit.modules.privatesend.PrivateSendDepositBuilder.deliverableMemo
+import java.math.BigDecimal
 
 /**
- * Builds the deposit transfer for a committed private send order: exactly
- * [PrivateSendOrder.depositAmount] to [PrivateSendOrder.depositAddress], carrying the order's
- * attachment only when the chain actually delivers it to the provider.
+ * Builds the deposit transfer of a private send: exactly [amount] to [address], carrying the
+ * [attachment] only when the chain actually delivers it to the provider. Serves both the
+ * preview's estimate against the stand-in address (no attachment) and the committed order's
+ * deposit.
  */
 object PrivateSendDepositBuilder {
 
-    fun build(order: PrivateSendOrder, btcParams: PrivateSendBtcParams? = null): SendTransactionData =
-        transfer(order.request.token, order.depositAmount, order.depositAddress, order.attachment, btcParams)
-
-    internal fun transfer(token: Token, amount: BigDecimal, address: String,
-        attachment: UnstoppableAPI.Response.Attachment? = null, btcParams: PrivateSendBtcParams? = null): SendTransactionData {
+    fun build(
+        token: Token,
+        amount: BigDecimal,
+        address: String,
+        attachment: UnstoppableAPI.Response.Attachment?,
+        btcParams: PrivateSendBtcParams? = null,
+    ): SendTransactionData {
         val memo = deliverableMemo(attachment, token.blockchainType)
 
         // EVM needs the kit for ERC20 transfer calldata, so its plugin builds the data.

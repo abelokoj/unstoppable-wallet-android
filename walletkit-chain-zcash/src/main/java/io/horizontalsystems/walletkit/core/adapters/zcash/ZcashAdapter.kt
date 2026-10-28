@@ -17,6 +17,8 @@ import cash.z.ecc.android.sdk.model.BlockHeight
 import cash.z.ecc.android.sdk.model.FirstClassByteArray
 import cash.z.ecc.android.sdk.model.PercentDecimal
 import cash.z.ecc.android.sdk.model.Proposal
+import cash.z.ecc.android.sdk.model.TransactionOverview
+import cash.z.ecc.android.sdk.model.TransactionState
 import cash.z.ecc.android.sdk.model.TransactionSubmitResult
 import cash.z.ecc.android.sdk.model.UnifiedAddressRequest
 import cash.z.ecc.android.sdk.model.Zatoshi
@@ -54,6 +56,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -63,15 +66,16 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Instant
 import java.math.BigDecimal
 import java.util.Base64
 import java.util.Date
-import java.util.regex.Pattern
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.max
+import kotlin.math.min
 import io.horizontalsystems.walletkit.entities.Account as WalletAccount
 
 class ZcashAdapter(
@@ -141,6 +145,24 @@ class ZcashAdapter(
     override var balanceData: BalanceData? = null
 
     private var accountBalance: AccountBalance? = null
+
+    // Transactions the wallet sent: transfers, migrations and shieldings. Incoming ones do not
+    // count, so funds arriving while a shielding confirms do not end it early.
+    @Volatile
+    private var ownTransactions: List<ZcashOwnTransaction> = emptyList()
+
+    // A shielding just broadcast, until the transaction list has it. In between the form must
+    // not offer Shield again: its transparent inputs are spent already.
+    @Volatile
+    private var sentShieldingTxId: String? = null
+
+    /**
+     * The balance send and swap forms offer and the step an amount above what is spendable
+     * needs, or null until the balance is loaded.
+     */
+    @Volatile
+    var shieldBalance: ZcashShieldBalance? = null
+        private set
 
     /**
      * Orchard-pool balance that must be migrated to the Ironwood pool, or null while
@@ -328,11 +350,29 @@ class ZcashAdapter(
      * Falls back to the standard unified address if custom address generation fails.
      */
     override suspend fun getFreshReceiveAddress(): String {
+        // A new address stored while the engine is in a sync pass fails that pass, which shows
+        // as a sync error until the engine restarts it. The default address is just as valid.
+        if (syncState != AdapterState.Synced) return receiveAddress
         return try {
             synchronizer.getCustomUnifiedAddress(zcashAccount, UnifiedAddressRequest.shielded)
         } catch (_: Exception) {
             receiveAddress
         }
+    }
+
+    /**
+     * A fresh unified address with Sapling and Orchard receivers only, for a refund target or a
+     * route memo that must name no transparent receiver. Unlike [getFreshReceiveAddress] there
+     * is no fallback: the default unified address carries a transparent receiver, so an error
+     * is the only honest answer. The SDK stores the address in the wallet database, which fails
+     * a sync pass in progress, so the call is refused until the wallet is synced; callers keep
+     * the address for the whole operation instead of asking again.
+     */
+    suspend fun shieldedUnifiedAddress(): String {
+        if (syncState != AdapterState.Synced) {
+            throw IllegalStateException("Wait for the wallet to finish syncing")
+        }
+        return synchronizer.getCustomUnifiedAddress(zcashAccount, UnifiedAddressRequest.shielded)
     }
 
     /**
@@ -401,7 +441,9 @@ class ZcashAdapter(
 
     suspend fun sendShieldProposal() {
         val shieldProposal = shieldProposal() ?: throw IllegalStateException("Couldn't create shield proposal")
-        send(shieldProposal)
+        val txIds = send(shieldProposal)
+        sentShieldingTxId = txIds.firstOrNull()
+        refreshShieldBalance()
     }
 
     suspend fun shieldTransactionFee(): BigDecimal? =
@@ -524,7 +566,18 @@ class ZcashAdapter(
         //       the synchronizer itself.
         val scope = adapterScope
         scope.launch {
-            synchronizer.allTransactions.collect(transactionsProvider::onTransactions)
+            synchronizer.allTransactions
+                // On a fresh restore Slipstream falls back to the scanned height in a wallet
+                // database that its deferred preparation may not have opened yet, and throws.
+                .retryWhen { cause, attempt ->
+                    Log.w("ZcashAdapter", "Transactions flow failed, retrying", cause)
+                    delay(min(1_000L shl attempt.coerceAtMost(5).toInt(), 30_000L))
+                    true
+                }
+                .collect { transactions ->
+                    transactionsProvider.onTransactions(transactions)
+                    onTransactions(transactions)
+                }
         }
         scope.launch {
             synchronizer.status.collect(::onStatus)
@@ -552,7 +605,10 @@ class ZcashAdapter(
         Log.e("ZcashAdapter", "Processor error", error)
         // Under the lock so a concurrent STOPPED status publishes this error rather than
         // racing past it to the generic fallback message.
-        synchronized(syncStateLock) { lastProcessorError = error }
+        synchronized(syncStateLock) {
+            lastProcessorError = error
+            ZcashSyncState.fromProcessorError(syncState, error)?.let { syncState = it }
+        }
         return true
     }
 
@@ -565,11 +621,30 @@ class ZcashAdapter(
     // check-then-write on syncState atomic (see ZcashSyncState for why ordering matters).
     private val syncStateLock = Any()
 
+    @Volatile
+    private var lastStatus: Synchronizer.Status? = null
+
     private fun onStatus(status: Synchronizer.Status) {
         synchronized(syncStateLock) {
+            lastStatus = status
             if (status == Synchronizer.Status.SYNCED) lastProcessorError = null
-            syncState = ZcashSyncState.fromStatus(status, lastProcessorError)
+            syncState = ZcashSyncState.fromStatus(status, lastProcessorError, syncState, blocksBehind())
         }
+    }
+
+    // A wallet kept synced while it catches up shows syncing once it falls further behind;
+    // the status itself does not change for that.
+    private fun refreshCatchUp() {
+        synchronized(syncStateLock) {
+            if (lastStatus != Synchronizer.Status.SYNCING || syncState != AdapterState.Synced) return
+            if (!ZcashSyncState.isCatchingUp(syncState, blocksBehind())) syncState = AdapterState.Syncing()
+        }
+    }
+
+    private fun blocksBehind(): Long? {
+        val network = synchronizer.networkHeight.value?.value ?: return null
+        val scanned = synchronizer.fullyScannedHeight.value?.value ?: return null
+        return (network - scanned).coerceAtLeast(0)
     }
 
     private fun onDownloadProgress(progress: PercentDecimal) {
@@ -587,6 +662,9 @@ class ZcashAdapter(
     @Suppress("UNUSED_PARAMETER")
     private fun onProcessorInfo(processorInfo: CompactBlockProcessor.ProcessorInfo) {
         _lastBlockUpdatedFlow.tryEmit(Unit)
+        refreshCatchUp()
+        // Confirmations and expiry move with the chain tip alone.
+        refreshShieldBalance()
     }
 
     private fun calculateBlocksRemaining(): Long? {
@@ -610,7 +688,62 @@ class ZcashAdapter(
             unshielded = balanceUnshielded
         )
 
+        refreshShieldBalance()
         _balanceUpdatedFlow.tryEmit(Unit)
+    }
+
+    private fun onTransactions(transactions: List<TransactionOverview>) {
+        ownTransactions = transactions
+            .filter { it.isSentTransaction || it.isShielding }
+            .map {
+                ZcashOwnTransaction(
+                    txId = it.txId.txIdString(),
+                    isShielding = it.isShielding,
+                    minedHeight = it.minedHeight?.value,
+                    expiryHeight = it.expiryHeight?.value,
+                    timestamp = it.blockTimeEpochSeconds ?: 0,
+                    received = it.totalReceived.convertZatoshiToZec(decimalCount),
+                    // Kept, not dropped: a shielding just sent is waited on until the list has it.
+                    expired = it.transactionState == TransactionState.Expired,
+                )
+            }
+        refreshShieldBalance()
+    }
+
+    @Synchronized
+    private fun refreshShieldBalance() {
+        val data = balanceData ?: return
+        val tip = synchronizer.latestHeight?.value ?: 0L
+        val own = ownTransactions
+
+        val sentTxId = sentShieldingTxId
+        val sentPending = sentTxId != null && own.none { it.txId == sentTxId }
+        if (sentTxId != null && !sentPending) sentShieldingTxId = null
+
+        // The wait ends once the newest own transaction is not a shielding in flight: a later
+        // send spends past it.
+        val latestOwn = ZcashOwnTransaction.latest(own, tip)
+        val shielding = sentPending ||
+            (latestOwn?.isShielding == true && ZcashShieldBalance.isShieldingInFlight(latestOwn.minedHeight, tip))
+        // Held from the newest shielding regardless of later transactions: a send right after
+        // it does not make its output spendable any sooner.
+        val heldOutput = ZcashOwnTransaction.latest(own.filter { it.isShielding }, tip)
+            ?.takeIf { ZcashShieldBalance.isHeld(it.minedHeight, tip) }
+            ?.received
+            ?: BigDecimal.ZERO
+
+        val updated = ZcashShieldBalance(
+            available = data.available,
+            full = data.available + data.pending,
+            transparent = data.unshielded,
+            threshold = minimalShieldThreshold,
+            shielding = shielding,
+            heldOutput = heldOutput,
+        )
+        if (updated != shieldBalance) {
+            shieldBalance = updated
+            _balanceUpdatedFlow.tryEmit(Unit)
+        }
     }
 
     private fun getTransactionRecord(transaction: ZcashTransaction): TransactionRecord {
@@ -821,26 +954,6 @@ class ZcashAdapter(
         } catch (_: Exception) {
             null
         }
-    }
-}
-
-object ZcashAddressValidator {
-    fun validate(address: String): Boolean {
-        return isValidZcashAddress(address)
-    }
-
-    private fun isValidTransparentAddress(address: String): Boolean {
-        val transparentPattern = Pattern.compile("^t[0-9a-zA-Z]{34}$")
-        return transparentPattern.matcher(address).matches()
-    }
-
-    private fun isValidShieldedAddress(address: String): Boolean {
-        val shieldedPattern = Pattern.compile("^z[0-9a-zA-Z]{77}$")
-        return shieldedPattern.matcher(address).matches()
-    }
-
-    private fun isValidZcashAddress(address: String): Boolean {
-        return isValidTransparentAddress(address) || isValidShieldedAddress(address)
     }
 }
 

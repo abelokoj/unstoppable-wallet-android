@@ -104,6 +104,8 @@ abstract class BaseUniswapV3Provider(dexType: DexType) : IMultiSwapProvider {
             slippage,
             fromAsset = deriveIdentifier(tokenIn),
             toAsset = deriveIdentifier(tokenOut),
+            approvalSpender = uniswapV3Kit.routerAddress(bestTrade.chain).hex,
+            mevProtectionAllowed = mevProtectionAllowed(tokenIn, tokenOut),
         )
     }
 

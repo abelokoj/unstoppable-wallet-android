@@ -25,8 +25,8 @@ android {
         applicationId = "money.openswap.wallet"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
-        versionCode = 184
-        versionName = "0.52.3"
+        versionCode = 185
+        versionName = "0.53.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         resourceConfigurations += listOf("de", "es", "en", "fa", "fr", "ko", "pt", "pt-rBR", "ru", "tr", "zh")
@@ -87,21 +87,17 @@ android {
 
     val uswapApiKeyAndroid = "a32d6d05ef80c878c49eb7692aa6e2b36c4c0c7777b89e2c3c4d8e512a7cea61"
     val uswapApiKeyFdroid = "6e928d1db31e481ae57d42f34a9b7d58a64d7e2380f7ea696e652bd9a0ee516e"
-    val oneInchFeeAddressAndroid = "0xe42BBeE8389548fAe35C09072065b7fEc582b590"
-    val oneInchFeeAddressFdroid = "0x8009267B9929196f74720F2f1496bbD7B79945F1"
 
     productFlavors {
         create("base") {
             dimension = "distribution"
             buildConfigFieldString("USWAP_API_KEY", uswapApiKeyAndroid)
-            buildConfigFieldString("ONE_INCH_PARTNER_FEE_ADDRESS", oneInchFeeAddressAndroid)
         }
 
         create("fdroid") {
             dimension = "distribution"
             buildConfigField("boolean", "FDROID_BUILD", "true")
             buildConfigFieldString("USWAP_API_KEY", uswapApiKeyFdroid)
-            buildConfigFieldString("ONE_INCH_PARTNER_FEE_ADDRESS", oneInchFeeAddressFdroid)
         }
 
         create("fdroidCi") {
@@ -110,7 +106,6 @@ android {
             buildConfigField("boolean", "FDROID_BUILD", "true")
             signingConfig = signingConfigs.getByName("test")
             buildConfigFieldString("USWAP_API_KEY", uswapApiKeyFdroid)
-            buildConfigFieldString("ONE_INCH_PARTNER_FEE_ADDRESS", oneInchFeeAddressFdroid)
         }
 
         create("ci") {
@@ -121,12 +116,12 @@ android {
             buildConfigFieldString("APP_LINKS_HOST", "dev.unstoppable.money")
             manifestPlaceholders["appLinksHost"] = "dev.unstoppable.money"
             buildConfigFieldString("USWAP_API_KEY", uswapApiKeyAndroid)
-            buildConfigFieldString("ONE_INCH_PARTNER_FEE_ADDRESS", oneInchFeeAddressAndroid)
         }
     }
 
     buildTypes {
         debug {
+            buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
             signingConfig = signingConfigs.getByName("test")
             isDebuggable = true
             isMinifyEnabled = false
@@ -151,16 +146,17 @@ android {
             buildConfigFieldString("TONAPI_KEY", "AF7UFKEIREGC7MIAAAAKF6ZSZASWBFTKEHR6E6JYCPDLTJSBWD6BLUFFMCS4RWECZVQ4VHQ")
             buildConfigFieldString("TRONGRID_API_KEYS", "33374494-8060-447e-8367-90c5efd4ed95")
             buildConfigFieldString("UDN_API_KEY", "r2phzgatt_zt9-hd_wyvdjrdsrimnxgokm7knyag1malzgcz")
-            buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
             buildConfigFieldString("BLOCKS_DECODED_ETHEREUM_RPC", "https://ethereum-rpc.unstoppable.money")
             buildConfigFieldString("CHAINALYSIS_BASE_URL", "https://public.chainalysis.com/api/v1/")
             buildConfigFieldString("CHAINALYSIS_API_KEY", "928bb256db73f1cb93e1b3366a145d9fbe06e28581c8b665b82ad70bbfef1db4")
             buildConfigFieldString("HASH_DIT_BASE_URL", "https://service.hashdit.io/v2/hashdit/")
             buildConfigFieldString("HASH_DIT_API_KEY", "aGMkgODYiUFtTYrSRcEZsIfPHeASOlGYXClJZNWF")
-            buildConfigFieldString("USWAP_API_BASE_URL", "https://swap-dev.unstoppable.money/api/v2/")
+            buildConfigFieldString("USWAP_API_BASE_URL", "https://swap-dev.unstoppable.money/api/v3/")
+            buildConfigFieldString("FASTNEAR_API_KEY", "")
         }
 
         release {
+            buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
             signingConfig = signingConfigs.getByName("release")
             isDebuggable = false
             isMinifyEnabled = true
@@ -186,13 +182,13 @@ android {
             buildConfigFieldString("TONAPI_KEY", "AF7UFKEIREGC7MIAAAAKF6ZSZASWBFTKEHR6E6JYCPDLTJSBWD6BLUFFMCS4RWECZVQ4VHQ")
             buildConfigFieldString("TRONGRID_API_KEYS", "8f5ae2c8-8012-42a8-b0ca-ffc2741f6a29,578aa64f-a79f-4ee8-86e9-e9860e2d050a,1e92f1fc-41f8-401f-a7f6-5b719b6f1280,d1511874-1547-48df-9536-a32cc85949ac")
             buildConfigFieldString("UDN_API_KEY", "r2phzgatt_zt9-hd_wyvdjrdsrimnxgokm7knyag1malzgcz")
-            buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
             buildConfigFieldString("BLOCKS_DECODED_ETHEREUM_RPC", "https://ethereum-rpc.unstoppable.money")
             buildConfigFieldString("CHAINALYSIS_BASE_URL", "https://public.chainalysis.com/api/v1/")
             buildConfigFieldString("CHAINALYSIS_API_KEY", "928bb256db73f1cb93e1b3366a145d9fbe06e28581c8b665b82ad70bbfef1db4")
             buildConfigFieldString("HASH_DIT_BASE_URL", "https://service.hashdit.io/v2/hashdit/")
             buildConfigFieldString("HASH_DIT_API_KEY", "aGMkgODYiUFtTYrSRcEZsIfPHeASOlGYXClJZNWF")
-            buildConfigFieldString("USWAP_API_BASE_URL", "https://swap-api.unstoppable.money/v2/")
+            buildConfigFieldString("USWAP_API_BASE_URL", "https://swap-api.unstoppable.money/v3/")
+            buildConfigFieldString("FASTNEAR_API_KEY", "")
         }
     }
 
@@ -265,6 +261,7 @@ dependencies {
     implementation(project(":walletkit-chain-solana"))
     implementation(project(":walletkit-chain-stellar"))
     implementation(project(":walletkit-chain-xrp"))
+    implementation(project(":walletkit-chain-near"))
     implementation(project(":walletkit-chain-ton"))
     implementation(project(":walletkit-chain-tron"))
     implementation(project(":walletkit-chain-thorchain"))

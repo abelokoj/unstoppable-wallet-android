@@ -1,0 +1,108 @@
+package io.horizontalsystems.walletkit.core.adapters
+
+import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.entities.TransactionValue
+import io.horizontalsystems.walletkit.entities.transactionrecords.TransactionRecord
+import io.horizontalsystems.walletkit.entities.transactionrecords.evm.TransferEvent
+import io.horizontalsystems.walletkit.modules.transactions.TransactionSource
+import io.horizontalsystems.walletkit.modules.transactions.TransactionStatus
+
+/** NEAR transaction as shown in the wallet. Kit-free so core can render it without the kit. */
+class NearTransactionRecord(
+    source: TransactionSource,
+    val info: NearTransactionInfo,
+    val type: Type,
+    /** Gas the account paid; null when someone else signed the transaction. */
+    val fee: TransactionValue?,
+    spam: Boolean,
+) : TransactionRecord(
+    uid = info.hash,
+    transactionHash = info.hash,
+    transactionIndex = 0,
+    blockHeight = info.blockHeight?.toInt(),
+    confirmationsThreshold = 1,
+    timestamp = info.timestamp,
+    failed = info.failed,
+    spam = spam,
+    source = source,
+) {
+    override val mainValue = type.mainValue
+
+    sealed class Type {
+        data class Send(
+            val value: TransactionValue,
+            val to: String,
+            val sentToSelf: Boolean,
+            val memo: String?,
+        ) : Type()
+
+        data class Receive(
+            val value: TransactionValue,
+            val from: String,
+            val memo: String?,
+        ) : Type()
+
+        /**
+         * Any other transaction, with the account's net movement per asset: none for a call that
+         * moved nothing, several for a swap or a wrap.
+         */
+        data class ContractCall(
+            val contractId: String,
+            val method: String?,
+            val incoming: List<TransferEvent>,
+            val outgoing: List<TransferEvent>,
+        ) : Type()
+
+        val values: List<TransactionValue>
+            get() = when (this) {
+                is Receive -> listOf(value)
+                is Send -> listOf(value)
+                is ContractCall -> (incoming + outgoing).map { it.value }
+            }
+
+        val mainValue: TransactionValue?
+            get() = when (this) {
+                is Receive -> value
+                is Send -> value
+                is ContractCall -> (incoming + outgoing).singleOrNull()?.value
+            }
+    }
+
+    // A final NEAR block cannot be reverted, so there is no confirmation count: a transaction
+    // is pending until its receipts have executed, then completed or failed for good.
+    override fun status(lastBlockHeight: Int?): TransactionStatus = when {
+        failed -> TransactionStatus.Failed
+        info.pending -> TransactionStatus.Pending
+        else -> TransactionStatus.Completed
+    }
+
+    companion object {
+        // A contact label authenticates neither an unknown issuer nor its claimed transfer logs.
+        fun hasUnknownTokens(type: Type): Boolean = type.values.any {
+            it is TransactionValue.TokenValue || it is TransactionValue.RawValue
+        }
+
+        /**
+         * Events to check in a transaction the account did not sign. Any contract can log a token
+         * transfer out of this account, so an outgoing one there is a fake meant to plant a
+         * look-alike receiver in the history.
+         */
+        fun eventsForPhishingCheck(type: Type): List<TransferEvent> =
+            when (type) {
+                is Type.Receive -> listOf(TransferEvent(type.from, type.value))
+                is Type.ContractCall -> type.incoming + type.outgoing
+                is Type.Send -> listOf(TransferEvent(type.to, type.value))
+            }
+    }
+}
+
+/** Kit-free projection of the nearkit Transaction fields the record needs. */
+data class NearTransactionInfo(
+    val hash: String,
+    val blockHeight: Long?,
+    val timestamp: Long,
+    val pending: Boolean,
+    val failed: Boolean,
+    /** Failed because it was never included before its block hash expired: nothing happened on chain. */
+    val expired: Boolean,
+)

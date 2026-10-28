@@ -28,6 +28,7 @@ sealed class TransactionValue {
     abstract val formattedString: String
 
     open val nftUid: NftUid? = null
+    open val contractId: String? = null
 
     data class JettonValue(
         val name: String,
@@ -78,15 +79,18 @@ sealed class TransactionValue {
 
     }
 
-    data class RawValue(val value: BigInteger) : TransactionValue() {
+    data class RawValue(
+        val value: BigInteger,
+        override val contractId: String? = null,
+        override val coinIconPlaceholder: Int? = null,
+    ) : TransactionValue() {
         override val coinUid: String = ""
         override val coin: Coin? = null
         override val badge: String? = null
         override val coinIconUrl = null
         override val alternativeCoinIconUrl = null
-        override val coinIconPlaceholder = null
-        override val fullName: String = ""
-        override val coinCode: String = ""
+        override val fullName: String = contractId.orEmpty()
+        override val coinCode: String = contractId.orEmpty()
         override val decimalValue: BigDecimal? = null
         override val decimals: Int? = null
         override val zeroValue: Boolean
@@ -104,7 +108,8 @@ sealed class TransactionValue {
         val tokenCode: String,
         val tokenDecimals: Int,
         val value: BigDecimal,
-        override val coinIconPlaceholder: Int? = null
+        override val coinIconPlaceholder: Int? = null,
+        override val contractId: String? = null,
     ) : TransactionValue() {
         override val coinUid: String = ""
         override val coin: Coin? = null

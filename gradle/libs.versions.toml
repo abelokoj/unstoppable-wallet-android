@@ -69,20 +69,21 @@ web3j = "4.9.8"
 unstoppableDomains = "v7.1.0"
 
 # Wallet Kits
-moneroKit = "c404a56"
+moneroKit = "6035479"
 zanoKit = "740513a"
 stellarKit = "4ecccc5"
 xrpKit = "291142a"
+nearKit = "856d2e3"
 tonKit = "d28b371"
-bitcoinKit = "600c239"
+bitcoinKit = "1f581d1"
 hdWalletKit = "a74b51f3"
 ethereumKit = "a887150"
 feeRateKit = "393cc14"
-marketKit = "aa91028"
+marketKit = "73387dd"
 solanaKit = "d5a3b0f"
 tronKit = "4033245"
 thorchainKit = "568a089"
-zcashSdk = "3.2.0-hs.1"
+zcashSdk = "3.2.0-20260908.101839-1"
 
 # Binance
 binanceConnector = "3.4.1"
@@ -124,7 +125,7 @@ espresso = "3.7.0"
 testRunner = "1.7.0"
 
 # AGP
-agp = "9.4.0"
+agp = "9.4.1"
 
 # Nav 3
 nav3Core = "1.1.2"
@@ -236,6 +237,7 @@ kit-monero = { module = "com.github.horizontalsystems:monero-kit-android", versi
 kit-zano = { module = "com.github.horizontalsystems:zano-kit-android", version.ref = "zanoKit" }
 kit-stellar = { module = "com.github.horizontalsystems:stellar-kit-android", version.ref = "stellarKit" }
 kit-xrp = { module = "com.github.horizontalsystems:xrp-android", version.ref = "xrpKit" }
+kit-near = { module = "com.github.horizontalsystems:near-android-kit", version.ref = "nearKit" }
 kit-ton = { module = "com.github.horizontalsystems:ton-kit-android", version.ref = "tonKit" }
 kit-bitcoin = { module = "com.github.horizontalsystems:bitcoin-kit-android", version.ref = "bitcoinKit" }
 kit-hd-wallet = { module = "com.github.horizontalsystems:hd-wallet-kit-android", version.ref = "hdWalletKit" }
@@ -253,6 +255,9 @@ zcash-android-sdk = { module = "com.zodl.android:zcash-android-sdk", version.ref
 zcash-android-backend = { module = "com.zodl.android:zcash-android-backend", version.ref = "zcashSdk" }
 # Slipstream sync engine — version-locked sibling of zcash-android-sdk, must always match zcashSdk
 zcash-android-slipstream = { module = "com.zodl.android:zcash-android-sdk-slipstream", version.ref = "zcashSdk" }
+# lightwalletd gRPC client — transitive dependency of zcash-android-sdk, declared here so it resolves
+# to the pinned timestamped snapshot instead of the mutable -SNAPSHOT its module metadata asks for
+zcash-android-lightwallet-client = { module = "com.zodl.android:lightwallet-client", version.ref = "zcashSdk" }
 
 # Binance
 binance-connector = { module = "io.github.binance:binance-connector-java", version.ref = "binanceConnector" }

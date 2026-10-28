@@ -4,6 +4,7 @@ import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.bitcoincore.transactions.scripts.ScriptType
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.blockTime
+import io.horizontalsystems.walletkit.core.isEvm
 import io.horizontalsystems.walletkit.core.derivation
 import io.horizontalsystems.walletkit.core.managers.APIClient
 import io.horizontalsystems.walletkit.core.nativeTokenQueries
@@ -282,7 +283,12 @@ abstract class BaseThorChainProvider(
         recipient: io.horizontalsystems.walletkit.entities.Address?,
         slippage: BigDecimal,
     ): SwapFinalQuote {
-        val destination = recipient?.hex ?: resolveDestinationAddress(tokenOut)
+        // A unified ZEC destination does not fit the sell chain's 80-byte memo output.
+        val destination = recipient?.hex ?: if (tokenOut.blockchainType == BlockchainType.Zcash && tokenIn.blockchainType.memoRidesOpReturn) {
+            SwapHelper.getReceiveAddressForToken(tokenOut)
+        } else {
+            resolveDestinationAddress(tokenOut)
+        }
         val quoteSwap = quoteSwap(tokenIn, tokenOut, amountIn, slippage, destination, getRefundAddress(tokenIn), getFromAddress(tokenIn))
 
         // The memo is taken from the quote verbatim and is what routes the outbound leg. Refuse a
@@ -322,6 +328,8 @@ abstract class BaseThorChainProvider(
             fromAsset = assetsMap[tokenIn],
             toAsset = assetsMap[tokenOut],
             depositAddress = quoteSwap.inbound_address,
+            depositMemo = quoteSwap.memo,
+            approvalSpender = quoteSwap.router.takeIf { tokenIn.blockchainType.isEvm },
         )
     }
 

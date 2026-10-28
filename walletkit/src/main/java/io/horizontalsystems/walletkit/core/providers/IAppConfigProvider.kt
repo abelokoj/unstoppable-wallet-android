@@ -54,7 +54,6 @@ interface IAppConfigProvider {
     val openSeaApiKey: String
     val trongridApiKeys: List<String>
     val udnApiKey: String
-    val oneInchApiKey: String
     val thorchainApiKey: String
     val appLinksHost: String
     val fiatDecimal: Int
@@ -71,6 +70,10 @@ interface IAppConfigProvider {
     val uswapApiKey: String
     val tonApiKey: String
     val oneInchPartnerFeeAddress: String
+    val oneInchApiKey: String
+
+    /** FastNEAR API key for NEAR history and token lists; null uses the keyless tier. */
+    val fastNearApiKey: String?
     val fdroidBuild: Boolean
 
     /**

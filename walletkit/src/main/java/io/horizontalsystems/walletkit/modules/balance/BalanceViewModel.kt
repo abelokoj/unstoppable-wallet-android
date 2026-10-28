@@ -38,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
 class BalanceViewModel(
@@ -84,6 +85,7 @@ class BalanceViewModel(
         private set
 
     private var refreshViewItemsJob: Job? = null
+    private var scannedDataJob: Job? = null
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
@@ -316,7 +318,9 @@ class BalanceViewModel(
     }
 
     fun handleScannedData(scannedText: String) {
-        viewModelScope.launch {
+        // A newer scan replaces an older one whose address check is still running.
+        scannedDataJob?.cancel()
+        scannedDataJob = viewModelScope.launch {
             val lnurl: String? = when {
                 scannedText.uppercase().startsWith("LNURL") -> scannedText
                 scannedText.lowercase().startsWith("lightning:lnurl") ->
@@ -358,7 +362,7 @@ class BalanceViewModel(
         }
     }
 
-    private fun handleAddressData(text: String) {
+    private suspend fun handleAddressData(text: String) {
         if (text.contains("//")) {
             //handle this type of uri ton://transfer/<address>
             val toncoinAddress = ToncoinUriParser.getAddress(text) ?: run {
@@ -395,8 +399,11 @@ class BalanceViewModel(
             )
             emitState()
         } else {
-            val chain = addressHandlerFactory.parserChain(null)
-            val types = chain.supportedAddressHandlers(text)
+            // Some handlers check addresses with a blocking native library call, and the first
+            // check also waits for the library to load.
+            val types = withContext(Dispatchers.IO) {
+                addressHandlerFactory.parserChain(null).supportedAddressHandlers(text)
+            }
             if (types.isEmpty()) {
                 errorMessage = Translator.getString(R.string.Balance_Error_InvalidQrCode)
                 emitState()

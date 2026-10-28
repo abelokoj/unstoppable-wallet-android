@@ -20,7 +20,8 @@ import io.horizontalsystems.walletkit.modules.multiswap.FiatService
 import io.horizontalsystems.walletkit.modules.multiswap.NetworkAvailabilityService
 import io.horizontalsystems.walletkit.modules.multiswap.SwapError
 import io.horizontalsystems.walletkit.modules.multiswap.TokenBalanceService
-import io.horizontalsystems.marketkit.models.TokenType
+import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderAction
+import io.horizontalsystems.walletkit.core.chain.SpendPurpose
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -34,6 +35,8 @@ enum class SendInputType { Amount, Address, Extra }
 sealed class SendStep {
     data class InputRequired(val inputType: SendInputType) : SendStep()
     data class Error(val error: Throwable) : SendStep()
+    /** The amount is covered only after a step such as shielding, started from the form. */
+    data class ActionRequired(val action: ISwapProviderAction) : SendStep()
     data object Proceed : SendStep()
 }
 
@@ -136,6 +139,7 @@ class SendFormViewModel(
             balanceService.stateFlow.collect {
                 balanceState = it
                 refreshChainBalance()
+                followMax()
                 emitState()
             }
         }
@@ -152,6 +156,7 @@ class SendFormViewModel(
             chainSettingsFlow.collect {
                 chainSettings = it
                 refreshChainBalance()
+                followMax()
                 emitState()
             }
         }
@@ -191,6 +196,21 @@ class SendFormViewModel(
     }
 
     private fun availableBalance(): BigDecimal? = chainBalance ?: balanceState.balance
+
+    private fun amountOfBalance(percentage: Int): BigDecimal? = availableBalance()
+        ?.times(BigDecimal(percentage / 100.0))
+        ?.setScale(wallet.token.decimals, RoundingMode.DOWN)
+        ?.stripTrailingZeros()
+
+    // A balance change, such as the fee of a shielding started from this form, would otherwise
+    // leave Max above the balance and turn it into an insufficient-balance error.
+    private fun followMax() {
+        if (!sendMax) return
+        val max = amountOfBalance(100) ?: return
+        if (amount?.compareTo(max) != 0) {
+            fiatService.setAmount(max)
+        }
+    }
 
     // The balance service validates against the wallet's balance; when the chain narrows it,
     // the insufficient-balance check is redone here against the narrowed value. Sync-state
@@ -240,9 +260,6 @@ class SendFormViewModel(
         extraInputValue = extraInputValue,
         extraInputError = extraInputError,
         hideAddress = hideAddress,
-        // A private send commits a provider order for the entered amount as is; nothing
-        // later takes the fee out of it, so a coin that pays its own fee cannot send its
-        // whole balance that way. A token whose fee is paid in the chain's coin can.
         disabledPercents = emptySet(),
         sendMax = sendMax,
         step = step(),
@@ -254,6 +271,11 @@ class SendFormViewModel(
         val amount = amount
         if (amount == null || amount <= BigDecimal.ZERO) {
             return SendStep.InputRequired(SendInputType.Amount)
+        }
+        // Asked before the address, so a wait or a shielding the amount needs shows as soon as
+        // it is typed. Outputs narrowed by the chain settings are checked on their own above.
+        if (chainBalance == null) {
+            balanceState.spendStep?.let { return SendStep.ActionRequired(it) }
         }
         if (address == null) {
             return SendStep.InputRequired(SendInputType.Address)
@@ -278,7 +300,9 @@ class SendFormViewModel(
     }
 
     fun onEnterAmount(amount: BigDecimal?) {
-        sendMax = false
+        if (amount == null || this.amount?.compareTo(amount) != 0) {
+            sendMax = false
+        }
         fiatService.setAmount(amount)
         emitState()
     }
@@ -290,14 +314,8 @@ class SendFormViewModel(
     }
 
     fun onEnterAmountPercentage(percentage: Int) {
-        val availableBalance = availableBalance() ?: return
+        val amount = amountOfBalance(percentage) ?: return
         sendMax = percentage == 100
-
-        val amount = availableBalance
-            .times(BigDecimal(percentage / 100.0))
-            .setScale(wallet.token.decimals, RoundingMode.DOWN)
-            .stripTrailingZeros()
-
         fiatService.setAmount(amount)
         emitState()
     }
@@ -325,6 +343,11 @@ class SendFormViewModel(
         emitState()
     }
 
+    /** The step offered by [SendStep.ActionRequired] is done; its funds may have moved. */
+    fun onActionCompleted() {
+        balanceService.refresh()
+    }
+
     override fun onCleared() {
         fiatService.clear()
     }
@@ -344,7 +367,7 @@ class SendFormViewModel(
                 App.currencyManager,
                 App.adapterManager,
                 FiatService(App.marketKit),
-                TokenBalanceService(App.adapterManager),
+                TokenBalanceService(App.adapterManager, SpendPurpose.Send),
                 NetworkAvailabilityService(App.connectivityManager),
                 purpose,
             ) as T

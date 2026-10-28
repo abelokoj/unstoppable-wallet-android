@@ -1,3 +1,33 @@
+# Open Swap v0.53.0 (Unreleased)
+
+This update brings upstream Unstoppable Wallet 0.53.0 to Open Swap while retaining its current appearance, direct swap providers and route ratings.
+
+## ✨ Added
+
+- **NEAR wallets:** Manage native NEAR and NEP-141 tokens, restore supported named accounts and add watch-only accounts. Account selection checks whether your recovery phrase has full access.
+- **More swap routes:** Added XSwap and made NEAR Confidential available from the ordinary Swap screen, alongside the existing providers.
+- **Automatic receiving tokens:** After a successful swap submission to your own wallet, supported receiving tokens are enabled so they can appear in Balances.
+
+## 🔄 Updated
+
+- **Swap, Private Send and CrossPay:** Updated hosted routes to preview an offer before creating an order. Committed deposits use the confirmed amount and current fee settings, and submitted transactions remain trackable after an uncertain network response.
+- **Zcash balances and shielding:** Improved spendable-balance handling and full-balance sending. Send, swap and CrossPay offer a shielding step when needed.
+- **Route protection:** MEV protection is offered only where the selected route supports it. Existing Open Swap providers, icons, ratings and swap controls remain available.
+- **Network reliability:** Included upstream Bitcoin/eCash synchronization, Monero reconnection and Tron fee-estimation improvements.
+
+## 🐛 Fixed
+
+- **NEAR token safety:** Unknown token history retains its contract identity and stays suspicious even when it claims to come from a saved contact. Failed metadata reads show raw units, and failed token-balance verification cannot become an available balance.
+- **NEAR restore and wallet switching:** Invalid backup account identifiers are rejected before saving, discovery requests are bounded, and delayed token discovery cannot enable tokens in a different wallet.
+- **Address scanning and names:** Moved slow address checks off the main screen thread, replaced stale QR-scan results and retained ENS recognition alongside NEAR names.
+
+## ⚠️ Notes
+
+NEAR's new device flows, funded sends, failure recovery and iOS parity have not been exercised in this integration. Discovery and network providers receive the public information needed for account lookup, balances, history and transaction submission. Tor traffic has not been independently captured.
+
+Provider, pool, bridge and network fees and availability limits still apply. The existing PancakeSwap Cross-chain preview and refund-testing limits remain unchanged; route ratings do not guarantee safety. Direct Across integration remains deferred.
+
+---
 # Open Swap v0.52.3
 
 ## 🔄 Updated

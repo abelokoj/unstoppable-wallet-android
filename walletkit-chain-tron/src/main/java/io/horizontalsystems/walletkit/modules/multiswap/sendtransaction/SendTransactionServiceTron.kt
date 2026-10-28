@@ -12,11 +12,8 @@ import io.horizontalsystems.walletkit.core.ethereum.CautionViewItem
 import io.horizontalsystems.walletkit.core.isNative
 import io.horizontalsystems.walletkit.core.providers.Translator
 import io.horizontalsystems.walletkit.entities.CoinValue
-import io.horizontalsystems.walletkit.modules.amount.AmountValidator
-import io.horizontalsystems.walletkit.modules.amount.SendAmountService
 import io.horizontalsystems.walletkit.modules.multiswap.ui.DataField
 import io.horizontalsystems.walletkit.modules.send.SendModule
-import io.horizontalsystems.walletkit.modules.send.tron.SendTronAddressService
 import io.horizontalsystems.walletkit.modules.send.tron.SendTronFeeService
 import io.horizontalsystems.walletkit.ui.compose.TranslatableString
 import io.horizontalsystems.marketkit.models.BlockchainType
@@ -32,7 +29,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.math.RoundingMode
 import io.horizontalsystems.tronkit.models.Address as TronAddress
 
 class SendTransactionServiceTron(private val token: Token) : AbstractSendTransactionService(false, false) {
@@ -41,22 +37,22 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
     private val adapter = App.adapterManager.getAdapterForToken<ISendTronAdapter>(token)!!
     private val nativeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Tron, TokenType.Native)) ?: throw IllegalArgumentException()
 
-    private val amountService = SendAmountService(
-        AmountValidator(),
-        token.coin.code,
-        adapter.balanceData.available.setScale(token.decimals, RoundingMode.DOWN),
-        token.type.isNative,
-    )
-    private val addressService = SendTronAddressService(adapter, token)
     private val feeService = SendTronFeeService(adapter, nativeToken)
 
-    private var amountState = amountService.stateFlow.value
-    private var addressState = addressService.stateFlow.value
-    private var feeState = feeService.stateFlow.value
+    // Everything derived from one fee estimate and the data it was computed for, replaced in a
+    // single write: the collector runs on the caller's scope while the data setter publishes from
+    // its own thread, and a state built from a new fee with the previous cautions would read as
+    // sendable without the fee's own insufficient-balance caution.
+    private class FeeView(
+        val feeState: SendTronFeeService.State,
+        val networkFee: SendModule.AmountData?,
+        val fields: List<DataField>,
+        val cautions: List<CautionViewItem>,
+    )
 
-    private var networkFee: SendModule.AmountData? = null
-    private var fields: List<DataField> = listOf()
-    private var cautions: List<CautionViewItem> = listOf()
+    @Volatile
+    private var feeView = FeeView(feeService.stateFlow.value, null, listOf(), listOf())
+
     private var sendTransactionData: SendTransactionData.Tron? = null
     private var loading = true
     private var nativeTokenAmount: BigDecimal? = null
@@ -65,17 +61,12 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
     private var builtContract: Contract? = null
     private var createdTransaction: CreatedTransaction? = null
 
+    // Only the fee service is collected: the transfer's amount and address are fed to it straight
+    // from the data that is set, never through amount or address sub-services. Such services
+    // would push their initial empty values into the fee service when collection starts, and on
+    // an instance created right before its data is set that push races the real estimate and
+    // can wipe it, leaving the state unable to settle.
     override fun start(coroutineScope: CoroutineScope) {
-        coroutineScope.launch {
-            amountService.stateFlow.collect {
-                handleUpdatedAmountState(it)
-            }
-        }
-        coroutineScope.launch {
-            addressService.stateFlow.collect {
-                handleUpdatedAddressState(it)
-            }
-        }
         coroutineScope.launch {
             feeService.stateFlow.collect {
                 handleUpdatedFeeState(it)
@@ -83,14 +74,12 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
         }
     }
 
-    private fun handleUpdatedFeeState(state: SendTronFeeService.State) {
-        feeState = state
-
-        networkFee = feeState.fee?.let {
+    private fun handleUpdatedFeeState(feeState: SendTronFeeService.State) {
+        val networkFee = feeState.fee?.let {
             getAmountData(CoinValue(nativeToken, it))
         }
 
-        fields = listOfNotNull(
+        val fields = listOfNotNull(
             feeState.resourcesConsumed?.let { DataFieldTronResources(it) },
             feeState.activationFee?.let { DataFieldTronActivationFee(getAmountData(CoinValue(nativeToken, it))) },
         )
@@ -98,7 +87,7 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
         val fee = feeState.fee
         val trxAmount = nativeTokenAmount ?: BigDecimal.ZERO
 
-        cautions = buildList {
+        val cautions = buildList {
             val total = trxAmount + (fee ?: BigDecimal.ZERO)
             feeState.error?.let { error ->
                 add(
@@ -136,24 +125,16 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
             }
         }
 
-        emitState()
-    }
-
-    private suspend fun handleUpdatedAddressState(state: SendTronAddressService.State) {
-        addressState = state
-
-        feeService.setTronAddress(addressState.tronAddress)
+        feeView = FeeView(feeState, networkFee, fields, cautions)
 
         emitState()
     }
 
-    private suspend fun handleUpdatedAmountState(state: SendAmountService.State) {
-        amountState = state
-
-        feeService.setAmount(amountState.amount)
-
-        emitState()
-    }
+    // The fee state is collected asynchronously, so this instance keeps describing the previous
+    // transfer's fee limit until the collector runs; a replaced deposit gets a fresh instance.
+    // A limit sized for the stand-in address can be half of what a fresh TRC-20 recipient needs,
+    // and a transfer that runs out of energy burns the fee without moving the token.
+    override fun fresh(): AbstractSendTransactionService = SendTransactionServiceTron(token)
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
         check(data is SendTransactionData.Tron)
@@ -176,6 +157,8 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
         }
     }
 
+    // The TRX amount is written before the fee service is fed: feeding it publishes the estimate,
+    // and the collector builds the cautions from the amount it finds at that moment.
     private suspend fun applySendTransactionData(data: SendTransactionData.Tron) {
         when (data) {
             is SendTransactionData.Tron.Trc20Approve -> {
@@ -185,14 +168,14 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
                     trc20Adapter.approveTrc20TriggerSmartContract(data.spenderAddress, it)
                 } ?: trc20Adapter.approveTrc20TriggerSmartContractUnlim(data.spenderAddress)
                 builtContract = contract
-                feeService.setContract(contract)
                 nativeTokenAmount = extractTrxSun(contract)?.toBigDecimal(nativeToken.decimals)
+                feeService.setContract(contract)
             }
             is SendTransactionData.Tron.WithCreateTransaction -> {
                 val transaction = gson.fromJson(data.rawTransaction, CreatedTransaction::class.java)
                 createdTransaction = transaction
-                feeService.setCreatedTransaction(transaction)
                 nativeTokenAmount = extractTrxSun(transaction).toBigDecimal(nativeToken.decimals)
+                feeService.setCreatedTransaction(transaction)
             }
             is SendTransactionData.Tron.Simple -> {
                 nativeTokenAmount = if (token.type.isNative) data.amount else BigDecimal.ZERO
@@ -203,33 +186,38 @@ class SendTransactionServiceTron(private val token: Token) : AbstractSendTransac
     }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
+        val feeLimit = feeView.feeState.feeLimit
         val txHash = when (val d = sendTransactionData) {
             is SendTransactionData.Tron.Trc20Approve -> {
                 val contract = builtContract ?: throw IllegalStateException("Approve contract is not built")
-                adapter.send(contract, feeState.feeLimit)
+                adapter.send(contract, feeLimit)
             }
             is SendTransactionData.Tron.WithCreateTransaction -> {
                 val transaction = createdTransaction ?: throw IllegalStateException("Transaction is not parsed")
                 adapter.send(transaction)
             }
-            is SendTransactionData.Tron.Simple -> adapter.send(d.amount, TronAddress.fromBase58(d.address), feeState.feeLimit)
+            is SendTransactionData.Tron.Simple -> adapter.send(d.amount, TronAddress.fromBase58(d.address), feeLimit)
             null -> throw IllegalStateException("Not supported")
         }
         return SendTransactionResult.Tron(txHash = txHash)
     }
 
-    override fun createState() = SendTransactionServiceState(
-        uuid = uuid,
-        networkFee = networkFee,
-        cautions = cautions,
-        // The fee service reports "nothing to estimate" as no error while the transfer is
-        // still being fed to it; a fee is what proves the estimate ran.
-        sendable = feeState.canBeSend && feeState.fee != null && cautions.none {
-            it.type == CautionViewItem.Type.Error
-        },
-        loading = loading,
-        fields = fields,
-    )
+    override fun createState(): SendTransactionServiceState {
+        val view = feeView
+
+        return SendTransactionServiceState(
+            uuid = uuid,
+            networkFee = view.networkFee,
+            cautions = view.cautions,
+            // The fee service reports "nothing to estimate" as no error while the transfer is
+            // still being fed to it; a fee is what proves the estimate ran.
+            sendable = view.feeState.canBeSend && view.feeState.fee != null && view.cautions.none {
+                it.type == CautionViewItem.Type.Error
+            },
+            loading = loading,
+            fields = view.fields,
+        )
+    }
 
     // The total already includes bandwidth, energy and any activation fee.
     override val networkFeeInfoRes = R.string.FeeInfo_TronFee_Description

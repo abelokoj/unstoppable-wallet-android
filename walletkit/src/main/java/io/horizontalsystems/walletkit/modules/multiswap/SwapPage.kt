@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -54,7 +55,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.horizontalsystems.walletkit.modules.multiswap.providers.MAYA_PROVIDER_ID
 import io.horizontalsystems.walletkit.R
 import io.horizontalsystems.walletkit.BuildConfig
 import io.horizontalsystems.walletkit.core.App
@@ -66,8 +66,12 @@ import io.horizontalsystems.walletkit.modules.multiswap.history.SwapHistoryPage
 import io.horizontalsystems.walletkit.modules.multiswap.providers.SwapProviderType
 import io.horizontalsystems.walletkit.modules.multiswap.swapterms.SwapTermsPage
 import io.horizontalsystems.walletkit.modules.multiswap.ui.RiskScore
+import io.horizontalsystems.walletkit.modules.enablecoin.restoresettings.AccountPickerResult
+import io.horizontalsystems.walletkit.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
+import io.horizontalsystems.walletkit.modules.nav3.observeResult
+import io.horizontalsystems.walletkit.modules.restoreconfig.BirthdayHeightConfigPage
 import io.horizontalsystems.walletkit.ui.compose.ColoredTextStyle
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
 import io.horizontalsystems.walletkit.ui.compose.TranslatableString
@@ -101,6 +105,7 @@ import io.horizontalsystems.walletkit.uiv3.components.controls.AvailableBalanceR
 import io.horizontalsystems.walletkit.uiv3.components.controls.PercentageShortcuts
 import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 import kotlinx.coroutines.flow.first
+import io.horizontalsystems.walletkit.helpers.HudHelper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -142,6 +147,39 @@ fun SwapScreen(
     val viewModel = viewModel<SwapViewModel>(
         factory = SwapViewModel.Factory(tokenIn, tokenOut)
     )
+    // Shares the swap view model's service, which saves the wallet once the settings are approved
+    val restoreSettingsViewModel = viewModel<RestoreSettingsViewModel> {
+        RestoreSettingsViewModel(viewModel.restoreSettingsService, emptyList())
+    }
+
+    val birthdayHeightKey = observeResult<BirthdayHeightConfigPage.Result> {
+        if (it.config != null) {
+            restoreSettingsViewModel.onEnter(it.config)
+        } else {
+            restoreSettingsViewModel.onCancelEnterBirthdayHeight()
+        }
+    }
+
+    restoreSettingsViewModel.openBirthdayHeightConfig?.let { token ->
+        restoreSettingsViewModel.birthdayHeightConfigOpened()
+        navigation.slideFromRightForResult(BirthdayHeightConfigPage(token.blockchainType), birthdayHeightKey)
+    }
+
+    val accountPickerKey = observeResult<AccountPickerResult> {
+        restoreSettingsViewModel.onAccountPickerResult(it)
+    }
+
+    val view = LocalView.current
+    LaunchedEffect(Unit) {
+        viewModel.enableTokenInErrorFlow.collect { e ->
+            HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
+        }
+    }
+
+    restoreSettingsViewModel.openAccountPicker?.let { page ->
+        restoreSettingsViewModel.accountPickerOpened()
+        navigation.slideFromRightForResult(page, accountPickerKey)
+    }
 
     LifecycleResumeEffect(Unit) {
         viewModel.refreshDefaultTokens()
@@ -167,25 +205,35 @@ fun SwapScreen(
         }
     }
 
+    val recipientScope = rememberCoroutineScope()
     val navigateToSwapConfirm = {
         val tokenOut = viewModel.uiState.tokenOut
+        val quote = viewModel.uiState.quote
         if (viewModel.uiState.externalRecipientRequired && tokenOut != null) {
             // tokenOut the account can't hold: the recipient page collects the external
-            // delivery address and opens the confirmation itself
-            navigation.slideFromRight(
-                SwapRecipientPage(
-                    SwapRecipientPage.Input(
-                        token = tokenOut,
-                        parentScreenContentKey = parentScreenContentKey,
-                        closeAfterSwap = closeAfterSwap,
-                        initialAddress = viewModel.externalRecipient?.hex,
-                        // only Maya delivers ZEC to shielded/unified receivers; every
-                        // other route needs a transparent address
-                        zcashTransparentOnly = tokenOut.blockchainType == BlockchainType.Zcash &&
-                                viewModel.uiState.quote?.provider?.id != MAYA_PROVIDER_ID,
+            // delivery address and opens the confirmation itself. Whether a ZEC recipient may
+            // be shielded depends on the provider's execution type, which only /v3/providers
+            // says: on a first launch with nothing cached that answer is awaited first, so the
+            // page is not opened transparent-only for a route that delivers shielded. A failed
+            // sync leaves nothing cached and the page stays transparent-only.
+            recipientScope.launch {
+                if (tokenOut.blockchainType == BlockchainType.Zcash && !App.swapProviderInfoManager.hasExecutionTypes) {
+                    App.swapProviderInfoManager.sync()
+                }
+                navigation.slideFromRight(
+                    SwapRecipientPage(
+                        SwapRecipientPage.Input(
+                            token = tokenOut,
+                            parentScreenContentKey = parentScreenContentKey,
+                            closeAfterSwap = closeAfterSwap,
+                            initialAddress = viewModel.externalRecipient?.hex,
+                            zcashTransparentOnly = quote
+                                ?.let { App.swapProviderInfoManager.zcashTransparentRecipientOnly(it.provider.id, it.swapQuote) }
+                                ?: (tokenOut.blockchainType == BlockchainType.Zcash),
+                        )
                     )
                 )
-            )
+            }
         } else {
             forResult()
         }
@@ -332,6 +380,7 @@ fun SwapScreen(
         onActionCompleted = {
             viewModel.onActionCompleted()
         },
+        onEnableTokenIn = viewModel::enableTokenIn,
         navigation = navigation,
         onResume = viewModel::onResume,
         onPause = viewModel::onPause,
@@ -356,6 +405,7 @@ private fun SwapScreenInner(
     proceedEnabled: Boolean,
     onActionStarted: () -> Unit,
     onActionCompleted: () -> Unit,
+    onEnableTokenIn: suspend () -> Unit,
     navigation: HSNavigation,
     onResume: () -> Unit,
     onPause: () -> Unit,
@@ -444,6 +494,7 @@ private fun SwapScreenInner(
                     currency = uiState.currency,
                     focusRequester = amountInputFocusRequester,
                     availableBalance = uiState.availableBalance,
+                    showBalancePlaceholder = uiState.tokenInWalletState != TokenInWalletState.Ready,
                     // The line doubles as the 100% shortcut whenever that percent is offered.
                     onAvailableBalanceClick = if (100 in uiState.disabledPercents) {
                         null
@@ -515,6 +566,10 @@ private fun SwapScreenInner(
                         navigation = navigation,
                         onActionCompleted = onActionCompleted,
                         onActionStarted = onActionStarted,
+                        onEnableTokenIn = {
+                            focusManager.clearFocus()
+                            onEnableTokenIn()
+                        },
                         proceedEnabled = proceedEnabled,
                         onClickNext = onClickNext
                     )
@@ -545,6 +600,7 @@ private fun SwapActionButton(
     navigation: HSNavigation,
     onActionCompleted: () -> Unit,
     onActionStarted: () -> Unit,
+    onEnableTokenIn: suspend () -> Unit,
     proceedEnabled: Boolean,
     onClickNext: () -> Unit
 ) {
@@ -568,6 +624,42 @@ private fun SwapActionButton(
                 HSButton(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Swap_Quoting),
+                    loadingIndicator = true,
+                    enabled = false
+                )
+            }
+
+            is SwapStep.EnableTokenIn -> {
+                // Local state: the step only changes once the wallet is saved in the background
+                var enabling by remember(currentStep.token) { mutableStateOf(false) }
+                val coroutineScope = rememberCoroutineScope()
+                val view = LocalView.current
+
+                HSButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = ButtonVariant.Secondary,
+                    title = stringResource(R.string.Swap_EnableToken, currentStep.token.coin.code),
+                    enabled = !enabling,
+                ) {
+                    enabling = true
+                    coroutineScope.launch {
+                        try {
+                            onEnableTokenIn()
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Throwable) {
+                            HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
+                        } finally {
+                            enabling = false
+                        }
+                    }
+                }
+            }
+
+            SwapStep.Syncing -> {
+                HSButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.Balance_Syncing),
                     loadingIndicator = true,
                     enabled = false
                 )
@@ -855,6 +947,7 @@ private fun SwapInput(
     currency: Currency,
     focusRequester: FocusRequester,
     availableBalance: BigDecimal?,
+    showBalancePlaceholder: Boolean,
     onAvailableBalanceClick: (() -> Unit)?,
     onClearClick: (() -> Unit)
 ) {
@@ -864,6 +957,7 @@ private fun SwapInput(
         AvailableBalanceRow(
             balanceToken = tokenIn,
             availableBalance = availableBalance,
+            showPlaceholder = showBalancePlaceholder,
             onAvailableBalanceClick = onAvailableBalanceClick,
             onClearClick = onClearClick,
             showClear = amountIn != null

@@ -6,19 +6,27 @@ import androidx.lifecycle.viewModelScope
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.IAccountManager
 import io.horizontalsystems.walletkit.core.IAdapterManager
+import io.horizontalsystems.walletkit.core.AdapterState
+import io.horizontalsystems.walletkit.core.IBalanceAdapter
+import io.horizontalsystems.walletkit.core.chain.SpendPurpose
 import io.horizontalsystems.walletkit.core.ViewModelUiState
 import io.horizontalsystems.walletkit.core.collectSafely
+import io.horizontalsystems.walletkit.core.restoreSettingTypes
 import io.horizontalsystems.walletkit.core.managers.CurrencyManager
 import io.horizontalsystems.walletkit.core.managers.MarketKitWrapper
+import io.horizontalsystems.walletkit.core.managers.RestoreSettings
 import io.horizontalsystems.walletkit.core.managers.SwapTermsManager
 import io.horizontalsystems.walletkit.core.managers.WalletManager
 import io.horizontalsystems.walletkit.core.stats.StatEvent
 import io.horizontalsystems.walletkit.core.stats.StatPage
 import io.horizontalsystems.walletkit.core.stats.stat
 import io.horizontalsystems.walletkit.core.supports
+import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.entities.Address
 import io.horizontalsystems.walletkit.entities.Currency
+import io.horizontalsystems.walletkit.entities.Wallet
+import io.horizontalsystems.walletkit.modules.enablecoin.restoresettings.RestoreSettingsService
 import io.horizontalsystems.walletkit.modules.multiswap.action.ActionApprove
 import io.horizontalsystems.walletkit.modules.multiswap.action.ActionRevoke
 import io.horizontalsystems.walletkit.modules.multiswap.action.ISwapProviderAction
@@ -29,9 +37,13 @@ import io.horizontalsystems.marketkit.models.BlockchainType
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.marketkit.models.TokenQuery
 import io.horizontalsystems.marketkit.models.TokenType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -53,6 +65,7 @@ class SwapViewModel(
     private val walletManager: WalletManager,
     private val adapterManager: IAdapterManager,
     private val accountManager: IAccountManager,
+    val restoreSettingsService: RestoreSettingsService,
     tokenIn: Token?,
     tokenOut: Token? = null,
     private val allowancePolicy: ISwapAllowancePolicy? = null,
@@ -78,6 +91,8 @@ class SwapViewModel(
     private var swapTermsAccepted = swapTermsManager.swapTermsAcceptedStateFlow.value
     private var amlChecking = false
     private var initialShowRegularPrice = true
+    private var balanceJob: Job? = null
+    private var pendingTokenEnable: Pair<Token, Account>? = null
 
     // External delivery address entered on SwapRecipientPage, remembered together with
     // the tokenOut it was entered for so it silently expires when the pair changes
@@ -93,6 +108,7 @@ class SwapViewModel(
     }
 
     val amlCheckEventFlow = MutableSharedFlow<AmlCheckEvent>(extraBufferCapacity = 1)
+    val enableTokenInErrorFlow = MutableSharedFlow<Throwable>(extraBufferCapacity = 1)
 
     init {
         quoteService.start()
@@ -157,6 +173,25 @@ class SwapViewModel(
         viewModelScope.launch {
             adapterManager.adaptersReadyFlow.collectSafely {
                 balanceService.refresh()
+                emitState()
+                // Adapters are recreated on account or network changes; follow the new one.
+                observeBalanceUpdates(quoteState.tokenIn)
+            }
+        }
+
+        viewModelScope.launch {
+            restoreSettingsService.approveSettingsFlow.collectSafely {
+                val (token, account) = pendingTokenEnable ?: return@collectSafely
+                if (it.token != token) return@collectSafely
+                pendingTokenEnable = null
+                // Keep an account-picker result tied to the account that opened it.
+                try {
+                    saveWallet(token, it.settings, account)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    enableTokenInErrorFlow.emit(e)
+                }
             }
         }
 
@@ -262,34 +297,59 @@ class SwapViewModel(
         }
     }
 
-    override fun createState() = SwapUiState(
-        amountIn = quoteState.amountIn,
-        tokenIn = quoteState.tokenIn,
-        tokenOut = quoteState.tokenOut,
-        quoting = quoteState.quoting,
-        quotes = quoteState.quotes,
-        preferredProvider = quoteState.preferredProvider,
-        quote = quoteState.quote,
-        error = networkState.error ?: quoteState.error ?: balanceState.error,
-        availableBalance = balanceState.balance,
-        fiatPriceImpact = priceImpactState.priceImpact,
-        fiatPriceImpactLevel = priceImpactState.priceImpactLevel,
-        fiatAmountIn = fiatAmountIn,
-        fiatAmountOut = fiatAmountOut,
-        currency = currency,
-        fiatAmountInputEnabled = fiatAmountInputEnabled,
-        hasRateOut = hasRateOut,
-        needToAcceptTerms = !swapTermsAccepted && quoteState.quote?.provider?.requireTerms == true,
-        amlChecking = amlChecking,
-        initialShowRegularPrice = initialShowRegularPrice,
-        swapTimeStatus = swapTimeStatus(
-            quoteState.quote?.estimationTime,
-            quoteState.quotes.map { it.estimationTime }
-        ),
-        allowanceActionSuppressed = allowanceActionSuppressed(),
-        externalRecipientRequired = externalRecipientRequired(quoteState.tokenOut),
-        percentOptions = FixedSwapPercentOptions,
-    )
+    override fun createState(): SwapUiState {
+        val tokenInWalletState = tokenInWalletState(quoteState.tokenIn)
+        return SwapUiState(
+            amountIn = quoteState.amountIn,
+            tokenIn = quoteState.tokenIn,
+            tokenOut = quoteState.tokenOut,
+            quoting = quoteState.quoting,
+            quotes = quoteState.quotes,
+            preferredProvider = quoteState.preferredProvider,
+            quote = quoteState.quote,
+            error = networkState.error ?: quoteState.error ?: balanceState.error,
+            availableBalance = balanceState.balance.takeIf { tokenInWalletState == TokenInWalletState.Ready },
+            fiatPriceImpact = priceImpactState.priceImpact,
+            fiatPriceImpactLevel = priceImpactState.priceImpactLevel,
+            fiatAmountIn = fiatAmountIn,
+            fiatAmountOut = fiatAmountOut,
+            currency = currency,
+            fiatAmountInputEnabled = fiatAmountInputEnabled,
+            hasRateOut = hasRateOut,
+            needToAcceptTerms = !swapTermsAccepted && quoteState.quote?.provider?.requireTerms == true,
+            amlChecking = amlChecking,
+            initialShowRegularPrice = initialShowRegularPrice,
+            swapTimeStatus = swapTimeStatus(
+                quoteState.quote?.estimationTime,
+                quoteState.quotes.map { it.estimationTime }
+            ),
+            allowanceActionSuppressed = allowanceActionSuppressed(),
+            externalRecipientRequired = externalRecipientRequired(quoteState.tokenOut),
+            percentOptions = FixedSwapPercentOptions,
+            spendStep = balanceState.spendStep,
+            tokenInWalletState = tokenInWalletState,
+        )
+    }
+
+    private fun tokenInWalletState(tokenIn: Token?): TokenInWalletState {
+        if (tokenIn == null) return TokenInWalletState.Ready
+
+        val adapter = adapterManager.getAdapterForToken<IBalanceAdapter>(tokenIn)
+        if (adapter == null) {
+            // The adapter is created asynchronously after the wallet is saved
+            if (walletManager.activeWallets.any { it.token == tokenIn }) return TokenInWalletState.Syncing
+
+            val accountType = accountManager.activeAccount?.type ?: return TokenInWalletState.Ready
+            // Ready here leaves the balance service to report TokenNotEnabled
+            return if (tokenIn.supportedBy(accountType)) TokenInWalletState.NotEnabled else TokenInWalletState.Ready
+        }
+
+        // A sync error is reported by the balance service as WalletNotSynced
+        return when (adapter.balanceState) {
+            AdapterState.Synced, is AdapterState.NotSynced -> TokenInWalletState.Ready
+            else -> TokenInWalletState.Syncing
+        }
+    }
 
     // tokenOut the account can't hold: the swap is deliverable only to an external
     // address, which the user is asked for before the confirmation screen
@@ -319,6 +379,21 @@ class SwapViewModel(
         }
     }
 
+    // The balance service reads the adapter on demand; follow the adapter's own updates so
+    // a step waiting on the balance, such as shielding or syncing, ends once the funds are
+    // spendable.
+    private fun observeBalanceUpdates(tokenIn: Token?) {
+        balanceJob?.cancel()
+        val adapter = tokenIn?.let { adapterManager.getAdapterForToken<IBalanceAdapter>(it) }
+        balanceJob = viewModelScope.launch {
+            adapter?.let { merge(it.balanceUpdatedFlow, it.balanceStateUpdatedFlow) }?.collectSafely {
+                balanceService.refresh()
+                // The wallet state is read from the adapter, not from the balance service
+                emitState()
+            }
+        }
+    }
+
     private fun handleUpdatedBalanceState(balanceState: TokenBalanceService.State) {
         this.balanceState = balanceState
 
@@ -326,7 +401,11 @@ class SwapViewModel(
     }
 
     private fun handleUpdatedQuoteState(quoteState: SwapQuoteService.State) {
+        val tokenInChanged = quoteState.tokenIn != this.quoteState.tokenIn || balanceJob == null
         this.quoteState = quoteState
+        if (tokenInChanged) {
+            observeBalanceUpdates(quoteState.tokenIn)
+        }
 
         balanceService.setToken(quoteState.tokenIn)
         balanceService.setAmount(quoteState.amountIn)
@@ -369,6 +448,7 @@ class SwapViewModel(
 
     fun onEnterAmountPercentageExact(percentage: BigDecimal) {
         val tokenIn = quoteState.tokenIn ?: return
+        if (tokenInWalletState(tokenIn) != TokenInWalletState.Ready) return
         val availableBalance = balanceState.balance ?: return
 
         val clamped = percentage.coerceIn(BigDecimal.ZERO, BigDecimal(100))
@@ -413,10 +493,45 @@ class SwapViewModel(
         stat(page = StatPage.Swap, event = StatEvent.SwapSwitchPairs)
     }
 
+    suspend fun enableTokenIn() {
+        val tokenIn = quoteState.tokenIn ?: return
+        val account = accountManager.activeAccount ?: return
+
+        // A chain's restore settings are chosen with its first wallet; the chain's other
+        // tokens run on the same adapter, so they must not ask again or change them.
+        val chainEnabled = walletManager.activeWallets.any { it.token.blockchainType == tokenIn.blockchainType }
+
+        if (tokenIn.blockchainType.restoreSettingTypes.isNotEmpty() && !chainEnabled) {
+            // The approved settings come back through approveSettingsFlow
+            pendingTokenEnable = tokenIn to account
+            restoreSettingsService.approveSettings(tokenIn, account)
+        } else {
+            saveWallet(tokenIn, RestoreSettings(), account)
+        }
+    }
+
+    private suspend fun saveWallet(token: Token, restoreSettings: RestoreSettings, account: Account) {
+        if (accountManager.activeAccount != account || !token.supportedBy(account.type)) return
+
+        withContext(Dispatchers.IO) {
+            if (restoreSettings.isNotEmpty()) {
+                // reload = false: saving the wallet below creates the adapter with these settings
+                restoreSettingsService.save(restoreSettings, account, token.blockchainType, reload = false)
+            }
+            if (walletManager.activeWallets.none { it.token == token }) {
+                walletManager.save(listOf(Wallet(token, account)))
+            }
+        }
+        emitState()
+    }
+
     fun onEnterFiatAmount(v: BigDecimal?) = fiatServiceIn.setFiatAmount(v)
     private fun reQuote() = quoteService.reQuote()
     fun onActionStarted(quote: SwapProviderQuote?) = quoteService.onActionStarted(quote)
-    fun onActionCompleted() = quoteService.onActionCompleted()
+    fun onActionCompleted() {
+        balanceService.refresh()
+        quoteService.onActionCompleted()
+    }
 
     /**
      * Returns whether the proceed flow actually started. The caller latches its button on the
@@ -482,7 +597,7 @@ class SwapViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val swapQuoteService = providers?.let { SwapQuoteService(it) } ?: SwapQuoteService()
-            val tokenBalanceService = TokenBalanceService(App.adapterManager)
+            val tokenBalanceService = TokenBalanceService(App.adapterManager, SpendPurpose.Swap)
             val priceImpactService = PriceImpactService(PriceImpactLevel.Warning)
 
             return SwapViewModel(
@@ -501,6 +616,7 @@ class SwapViewModel(
                 App.walletManager,
                 App.adapterManager,
                 App.accountManager,
+                RestoreSettingsService(App.restoreSettingsManager),
                 tokenIn,
                 tokenOut,
                 allowancePolicy,
@@ -535,14 +651,19 @@ data class SwapUiState(
     val externalRecipientRequired: Boolean = false,
     val percentOptions: List<Int> = FixedSwapPercentOptions,
     val disabledPercents: Set<Int> = emptySet(),
+    val spendStep: ISwapProviderAction? = null,
+    val tokenInWalletState: TokenInWalletState = TokenInWalletState.Ready,
 ) {
     val currentStep: SwapStep = when {
+        tokenIn != null && tokenInWalletState == TokenInWalletState.NotEnabled -> SwapStep.EnableTokenIn(tokenIn)
+        tokenInWalletState == TokenInWalletState.Syncing -> SwapStep.Syncing
         quoting -> SwapStep.Quoting
         error != null -> SwapStep.Error(error)
         tokenIn == null -> SwapStep.InputRequired(InputType.TokenIn)
         tokenOut == null -> SwapStep.InputRequired(InputType.TokenOut)
         amountIn == null -> SwapStep.InputRequired(InputType.Amount)
         amlChecking -> SwapStep.AmlChecking
+        spendStep != null -> SwapStep.ActionRequired(spendStep)
         quote?.actionRequired != null && !allowanceActionSuppressed -> SwapStep.ActionRequired(quote.actionRequired!!)
         else -> SwapStep.Proceed
     }
@@ -552,9 +673,17 @@ sealed class SwapStep {
     data class InputRequired(val inputType: InputType) : SwapStep()
     object Quoting : SwapStep()
     object AmlChecking : SwapStep()
+    data class EnableTokenIn(val token: Token) : SwapStep()
+    object Syncing : SwapStep()
     data class Error(val error: Throwable) : SwapStep()
     object Proceed : SwapStep()
     data class ActionRequired(val action: ISwapProviderAction) : SwapStep()
+}
+
+enum class TokenInWalletState {
+    Ready,
+    NotEnabled,
+    Syncing
 }
 
 sealed class AmlCheckEvent {

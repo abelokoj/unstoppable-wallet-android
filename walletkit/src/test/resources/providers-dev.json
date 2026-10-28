@@ -33,6 +33,11 @@
     ]
   },
   {
+    "provider": "UNISWAP",
+    "quotes": true,
+    "suspensions": []
+  },
+  {
     "provider": "BARTER",
     "quotes": true,
     "suspensions": [
@@ -272,6 +277,11 @@
         "side": "any"
       }
     ]
+  },
+  {
+    "provider": "XSWAP",
+    "quotes": true,
+    "suspensions": []
   },
   {
     "provider": "UNISWAP_V3",

@@ -20,6 +20,7 @@ import io.horizontalsystems.walletkit.core.managers.EvmSyncSourceManager
 import io.horizontalsystems.walletkit.core.managers.LanguageManager
 import io.horizontalsystems.walletkit.core.managers.MarketFavoritesManager
 import io.horizontalsystems.walletkit.core.managers.MoneroNodeManager
+import io.horizontalsystems.walletkit.core.managers.RestoreSettingType
 import io.horizontalsystems.walletkit.core.managers.RestoreSettings
 import io.horizontalsystems.walletkit.core.managers.RestoreSettingsManager
 import io.horizontalsystems.walletkit.core.managers.WalletManager
@@ -153,7 +154,9 @@ class BackupProvider(
     @Throws
     fun accountType(backup: BackupLocalModule.WalletBackup, passphrase: String): AccountType {
         val decrypted = decrypted(backup.crypto, passphrase)
-        return BackupLocalModule.getAccountTypeFromData(backup.type, decrypted)
+        return BackupLocalModule.getAccountTypeFromData(backup.type, decrypted).also {
+            BackupLocalModule.validateNearBackupAccount(it, backup.enabledWallets.orEmpty())
+        }
     }
 
     fun restoreSingleWalletBackup(
@@ -161,6 +164,7 @@ class BackupProvider(
         accountName: String,
         backup: BackupLocalModule.WalletBackup
     ) {
+        BackupLocalModule.validateNearBackupAccount(type, backup.enabledWallets.orEmpty())
         val account = accountFactory.account(accountName, type, AccountOrigin.Restored, backup.manualBackup, true)
         accountManager.save(account)
 
@@ -181,8 +185,9 @@ class BackupProvider(
             TokenQuery.fromId(enabledWalletBackup.tokenQueryId)?.let { tokenQuery ->
                 if (!enabledWalletBackup.settings.isNullOrEmpty()) {
                     val restoreSettings = RestoreSettings()
-                    enabledWalletBackup.settings.forEach { (restoreSettingType, value) ->
-                        restoreSettings[restoreSettingType] = value
+                    // Gson reads a setting type this version does not know as a null key
+                    enabledWalletBackup.settings.forEach { (restoreSettingType: RestoreSettingType?, value) ->
+                        restoreSettings[restoreSettingType ?: return@forEach] = value
                     }
                     restoreSettingsManager.save(restoreSettings, account, tokenQuery.blockchainType)
                 }
@@ -196,6 +201,12 @@ class BackupProvider(
 
         walletBackupItems.forEach {
             val account = it.account
+            try {
+                BackupLocalModule.validateNearBackupAccount(account.type, it.enabledWallets)
+            } catch (e: BackupLocalModule.InvalidNearAccountIdException) {
+                Log.w("BackupProvider", "Skipping backup account with invalid NEAR account ID")
+                return@forEach
+            }
             val wallets = it.enabledWallets.map {
                 EnabledWallet(
                     tokenQueryId = it.tokenQueryId,
@@ -214,8 +225,8 @@ class BackupProvider(
                 TokenQuery.fromId(enabledWalletBackup.tokenQueryId)?.let { tokenQuery ->
                     if (!enabledWalletBackup.settings.isNullOrEmpty()) {
                         val restoreSettings = RestoreSettings()
-                        enabledWalletBackup.settings.forEach { (restoreSettingType, value) ->
-                            restoreSettings[restoreSettingType] = value
+                        enabledWalletBackup.settings.forEach { (restoreSettingType: RestoreSettingType?, value) ->
+                            restoreSettings[restoreSettingType ?: return@forEach] = value
                         }
                         restoreSettingsManager.save(restoreSettings, account, tokenQuery.blockchainType)
                     }
@@ -416,7 +427,13 @@ class BackupProvider(
 
         fullBackup.wallets?.forEach { walletBackup2 ->
             val backup = walletBackup2.backup
-            val type = accountType(backup, passphrase)
+            val type = try {
+                accountType(backup, passphrase)
+            } catch (e: BackupLocalModule.InvalidNearAccountIdException) {
+                // Bad chain data must not discard the other accounts in a full backup.
+                Log.w("BackupProvider", "Skipping backup account with invalid NEAR account ID")
+                return@forEach
+            }
             val name = walletBackup2.name
 
             val account = if (type.isWatchAccountType) {

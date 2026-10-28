@@ -173,6 +173,8 @@ class OneInchProvider(
             slippage,
             fromAsset = assetId(tokenIn),
             toAsset = assetId(tokenOut),
+            approvalSpender = OneInchKit.routerAddress(evmBlockchainHelper.chain).hex,
+            mevProtectionAllowed = mevProtectionAllowed(tokenIn, tokenOut),
         )
     }
 

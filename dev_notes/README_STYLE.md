@@ -1,6 +1,13 @@
 # README Style
 
-Format the Open Swap GitHub landing page in the LeanType README style.
+Format the Open Swap GitHub landing page using LeanType and WMKeyboard as presentation references.
+
+References:
+
+- [LeanType homepage](https://github.com/LeanBitLab/LeanType).
+- [WMKeyboard homepage](https://github.com/wasi-master/wmkeyboard/).
+
+Use their clear product introduction, prominent download links, scannable feature groups and links to deeper documentation. Include screenshots, badges or collapsible detail only when useful, accurate Open Swap assets and information are available. Apply the structure to Open Swap's own identity and features; do not copy unrelated claims, branding or assets.
 
 Use a concise product statement at the top, clearly identify the upstream fork relationship and place key links near the start. Follow with visual, reader-facing sections such as Overview, Features, Download, Verify a Release, Security and Privacy, and Project Information. Use emoji headings and horizontal dividers only where they improve scanning.
 

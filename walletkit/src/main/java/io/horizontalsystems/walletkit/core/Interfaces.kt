@@ -69,6 +69,8 @@ interface ILocalStorage {
     var swapRecentTokenQueryIds: List<String>
     var uSwapSuspensions: String?
     var uSwapSuspensionsSyncTime: Long
+    var uSwapExecutionTypes: String?
+    var uSwapRouteScores: String?
     var privateSendProviderIds: String?
     var privateSendProviderIdsSyncTime: Long
     var zcashAccountIds: Set<String>
@@ -427,6 +429,30 @@ interface ISendXrpAdapter {
     suspend fun requiresDestinationTag(address: String): Boolean
     suspend fun send(amount: BigDecimal, address: String, destinationTag: Long?, memo: String?): String
 }
+
+interface ISendNearAdapter {
+    /** What a send can move before the address is known, with the fee of the costliest receiver held back. */
+    val maxSendableBalance: BigDecimal
+    /** Last estimated network fee, for display before the address is known. */
+    val fee: BigDecimal
+    /** Transactions sent from this account that are not final yet. */
+    val pendingTransactionHashes: Set<String>
+    fun validate(address: String)
+    suspend fun estimate(address: String, amount: BigDecimal, memo: String?): NearSendEstimate
+    /** [estimate] is the one the user confirmed; a token send fails if its storage deposit has changed since. */
+    suspend fun send(amount: BigDecimal, address: String, memo: String?, estimate: NearSendEstimate): String
+}
+
+/**
+ * [fee] is what the send costs in NEAR; [storageDeposit] is NEAR paid to register the receiver
+ * with a token contract. [requiredNear] is the NEAR balance the account must hold for the network
+ * to accept it: gas is bought up front at a higher price than it is charged, then refunded.
+ */
+open class NearSendEstimate(
+    val fee: BigDecimal,
+    val storageDeposit: BigDecimal?,
+    val requiredNear: BigDecimal,
+)
 
 interface ISendThorchainAdapter {
     val availableBalance: BigDecimal
