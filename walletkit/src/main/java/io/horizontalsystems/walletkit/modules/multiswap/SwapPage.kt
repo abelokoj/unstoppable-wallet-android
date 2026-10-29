@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -45,10 +47,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -420,6 +425,7 @@ private fun SwapScreenInner(
     }
 
     val quote = uiState.quote
+    val receivedAmountTitle = stringResource(R.string.Swap_YouGet)
 
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
@@ -488,6 +494,16 @@ private fun SwapScreenInner(
                     },
                     onClickCoinTo = {
                         navigateAfterKeyboardClosed(onClickCoinTo)
+                    },
+                    onClickAmountOut = {
+                        quote?.amountOut?.let { amount ->
+                            navigateAfterKeyboardClosed {
+                                navigation.slideFromBottom(SwapInfoSheet(SwapInfoSheet.Input(
+                                    receivedAmountTitle,
+                                    "${amount.toPlainString()} ${uiState.tokenOut?.coin?.code.orEmpty()}",
+                                )))
+                            }
+                        }
                     },
                     tokenIn = uiState.tokenIn,
                     tokenOut = uiState.tokenOut,
@@ -744,30 +760,38 @@ private fun ProviderCellInfo(
         quote.amountOut
     )
     val priceStr = if (showRegularPrice) {
-        swapPriceUIHelper.priceStr
+        swapPriceUIHelper.compactPriceStr
     } else {
-        swapPriceUIHelper.priceInvStr
+        swapPriceUIHelper.compactPriceInvStr
     }
 
     Column(
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ProviderSelector(
-                title = quote.provider.title,
-                icon = quote.provider.icon,
-                modifier = Modifier.weight(1f),
-                onClick = onClickProvider,
-            )
-            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                CellRightControlsButtonText(
-                    subhead = priceStr.hs(color = ComposeAppTheme.colors.leah),
-                    onClick = onClickPrice
+        BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            val providerMaxWidth = maxWidth * 0.45f
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ProviderSelector(
+                    title = quote.provider.title,
+                    icon = quote.provider.icon,
+                    modifier = Modifier.widthIn(max = providerMaxWidth),
+                    onClick = onClickProvider,
                 )
+                Box(
+                    Modifier.weight(1f).semantics {
+                        contentDescription = if (showRegularPrice) swapPriceUIHelper.priceStr else swapPriceUIHelper.priceInvStr
+                    },
+                    contentAlignment = Alignment.CenterEnd,
+                ) {
+                    CellRightControlsButtonText(
+                        subhead = priceStr.hs(color = ComposeAppTheme.colors.leah),
+                        onClick = onClickPrice
+                    )
+                }
             }
         }
         CellSecondary(
@@ -942,6 +966,7 @@ private fun SwapInput(
     onFiatValueChange: (BigDecimal?) -> Unit,
     onClickCoinFrom: () -> Unit,
     onClickCoinTo: () -> Unit,
+    onClickAmountOut: () -> Unit,
     tokenIn: Token?,
     tokenOut: Token?,
     currency: Currency,
@@ -976,6 +1001,7 @@ private fun SwapInput(
                     amountExceedsBalance = false,
                     onTokenClick = onClickCoinFrom,
                     tokenOnRight = true,
+                    compactAmount = true,
                 )
                 SwapCoinInputTo(
                     coinAmount = amountOut,
@@ -985,7 +1011,8 @@ private fun SwapInput(
                     fiatPriceImpactLevel = fiatPriceImpactLevel,
                     currency = currency,
                     token = tokenOut,
-                    onClickCoin = onClickCoinTo
+                    onClickCoin = onClickCoinTo,
+                    onClickAmount = onClickAmountOut,
                 )
             }
             Box(Modifier.align(Alignment.Center)) {
@@ -1012,6 +1039,7 @@ private fun SwapCoinInputTo(
     currency: Currency,
     token: Token?,
     onClickCoin: () -> Unit,
+    onClickAmount: () -> Unit,
 ) {
     BoxBordered(bottom = true) {
         Row(
@@ -1020,7 +1048,10 @@ private fun SwapCoinInputTo(
         ) {
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
                 Text(
-                    text = (coinAmount ?: BigDecimal.ZERO).toPlainString(),
+                    text = formatSwapAmount(coinAmount ?: BigDecimal.ZERO, App.languageManager.currentLocale),
+                    modifier = Modifier
+                        .clickable(enabled = coinAmount != null, onClick = onClickAmount)
+                        .semantics { contentDescription = (coinAmount ?: BigDecimal.ZERO).toPlainString() },
                     style = ComposeAppTheme.typography.headline1,
                     color = if (coinAmount == null) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.leah,
                     maxLines = 1,
@@ -1109,7 +1140,11 @@ fun AmountInput(
     focusRequester: FocusRequester = FocusRequester(),
     error: Boolean,
     textAlign: TextAlign = TextAlign.End,
+    compactDisplay: Boolean = false,
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+    val locale = App.languageManager.currentLocale
+    val displayTransformation = remember(locale) { SwapAmountVisualTransformation(locale) }
     val textColor = if (error) ComposeAppTheme.colors.lucian else ComposeAppTheme.colors.leah
     var amount by rememberSaveable {
         mutableStateOf(value)
@@ -1136,12 +1171,17 @@ fun AmountInput(
             .fillMaxWidth()
             .focusRequester(focusRequester)
             .onFocusChanged {
-                setCursorToEndOnFocused = it.isFocused
-
+                isFocused = it.isFocused
+                setCursorToEndOnFocused = it.isFocused && !compactDisplay
+                // Editing always reveals the untouched full amount with a valid cursor position.
+                if (it.isFocused && compactDisplay) {
+                    textFieldValue = textFieldValue.copy(selection = TextRange(textFieldValue.text.length))
+                }
                 if (!it.isFocused) {
                     textFieldValue = textFieldValue.copy(selection = TextRange.Zero)
                 }
             },
+        visualTransformation = if (compactDisplay && !isFocused) displayTransformation else VisualTransformation.None,
         value = textFieldValue,
         onValueChange = { newValue ->
             try {

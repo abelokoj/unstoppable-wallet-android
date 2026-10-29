@@ -1,12 +1,18 @@
 package io.horizontalsystems.walletkit.modules.multiswap
 
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.padding
 import io.horizontalsystems.walletkit.uiv3.components.cell.ImageType
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -153,9 +159,6 @@ private fun SwapSelectProviderScreenInner(
                     }
                     BoxBordered(bottom = true) {
                         CellPrimary(
-                            // Two-row layout restored from upstream 82f4fbc0d^, the last commit
-                            // before provider icons and names were removed. Provider logo left,
-                            // title + amount on row 1, time/risk + fiat on row 2, selector right.
                             left = {
                                 provider.icon?.let { providerIcon ->
                                     CellLeftImage(
@@ -166,37 +169,62 @@ private fun SwapSelectProviderScreenInner(
                                 }
                             },
                             middle = {
-                                Row(
-                                    horizontalArrangement = spacedBy(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Row {
+                                Column(verticalArrangement = spacedBy(4.dp)) {
+                                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                                        val amountWidth = maxWidth * 0.65f
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = spacedBy(12.dp),
+                                        ) {
                                             Text(
                                                 text = provider.title,
                                                 style = ComposeAppTheme.typography.headline2,
                                                 color = ComposeAppTheme.colors.leah,
-                                                modifier = Modifier.weight(1f)
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.weight(1f).alignByBaseline(),
                                             )
                                             Text(
                                                 text = viewItem.tokenAmount,
                                                 style = ComposeAppTheme.typography.subheadSB,
                                                 color = ComposeAppTheme.colors.leah,
+                                                textAlign = TextAlign.End,
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier
+                                                    .widthIn(max = amountWidth)
+                                                    .alignByBaseline()
+                                                    .semantics {
+                                                        contentDescription = App.numberFormatter.formatCoinFull(
+                                                            viewItem.quote.amountOut,
+                                                            viewItem.quote.tokenOut.coin.code,
+                                                            viewItem.quote.tokenOut.decimals,
+                                                        )
+                                                    },
                                             )
                                         }
-                                        Row {
+                                    }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        FlowRow(
+                                            modifier = Modifier.weight(1f),
+                                            horizontalArrangement = spacedBy(4.dp),
+                                            verticalArrangement = spacedBy(4.dp),
+                                        ) {
                                             Row(
                                                 horizontalArrangement = spacedBy(4.dp),
                                                 verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(end = 4.dp)
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.clock_filled_24),
                                                     modifier = Modifier.size(16.dp),
                                                     tint = ComposeAppTheme.colors.grey,
-                                                    contentDescription = null
+                                                    contentDescription = null,
                                                 )
                                                 Text(
                                                     text = viewItem.estimationTime?.let {
@@ -214,39 +242,37 @@ private fun SwapSelectProviderScreenInner(
                                                     style = ComposeAppTheme.typography.subhead,
                                                     color = ComposeAppTheme.colors.grey,
                                                 )
-                                                RiskScore(
-                                                    riskLevel = provider.riskLevel,
-                                                    modifier = Modifier.clickable {
-                                                        onBadgeClick.invoke()
-                                                    },
+                                            }
+                                            RiskScore(
+                                                riskLevel = provider.riskLevel,
+                                                modifier = Modifier.clickable(onClick = onBadgeClick),
+                                            )
+                                        }
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            viewItem.fiatAmount?.let {
+                                                Text(
+                                                    text = it,
+                                                    style = ComposeAppTheme.typography.subhead,
+                                                    color = ComposeAppTheme.colors.grey,
+                                                    textAlign = TextAlign.End,
                                                 )
                                             }
-                                            Row(horizontalArrangement = spacedBy(4.dp)) {
-                                                viewItem.fiatAmount?.let {
-                                                    Text(
-                                                        text = it,
-                                                        style = ComposeAppTheme.typography.subhead,
-                                                        color = ComposeAppTheme.colors.grey,
-                                                        textAlign = TextAlign.End,
-                                                    )
-                                                }
-                                                getPriceImpact(viewItem.priceImpactData)?.let {
-                                                    Text(
-                                                        text = it.text,
-                                                        style = ComposeAppTheme.typography.subhead,
-                                                        color = it.color ?: ComposeAppTheme.colors.grey,
-                                                        textAlign = TextAlign.End,
-                                                    )
-                                                }
+                                            getPriceImpact(viewItem.priceImpactData)?.let {
+                                                Text(
+                                                    text = it.text,
+                                                    style = ComposeAppTheme.typography.subhead,
+                                                    color = it.color ?: ComposeAppTheme.colors.grey,
+                                                    textAlign = TextAlign.End,
+                                                )
                                             }
                                         }
+                                        Icon(
+                                            modifier = Modifier.size(20.dp),
+                                            painter = painterResource(icon),
+                                            contentDescription = null,
+                                            tint = iconTint,
+                                        )
                                     }
-                                    Icon(
-                                        modifier = Modifier.size(20.dp),
-                                        painter = painterResource(icon),
-                                        contentDescription = null,
-                                        tint = iconTint
-                                    )
                                 }
                             },
                             onClick = { onSelectQuote.invoke(viewItem.quote) }

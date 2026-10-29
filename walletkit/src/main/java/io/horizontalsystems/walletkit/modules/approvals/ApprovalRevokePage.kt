@@ -53,7 +53,6 @@ data class ApprovalRevokePage(val accountId: String, val blockchainType: Blockch
             if (hash != null && resultKey != null) results.sendResult(Result(target.key, hash))
         }
         val network = App.evmBlockchainManager.getBlockchain(blockchainType)?.name ?: blockchainType.uid
-        val authorize = navigation.authorizedAction(model::submit)
         ConfirmTransactionScreen(
             title = stringResource(R.string.ApprovalAccess_Confirm),
             onClickBack = navigation::removeLastOrNull,
@@ -64,7 +63,7 @@ data class ApprovalRevokePage(val accountId: String, val blockchainType: Blockch
                     title = stringResource(if (model.submitted) R.string.Button_Done else R.string.Swap_Revoke),
                     enabled = model.submitted || (model.ready && !model.submitting && model.feeState?.sendable == true),
                     loadingIndicator = model.submitting,
-                    onClick = { if (model.submitted) navigation.removeLastOrNull() else authorize() },
+                    onClick = { if (model.submitted) navigation.removeLastOrNull() else model.submit() },
                 )
             },
         ) {

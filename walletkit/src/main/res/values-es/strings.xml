@@ -1978,7 +1978,7 @@
     <string name="ApprovalAccess_Title">Revocar acceso</string>
     <string name="ApprovalAccess_SettingsDescription">Revisa los permisos de tokens y NFT en redes EVM</string>
     <string name="ApprovalAccess_Intro">Encuentra y revoca permisos de gasto concedidos previamente a exchanges y dapps. Desconectar una dapp no revoca sus aprobaciones en la cadena.</string>
-    <string name="ApprovalAccess_Privacy">Los análisis consultan al proveedor de red seleccionado con tu dirección pública. No se utiliza ningún indexador adicional de aprobaciones. Si Tor está activado, el análisis espera a que Tor se conecte.</string>
+    <string name="ApprovalAccess_Privacy">Las consultas envían tu dirección pública al RPC seleccionado y al proveedor de historial existente. Tor es opcional. Sin Tor, los proveedores pueden ver tu dirección IP. Con Tor activado, la búsqueda espera a que se conecte y no cambia a una conexión directa. No se usa el historial guardado.</string>
     <string name="ApprovalAccess_NoWallet">Selecciona primero una billetera</string>
     <string name="ApprovalAccess_Network">Seleccionar red</string>
     <string name="ApprovalAccess_Scan">Analizar / Continuar análisis</string>
@@ -2086,4 +2086,8 @@
     <string name="CoinInfo_MintAddress">Dirección de mint</string>
     <string name="CoinInfo_AssetIdentifier">Identificador del activo</string>
     <string name="CoinInfo_MarketUnavailable">No hay información de mercado disponible para este token.</string>
+    <string name="ApprovalAccess_HistoryPartial">El historial de la dirección está incompleto. Continúa la búsqueda para comprobar transacciones anteriores.</string>
+    <string name="ApprovalAccess_HistoryLimits">La búsqueda en el historial puede omitir autorizaciones retransmitidas y permisos fuera de las transacciones enumeradas. La comprobación manual sigue disponible.</string>
+    <string name="ApprovalAccess_HistoryError">No se pudo obtener el historial de la dirección. Comprueba tu conexión y vuelve a intentarlo. El servicio puede no estar disponible o limitar las consultas.</string>
+    <string name="ApprovalAccess_HistoryTorRequired">Tor está activado, pero no conectado. Espera a que se conecte y vuelve a intentarlo.</string>
 </resources>

@@ -1,5 +1,35 @@
 # Open Swap TODO
 
+## Main swap formatting, updated 2026-10-29
+
+- [x] Implement and build the approved 14-character unfocused input/received displays with exact-value editing/details, natural provider-rate wrapping and existing upstream typography/colors/spacing. Keep version 0.53.2 (189); all 334 wallet tests pass and the signed APK is preserved locally.
+- [ ] Obtain personal device feedback for the changed amount displays, edit/cursor behavior, complete received-amount details and provider-rate wrapping at the user's chosen font size. No current device was visible; no installation or transaction was performed.
+
+## Approval flow and provider decisions, updated 2026-10-29
+
+- [x] User confirmed main build 189 finds BSC approvals. Retain the working fresh-history/receipt fallback.
+- [x] Match Revoke Access to the wallet's existing approval/signing route by removing its extra PIN-only wrapper; leave shared PIN/biometrics and ordinary approvals unchanged. Candidate build 190 completed signed packaging; user testing of signing remains pending. The route-layout candidate is version 0.53.2 (189), following the user's explicit request to match installed build 189 without increasing it further; signed packaging is complete.
+- [ ] Await the user's decision on a scanner-only preferred RPC followed by attempts across built-in providers. Current behavior uses selected-provider reads with the internal BSC missing-receipt fallback. Failures or incomplete discovery must never become a claim that no approvals exist. Do not implement the proposed provider sweep without that decision.
+
+## In-place rollback builds, planned 2026-10-29
+
+- [ ] Define which older versions should be supported and check wallet database, account/token serialization, encrypted storage and chain-kit data compatibility before offering rollback.
+- [ ] Consider separately signed rollback releases made from selected older code with the same application ID/certificate and a new increasing build number. Label them clearly, test preservation of disposable wallet data and keep the ordinary release-security settings.
+- Android blocks the original lower-versionCode production APKs from replacing a newer installation. This is not an app setting; no universal downgrade capability is implemented. Never enable destructive downgrade migration or make production debuggable to bypass this restriction. See [Android versioning](https://developer.android.com/studio/publish/versioning).
+
+## BSC history follow-up for 0.53.3 (189)
+
+- [x] User confirmed the 0.53.2 development fresh-history scan works. Make Tor optional while preserving fail-closed routing when selected, and move privacy/history explanations under the details icon.
+- [x] Pass all 373 supported wallet/EVM unit regressions and build/inspect the corrected signed production APK as 0.53.3 (189). The earlier development build 188 is already installed; no separate release-unit-test task exists.
+- [x] Obtain the user's regular-app scan confirmation: the user confirmed main build 189 finds BSC approvals. Preserve the current public 0.53.2 release and show the commit message before any push.
+
+## Fresh BSC approval discovery, development update 2026-10-29
+
+- [x] Implement fresh address-history requests through the existing provider and Tor, independently of stored wallet transactions; validate receipt events and check current token/NFT permissions through the selected RPC.
+- [x] Align development BSC history credentials with the already-shipped regular-app pool, add accurate history progress/limits, pass 369 affected tests and all locale checks, and build/install the development update. See [implementation and validation](dev_notes/2026-10-29-bsc-live-approval-history.md).
+- [ ] Receive the user's BSC scan feedback. The user chose personal testing after installation; live Tor/scan results and relayed-approval coverage remain unverified.
+- [ ] Confirm the signed 0.53.3 candidate scans correctly in the regular app and publish a separate update after review. Optimized build/bytecode checks passed; the public 0.53.2 APK still contains the older scanner. The new source and signed candidate remain local and uncommitted.
+
 ## Broader token information coverage, planned 2026-10-29
 
 Keep Unstoppable's hosted market service as the preferred source. The user does not want to operate a separate server. These are follow-up tasks, not features included in 0.53.2.

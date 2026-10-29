@@ -339,14 +339,6 @@ object EvmKitManagerRegistry {
             Pair(evmKitManager, evmAccountManager)
         }
 
-    @Synchronized
-    fun existingEvmKitWrapper(account: Account, blockchainType: BlockchainType): EvmKitWrapper? {
-        val manager = evmKitManagersMap[blockchainType]?.first ?: return null
-        return manager.evmKitWrapper?.takeIf {
-            manager.currentAccount?.id == account.id && it.blockchainType == blockchainType
-        }
-    }
-
     fun getEvmKitManager(blockchainType: BlockchainType): EvmKitManager = managers(blockchainType).first
 
     fun getEvmAccountManager(blockchainType: BlockchainType): EvmAccountManager = managers(blockchainType).second

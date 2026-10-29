@@ -2337,7 +2337,7 @@
     <string name="ApprovalAccess_Title">Revoke Access</string>
     <string name="ApprovalAccess_SettingsDescription">Review token and NFT permissions on EVM networks</string>
     <string name="ApprovalAccess_Intro">Find and revoke spending permissions previously granted to exchanges and dapps. Disconnecting a dapp does not revoke its on-chain approvals.</string>
-    <string name="ApprovalAccess_Privacy">Scans query your selected network provider with your public address. No additional approval indexer is used. When Tor is enabled, scanning waits for Tor to connect.</string>
+    <string name="ApprovalAccess_Privacy">Scans send your public wallet address to the selected RPC and existing history provider. Tor is optional. Without Tor, providers may see your IP address. With Tor enabled, scanning waits for it to connect and does not fall back to a direct connection. Stored transaction history is not used.</string>
     <string name="ApprovalAccess_NoWallet">Select a wallet first</string>
     <string name="ApprovalAccess_Network">Select network</string>
     <string name="ApprovalAccess_Scan">Scan / Continue scan</string>
@@ -2445,4 +2445,8 @@
     <string name="CoinInfo_MintAddress">Mint address</string>
     <string name="CoinInfo_AssetIdentifier">Asset identifier</string>
     <string name="CoinInfo_MarketUnavailable">Market information is unavailable for this token.</string>
+    <string name="ApprovalAccess_HistoryPartial">Address history is incomplete. Continue scanning to check older transactions.</string>
+    <string name="ApprovalAccess_HistoryLimits">Address-history discovery can miss relayed approvals and permissions outside the listed transactions. Manual checking remains available.</string>
+    <string name="ApprovalAccess_HistoryError">Address history could not be retrieved. Check your connection and retry. The history service may be unavailable or rate limited.</string>
+    <string name="ApprovalAccess_HistoryTorRequired">Tor is enabled but not connected. Wait for Tor to connect, then retry.</string>
 </resources>

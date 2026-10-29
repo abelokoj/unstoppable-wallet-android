@@ -1977,7 +1977,7 @@
     <string name="ApprovalAccess_Title">撤销访问权限</string>
     <string name="ApprovalAccess_SettingsDescription">查看 EVM 网络上的代币和 NFT 权限</string>
     <string name="ApprovalAccess_Intro">查找并撤销之前授予交易所和 dapp 的支出权限。断开 dapp 连接不会撤销其链上授权。</string>
-    <string name="ApprovalAccess_Privacy">扫描会使用您的公开地址查询所选网络提供商，不使用额外的授权索引服务。启用 Tor 时，扫描会等待 Tor 连接。</string>
+    <string name="ApprovalAccess_Privacy">查询会将您的公开钱包地址发送给所选 RPC 和现有历史记录提供商。Tor 为可选功能。不使用 Tor 时，提供商可能看到您的 IP 地址。启用 Tor 后，扫描会等待连接，不会回退到直接连接。不使用已存储的交易历史记录。</string>
     <string name="ApprovalAccess_NoWallet">请先选择钱包</string>
     <string name="ApprovalAccess_Network">选择网络</string>
     <string name="ApprovalAccess_Scan">扫描 / 继续扫描</string>
@@ -2085,4 +2085,8 @@
     <string name="CoinInfo_MintAddress">铸币地址</string>
     <string name="CoinInfo_AssetIdentifier">资产标识符</string>
     <string name="CoinInfo_MarketUnavailable">此代币暂无市场信息。</string>
+    <string name="ApprovalAccess_HistoryPartial">地址历史记录尚不完整。请继续扫描以检查较早的交易。</string>
+    <string name="ApprovalAccess_HistoryLimits">地址历史记录扫描可能遗漏由中继者提交的授权及所列交易以外的权限。仍可使用手动检查。</string>
+    <string name="ApprovalAccess_HistoryError">无法获取地址历史记录。请检查网络连接后重试。历史记录服务可能不可用或限制了请求。</string>
+    <string name="ApprovalAccess_HistoryTorRequired">Tor 已启用但尚未连接。请等待 Tor 连接后重试。</string>
 </resources>

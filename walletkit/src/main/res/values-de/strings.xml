@@ -1983,7 +1983,7 @@
     <string name="ApprovalAccess_Title">Zugriff widerrufen</string>
     <string name="ApprovalAccess_SettingsDescription">Token- und NFT-Berechtigungen in EVM-Netzwerken prüfen</string>
     <string name="ApprovalAccess_Intro">Zuvor an Börsen und dapps erteilte Ausgabeberechtigungen finden und widerrufen. Das Trennen einer dapp widerruft ihre On-Chain-Freigaben nicht.</string>
-    <string name="ApprovalAccess_Privacy">Scans fragen Ihren ausgewählten Netzwerkanbieter mit Ihrer öffentlichen Adresse ab. Es wird kein zusätzlicher Freigabe-Indexer verwendet. Wenn Tor aktiviert ist, wartet der Scan auf die Tor-Verbindung.</string>
+    <string name="ApprovalAccess_Privacy">Abfragen senden deine öffentliche Wallet-Adresse an den gewählten RPC und den vorhandenen Verlaufsanbieter. Tor ist optional. Ohne Tor können Anbieter deine IP-Adresse sehen. Bei aktiviertem Tor wartet die Suche auf die Verbindung und wechselt nicht zu einer direkten Verbindung. Gespeicherter Transaktionsverlauf wird nicht verwendet.</string>
     <string name="ApprovalAccess_NoWallet">Wählen Sie zuerst eine Wallet aus</string>
     <string name="ApprovalAccess_Network">Netzwerk auswählen</string>
     <string name="ApprovalAccess_Scan">Scannen / Scan fortsetzen</string>
@@ -2091,4 +2091,8 @@
     <string name="CoinInfo_MintAddress">Mint-Adresse</string>
     <string name="CoinInfo_AssetIdentifier">Asset-Kennung</string>
     <string name="CoinInfo_MarketUnavailable">Für dieses Token sind keine Marktdaten verfügbar.</string>
+    <string name="ApprovalAccess_HistoryPartial">Der Adressverlauf ist unvollständig. Setze die Suche fort, um ältere Transaktionen zu prüfen.</string>
+    <string name="ApprovalAccess_HistoryLimits">Die Suche im Adressverlauf kann weitergeleitete Genehmigungen und Berechtigungen außerhalb der aufgeführten Transaktionen übersehen. Die manuelle Prüfung bleibt verfügbar.</string>
+    <string name="ApprovalAccess_HistoryError">Der Adressverlauf konnte nicht abgerufen werden. Prüfe deine Verbindung und versuche es erneut. Der Verlaufsdienst ist möglicherweise nicht verfügbar oder begrenzt Anfragen.</string>
+    <string name="ApprovalAccess_HistoryTorRequired">Tor ist aktiviert, aber nicht verbunden. Warte auf die Tor-Verbindung und versuche es erneut.</string>
 </resources>

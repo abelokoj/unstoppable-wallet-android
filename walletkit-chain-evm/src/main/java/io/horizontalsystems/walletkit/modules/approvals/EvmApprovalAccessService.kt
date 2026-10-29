@@ -3,8 +3,10 @@ package io.horizontalsystems.walletkit.modules.approvals
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.managers.EvmKitManagerRegistry
+import io.horizontalsystems.walletkit.core.managers.evmTransactionSource
 import io.horizontalsystems.walletkit.core.managers.rpcSource
 import io.horizontalsystems.walletkit.core.managers.requireSocksProxy
 import io.horizontalsystems.walletkit.entities.Account
@@ -12,21 +14,25 @@ import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.entities.evmAddress
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.EvmTransactionData
 import io.horizontalsystems.walletkit.modules.settings.privacy.tor.TorStatus
-import io.horizontalsystems.ethereumkit.core.toHexString
-import io.horizontalsystems.ethereumkit.models.TransactionTag
 import io.horizontalsystems.ethereumkit.models.RpcSource
+import io.horizontalsystems.ethereumkit.models.TransactionSource
 import io.horizontalsystems.marketkit.models.BlockchainType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Streaming
+import retrofit2.http.QueryMap
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Url
@@ -34,7 +40,7 @@ import java.math.BigInteger
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
-/** Uses existing local wallet history and the configured RPC. No indexer or remote transaction calldata. */
+/** Uses on-chain logs and fresh address history. No stored wallet history or remote transaction calldata. */
 class EvmApprovalAccessService private constructor(
     private val account: Account,
     private val blockchainType: BlockchainType,
@@ -44,43 +50,44 @@ class EvmApprovalAccessService private constructor(
     // shortcut: session-only progress; persist per account if scans need to survive closing this page.
     private val candidates = linkedMapOf<String, ApprovalTarget>()
     private val history = ApprovalLogScan()
-    private class CachedPage(val tags: List<List<String>>) {
-        var cursor: ByteArray? = null
-        var complete = false
-    }
-    private val cachedPages = listOf(
-        CachedPage(listOf(listOf(TransactionTag.EIP20_APPROVE))), CachedPage(emptyList()),
-    )
-    private val seenReceipts = linkedSetOf<String>()
+    private val remoteHistory = ApprovalHistoryScan()
+    private var historyKeyIndex = 0
+    private var bscReceiptRpc: Rpc? = null
 
     override suspend fun scan(onProgress: (Long) -> Unit): ApprovalScan = mutex.withLock {
+        val bsc = blockchainType == BlockchainType.BinanceSmartChain
         val rpc = openRpc()
         val head = quantity(rpc.call("eth_blockNumber")).longValueExact()
         var failed = 0
         var historyError = false
-        try {
-            history.scan(head, { from, to -> remember(fetchRange(rpc, from, to)) }, onProgress)
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (_: Exception) {
-            historyError = true
+        if (!bsc) {
+            try {
+                history.scan(head, { from, to -> remember(fetchRange(rpc, from, to)) }, onProgress)
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { historyError = true }
         }
-        if (historyError || history.nextBlock != null || history.scannedHead < head) {
-            failed += readCachedApprovals(rpc)
+        val useAddressHistory = bsc || historyError
+        if (useAddressHistory) {
+            try {
+                remoteHistory.scan(head, { snapshot, page -> historyPage(rpc, snapshot, page) }, { tx ->
+                    remember(receiptTargets(rpc, tx))
+                }, onProgress)
+                historyError = false
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (privacy: ApprovalHistoryTorRequired) { throw privacy }
+            catch (_: Exception) { historyError = true }
         }
         val active = mutableListOf<ActiveApproval>()
         for (candidate in candidates.values) {
-            try {
-                check(rpc, candidate)?.let(active::add)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                failed++
-            }
+            try { check(rpc, candidate)?.let(active::add) }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { failed++ }
         }
-        ApprovalScan(active, history.nextBlock, history.scannedHead, failed, head, historyError)
+        ApprovalScan(active,
+            if (useAddressHistory) remoteHistory.oldestBlock.takeUnless { remoteHistory.complete } else history.nextBlock,
+            if (useAddressHistory) remoteHistory.head else history.scannedHead, failed, head, historyError,
+            transactionHistoryOnly = useAddressHistory)
     }
-
     override suspend fun check(target: ApprovalTarget): ActiveApproval? = mutex.withLock {
         ApprovalAbi.validate(target)
         val checked = check(openRpc(), target)
@@ -112,41 +119,63 @@ class EvmApprovalAccessService private constructor(
         ApprovalAssetMetadata(name ?: symbol!!, symbol ?: "", decimals)
     }
 
-    private suspend fun readCachedApprovals(rpc: Rpc): Int {
-        val wrapper = EvmKitManagerRegistry.existingEvmKitWrapper(account, blockchainType) ?: return 0
-        if (!wrapper.evmKit.receiveAddress.hex.equals(owner, true)) return 0
-        var failures = 0
-        for (page in cachedPages) {
+    private suspend fun receiptTargets(rpc: Rpc, tx: ApprovalHistoryTransaction): List<ApprovalTarget> {
+        val primary = bscReceiptRpc ?: rpc
+        var fallbackReader: Rpc? = null
+        val fallback: (suspend (String) -> JsonObject?)? =
+            if (blockchainType == BlockchainType.BinanceSmartChain && bscReceiptRpc == null) {
+                { hash ->
+                    rpc.guard(App.torKitManager.isTorEnabled)
+                    openRpc(historicalBscReceipt = true).also { fallbackReader = it }.receipt(hash)
+                }
+            } else null
+        val receipt = readApprovalReceipt(tx.hash, primary::receipt, fallback)
+        val targets = parseReceipt(receipt, tx.hash, "0x" + ApprovalAbi.addressWord(owner), tx.block)
+        // Reuse the historical reader only after its receipt passes identity/event validation.
+        fallbackReader?.let { bscReceiptRpc = it }
+        return targets
+    }
+
+    private fun historyUsesTor() = approvalHistoryUsesTor(
+        App.torKitManager.isTorEnabled, App.torKitManager.torStatusFlow.value == TorStatus.Connected,
+    )
+
+    private suspend fun historyPage(rpc: Rpc, snapshot: Long, page: Int): List<ApprovalHistoryTransaction> {
+        val torEnabled = historyUsesTor()
+        rpc.guard(torEnabled)
+        val source = evmTransactionSource(blockchainType, App.appConfigProvider).type as TransactionSource.SourceType.Etherscan
+        val keys = source.apiKeys.filter { it.isNotBlank() }
+        require(keys.isNotEmpty()) { "History provider is unavailable" }
+        val historyApi = if (torEnabled) api(App.torKitManager.requireSocksProxy()) else directApi
+        repeat(keys.size) { attempt ->
             currentCoroutineContext().ensureActive()
-            if (page.complete) { page.cursor = null; page.complete = false }
-            val transactions = try {
-                wrapper.evmKit.getFullTransactionsAsync(page.tags, page.cursor, 50)
+            historyUsesTor()
+            rpc.guard(torEnabled)
+            val keyIndex = (historyKeyIndex + attempt) % keys.size
+            try {
+                val response = historyApi.history(source.apiBaseUrl + "api", mapOf(
+                    "module" to "account", "action" to "txlist", "chainid" to requireNotNull(App.evmBlockchainManager.getChainId(blockchainType)).toString(),
+                    "address" to owner, "startblock" to "0", "endblock" to snapshot.toString(),
+                    "page" to page.toString(), "offset" to remoteHistory.pageSize.toString(), "sort" to "desc", "apikey" to keys[keyIndex],
+                )).use { body ->
+                    val bytes = body.source()
+                    bytes.request(4L * 1024 * 1024 + 1)
+                    require(bytes.buffer.size <= 4L * 1024 * 1024) { "History response is too large" }
+                    JsonParser.parseString(bytes.readUtf8()).asJsonObject
+                }
+                historyUsesTor()
+                rpc.guard(torEnabled)
+                val transactions = parseApprovalHistory(response, owner, snapshot, remoteHistory.pageSize)
+                historyKeyIndex = keyIndex
+                return transactions
             } catch (cancelled: CancellationException) { throw cancelled }
-            catch (_: Exception) { failures++; continue }
-            var accepted = 0
-            for (full in transactions) {
-                currentCoroutineContext().ensureActive()
-                val tx = full.transaction
-                val block = tx.blockNumber
-                val rawHash = tx.hash.toHexString()
-                val hash = if (rawHash.startsWith("0x")) rawHash else "0x$rawHash"
-                try {
-                    if (block != null && block >= 0 && !tx.isFailed && hash !in seenReceipts) {
-                        require(tx.hash.size == 32)
-                        val receipt = rpc.call("eth_getTransactionReceipt", JsonArray().apply { add(hash) }).asJsonObject
-                        remember(parseReceipt(receipt, hash, "0x" + ApprovalAbi.addressWord(owner), block))
-                        seenReceipts.add(hash)
-                        if (seenReceipts.size > 5000) seenReceipts.remove(seenReceipts.first())
-                    }
-                    // A failed/malformed receipt stays at this cursor for a later retry.
-                    page.cursor = tx.hash
-                    accepted++
-                } catch (cancelled: CancellationException) { throw cancelled }
-                catch (_: Exception) { failures++; break }
+            catch (privacy: ApprovalHistoryTorRequired) { throw privacy }
+            catch (_: Exception) {
+                if (attempt == keys.lastIndex) error("History provider could not complete the request")
+                delay(350)
             }
-            page.complete = accepted == transactions.size && transactions.size < 50
         }
-        return failures
+        error("History provider is unavailable")
     }
     private fun remember(targets: List<ApprovalTarget>) {
         require((candidates.keys + targets.map { it.key }).size <= 5000) {
@@ -194,23 +223,39 @@ class EvmApprovalAccessService private constructor(
         }
     }
 
-    private suspend fun openRpc(): Rpc {
+    private suspend fun openRpc(historicalBscReceipt: Boolean = false): Rpc {
         require(App.accountManager.activeAccount?.id == account.id) { "Wallet changed. Reopen Revoke Access." }
         val expectedChain = requireNotNull(App.evmBlockchainManager.getChainId(blockchainType))
-        val source = App.evmSyncSourceManager.getHttpSyncSource(blockchainType)?.rpcSource as? RpcSource.Http
+        val selected = requireNotNull(App.evmSyncSourceManager.getHttpSyncSource(blockchainType))
+        val readSource = if (historicalBscReceipt) {
+            require(blockchainType == BlockchainType.BinanceSmartChain)
+            App.evmSyncSourceManager.defaultSyncSources(blockchainType).first { it.name == "Binance" }
+        } else selected
+        val source = readSource.rpcSource as? RpcSource.Http
             ?: error("This network has no HTTP RPC source")
         val url = source.uris.firstOrNull()?.toString() ?: error("No RPC source")
-        val rpc = Rpc(url, source.auth?.let { Credentials.basic("", it) }, account.id)
+        val rpc = Rpc(url, source.auth?.let { Credentials.basic("", it) }, account.id, blockchainType, selected.id)
         require(quantity(rpc.call("eth_chainId")) == expectedChain.toBigInteger()) { "RPC network does not match the selected network" }
         return rpc
     }
 
-    private class Rpc(private val url: String, private val auth: String?, private val accountId: String) {
-        suspend fun call(method: String, params: JsonArray = JsonArray()): JsonElement {
-            currentCoroutineContext().ensureActive()
+    private class Rpc(private val url: String, private val auth: String?, private val accountId: String,
+        private val network: BlockchainType, private val sourceId: String) {
+        fun guard(torEnabled: Boolean) {
             require(App.accountManager.activeAccount?.id == accountId) { "Wallet changed. Reopen Revoke Access." }
-            val torEnabled = App.torKitManager.isTorEnabled
+            require(App.evmSyncSourceManager.getHttpSyncSource(network)?.id == sourceId) { "Network provider changed" }
+            require(App.torKitManager.isTorEnabled == torEnabled) { "Privacy settings changed" }
             if (torEnabled) check(App.torKitManager.torStatusFlow.value == TorStatus.Connected) { "Wait for Tor to connect" }
+        }
+        suspend fun receipt(hash: String): JsonObject? {
+            val result = call("eth_getTransactionReceipt", JsonArray().apply { add(hash) }, allowMissing = true)
+            return result.takeUnless { it.isJsonNull }?.asJsonObject
+        }
+
+        suspend fun call(method: String, params: JsonArray = JsonArray(), allowMissing: Boolean = false): JsonElement {
+            currentCoroutineContext().ensureActive()
+            val torEnabled = App.torKitManager.isTorEnabled
+            guard(torEnabled)
             val api = if (torEnabled) api(App.torKitManager.requireSocksProxy()) else directApi
             val response = try {
                 api.call(url, auth, JsonObject().apply {
@@ -226,12 +271,14 @@ class EvmApprovalAccessService private constructor(
                 throw error
             }
             // Discard a response if privacy/account settings changed while it was in flight.
-            require(App.accountManager.activeAccount?.id == accountId && App.torKitManager.isTorEnabled == torEnabled)
+            guard(torEnabled)
             if (response.has("error")) {
                 if (method == "eth_getLogs") throw ApprovalLogRangeError()
                 throw RpcFailure()
             }
-            return response.get("result")?.takeUnless { it.isJsonNull } ?: throw RpcFailure()
+            val result = response.get("result") ?: throw RpcFailure()
+            if (result.isJsonNull && !allowMissing) throw RpcFailure()
+            return result
         }
 
         suspend fun contractCall(contract: String, data: String) = call("eth_call", JsonArray().apply {
@@ -244,6 +291,7 @@ class EvmApprovalAccessService private constructor(
 
     private interface Api {
         @POST suspend fun call(@Url url: String, @Header("Authorization") auth: String?, @Body body: JsonObject): JsonObject
+        @Streaming @GET suspend fun history(@Url url: String, @QueryMap params: Map<String, String>): ResponseBody
     }
 
     companion object {
@@ -253,7 +301,7 @@ class EvmApprovalAccessService private constructor(
         // Reuse the pool during large scans, including clients bound to the current Tor port.
         private val rpcClient = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS).callTimeout(30, TimeUnit.SECONDS)
-            .followRedirects(false).followSslRedirects(false).build()
+            .followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build()
 
         private fun api(proxy: Proxy? = null): Api {
             // Deliberately no request/body logging. Reject redirects instead of disclosing address queries.

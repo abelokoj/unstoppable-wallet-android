@@ -1983,7 +1983,7 @@
     <string name="ApprovalAccess_Title">Revogar acesso</string>
     <string name="ApprovalAccess_SettingsDescription">Revise as permissões de tokens e NFTs em redes EVM</string>
     <string name="ApprovalAccess_Intro">Encontre e revogue permissões de gasto concedidas anteriormente a corretoras e dapps. Desconectar uma dapp não revoga suas aprovações na blockchain.</string>
-    <string name="ApprovalAccess_Privacy">As verificações consultam o provedor de rede selecionado usando seu endereço público. Nenhum indexador adicional de aprovações é usado. Quando o Tor está ativado, a verificação aguarda a conexão do Tor.</string>
+    <string name="ApprovalAccess_Privacy">As consultas enviam seu endereço público ao RPC selecionado e ao provedor de histórico existente. O Tor é opcional. Sem Tor, os provedores podem ver seu endereço IP. Com Tor ativado, a busca aguarda a conexão e não muda para uma conexão direta. O histórico salvo não é usado.</string>
     <string name="ApprovalAccess_NoWallet">Selecione uma carteira primeiro</string>
     <string name="ApprovalAccess_Network">Selecionar rede</string>
     <string name="ApprovalAccess_Scan">Verificar / Continuar verificação</string>
@@ -2091,4 +2091,8 @@
     <string name="CoinInfo_MintAddress">Endereço de mint</string>
     <string name="CoinInfo_AssetIdentifier">Identificador do ativo</string>
     <string name="CoinInfo_MarketUnavailable">Não há informações de mercado disponíveis para este token.</string>
+    <string name="ApprovalAccess_HistoryPartial">O histórico do endereço está incompleto. Continue a busca para verificar transações anteriores.</string>
+    <string name="ApprovalAccess_HistoryLimits">A busca no histórico pode não encontrar aprovações retransmitidas e permissões fora das transações listadas. A verificação manual continua disponível.</string>
+    <string name="ApprovalAccess_HistoryError">Não foi possível obter o histórico do endereço. Verifique a conexão e tente novamente. O serviço pode estar indisponível ou limitar consultas.</string>
+    <string name="ApprovalAccess_HistoryTorRequired">O Tor está ativado, mas desconectado. Aguarde a conexão e tente novamente.</string>
 </resources>

@@ -58,7 +58,9 @@ class SwapSelectProviderViewModel(
 
         return quotes.map { quote ->
             val fiatAmountOut = getFiatValue(quote.amountOut, rateTokenOut)
-            val tokenAmount = App.numberFormatter.formatCoinFull(
+            val tokenAmount = formatCompactSwapAmount(quote.amountOut)?.let {
+                "$it ${quote.tokenOut.coin.code}"
+            } ?: App.numberFormatter.formatCoinFull(
                 quote.amountOut,
                 quote.tokenOut.coin.code,
                 quote.tokenOut.decimals

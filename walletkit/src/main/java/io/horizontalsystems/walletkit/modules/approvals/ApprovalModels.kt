@@ -57,7 +57,10 @@ data class ApprovalScan(
     val failedChecks: Int,
     val latestHead: Long = head,
     val historyError: Boolean = false,
+    val transactionHistoryOnly: Boolean = false,
 )
+
+class ApprovalHistoryTorRequired : Exception("Tor is enabled. Wait for it to connect before retrieving address history")
 
 interface ApprovalAccessService {
     val owner: String

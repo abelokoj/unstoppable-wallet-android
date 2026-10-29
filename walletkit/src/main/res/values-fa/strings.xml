@@ -1966,7 +1966,7 @@
     <string name="ApprovalAccess_Title">لغو دسترسی</string>
     <string name="ApprovalAccess_SettingsDescription">بررسی مجوزهای توکن و NFT در شبکه‌های EVM</string>
     <string name="ApprovalAccess_Intro">مجوزهای خرج‌کردن را که قبلاً به صرافی‌ها و dappها داده‌اید پیدا و لغو کنید. قطع اتصال یک dapp، تأییدیه‌های آن را در زنجیره لغو نمی‌کند.</string>
-    <string name="ApprovalAccess_Privacy">اسکن‌ها با نشانی عمومی شما از ارائه‌دهنده شبکه انتخاب‌شده پرس‌وجو می‌کنند. از نمایه‌ساز اضافی تأییدیه‌ها استفاده نمی‌شود. وقتی Tor فعال است، اسکن منتظر اتصال Tor می‌ماند.</string>
+    <string name="ApprovalAccess_Privacy">درخواست‌ها نشانی عمومی کیف پول شما را به RPC انتخاب‌شده و ارائه‌دهنده فعلی تاریخچه می‌فرستند. تور اختیاری است. بدون تور، ارائه‌دهندگان ممکن است IP شما را ببینند. با فعال بودن تور، جست‌وجو منتظر اتصال می‌ماند و به اتصال مستقیم برنمی‌گردد. تاریخچه ذخیره‌شده استفاده نمی‌شود.</string>
     <string name="ApprovalAccess_NoWallet">ابتدا یک کیف پول انتخاب کنید</string>
     <string name="ApprovalAccess_Network">انتخاب شبکه</string>
     <string name="ApprovalAccess_Scan">اسکن / ادامه اسکن</string>
@@ -2074,4 +2074,8 @@
     <string name="CoinInfo_MintAddress">آدرس مینت</string>
     <string name="CoinInfo_AssetIdentifier">شناسه دارایی</string>
     <string name="CoinInfo_MarketUnavailable">اطلاعات بازار برای این توکن در دسترس نیست.</string>
+    <string name="ApprovalAccess_HistoryPartial">تاریخچه نشانی ناقص است. برای بررسی تراکنش‌های قدیمی‌تر، جست‌وجو را ادامه دهید.</string>
+    <string name="ApprovalAccess_HistoryLimits">جست‌وجوی تاریخچه ممکن است مجوزهای ارسال‌شده با واسطه و دسترسی‌های خارج از تراکنش‌های فهرست‌شده را پیدا نکند. بررسی دستی همچنان در دسترس است.</string>
+    <string name="ApprovalAccess_HistoryError">دریافت تاریخچه نشانی ممکن نشد. اتصال خود را بررسی و دوباره تلاش کنید. ممکن است سرویس در دسترس نباشد یا درخواست‌ها محدود شده باشند.</string>
+    <string name="ApprovalAccess_HistoryTorRequired">تور فعال است اما متصل نیست. منتظر اتصال تور بمانید و دوباره تلاش کنید.</string>
 </resources>

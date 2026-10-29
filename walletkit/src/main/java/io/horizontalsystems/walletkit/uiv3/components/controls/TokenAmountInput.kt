@@ -51,6 +51,7 @@ fun TokenAmountInput(
     amountExceedsBalance: Boolean,
     onTokenClick: (() -> Unit)?,
     tokenOnRight: Boolean = false,
+    compactAmount: Boolean = false,
 ) {
     BoxBordered(bottom = true) {
         Row(
@@ -67,6 +68,7 @@ fun TokenAmountInput(
                     onValueChange = onValueChange,
                     focusRequester = focusRequester,
                     error = amountExceedsBalance,
+                    compactDisplay = compactAmount,
                     textAlign = if (tokenOnRight) TextAlign.Start else TextAlign.End,
                 )
                 if (fiatAmountInputEnabled || fiatAmount != null) {

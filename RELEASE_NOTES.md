@@ -1,23 +1,29 @@
 # Open Swap v0.53.2
 
-This update improves approval discovery and adds useful token details when market information is unavailable.
+Build 189 improves BNB Smart Chain approval discovery and makes token swaps easier to read.
 
 ## ✨ Added
 
 - **Basic Coin Info:** View an unlisted token's name, symbol, network, token standard, decimals and full copyable contract or mint address. Open its block explorer and see total supply when available on supported EVM and Solana networks.
+- **Full swap amounts:** Tap the received amount to view its complete value. Selecting the input reveals the full amount for editing.
 
 ## 🔄 Updated
 
-- **Revoke Access:** Improved approval discovery on BNB Smart Chain and other EVM networks. Scanning can use already synchronized transaction history when the selected provider cannot supply complete approval logs. Open network settings from the scan page to review your provider.
+- **Swap amounts:** Both main amount displays use up to 14 characters, retaining meaningful digits and familiar K, M, B and T abbreviations. Very small or large values use scientific notation when needed. Formatting preserves the exact amount used for quotes, review and signing.
+- **Swap routes:** Provider names and received amounts share one line, with amounts aligned right and selection indicators beside the time and rating below. The swap-page exchange rate uses the available space beside the provider and wraps when necessary. Existing fonts, sizes and colors are retained.
+- **Revoke confirmation:** Revoke Access follows the wallet's existing token-approval confirmation and signing flow.
 
 ## 🐛 Fixed
 
+- **BNB Smart Chain approvals:** Scanning now fetches fresh address transaction history independently of history stored on the phone. Historical receipt lookup can recover when the selected RPC omits an old transaction, and current permissions are checked before display.
 - **Approval details:** Fixed crashes when opening very large or unlimited approvals, corrected large-number formatting and improved text-selection stability.
 - **Coin Info:** Fixed crashes when opening information for tokens missing from the market catalogue. Recognized tokens retain their existing market page.
 
 ## ⚠️ Notes
 
-Approval discovery depends on the selected network provider and available synchronized history, so some older approvals may not appear. Basic token details do not add missing market prices, charts or profiles; these still depend on catalogue coverage. Total supply is shown only when it can be verified through the selected provider.
+Approval discovery depends on provider availability and history coverage; some older or relayed approvals may not appear. Scanning follows your Tor preference. When Tor is enabled, a disconnected Tor connection is not bypassed. With Tor off, network providers can see your public wallet address and IP address.
+
+Basic token details do not add missing market prices, charts or profiles; these still depend on catalogue coverage. Total supply is shown only when it can be verified through the selected provider.
 
 ---
 # Open Swap v0.53.1

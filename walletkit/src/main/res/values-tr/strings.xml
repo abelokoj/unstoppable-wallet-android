@@ -1979,7 +1979,7 @@
     <string name="ApprovalAccess_Title">Erişimi iptal et</string>
     <string name="ApprovalAccess_SettingsDescription">EVM ağlarındaki token ve NFT izinlerini inceleyin</string>
     <string name="ApprovalAccess_Intro">Borsalara ve dapp\'lere daha önce verilen harcama izinlerini bulun ve iptal edin. Bir dapp\'in bağlantısını kesmek, zincir üzerindeki onaylarını iptal etmez.</string>
-    <string name="ApprovalAccess_Privacy">Taramalar, açık adresinizle seçtiğiniz ağ sağlayıcısını sorgular. Ek bir onay dizinleyicisi kullanılmaz. Tor etkin olduğunda tarama Tor\'un bağlanmasını bekler.</string>
+    <string name="ApprovalAccess_Privacy">Sorgular, herkese açık cüzdan adresinizi seçilen RPC’ye ve mevcut geçmiş sağlayıcısına gönderir. Tor isteğe bağlıdır. Tor olmadan sağlayıcılar IP adresinizi görebilir. Tor açıkken tarama bağlantıyı bekler ve doğrudan bağlantıya geçmez. Kayıtlı işlem geçmişi kullanılmaz.</string>
     <string name="ApprovalAccess_NoWallet">Önce bir cüzdan seçin</string>
     <string name="ApprovalAccess_Network">Ağ seçin</string>
     <string name="ApprovalAccess_Scan">Tara / Taramaya devam et</string>
@@ -2087,4 +2087,8 @@
     <string name="CoinInfo_MintAddress">Mint adresi</string>
     <string name="CoinInfo_AssetIdentifier">Varlık tanımlayıcısı</string>
     <string name="CoinInfo_MarketUnavailable">Bu token için piyasa bilgisi mevcut değil.</string>
+    <string name="ApprovalAccess_HistoryPartial">Adres geçmişi eksik. Eski işlemleri kontrol etmek için taramaya devam edin.</string>
+    <string name="ApprovalAccess_HistoryLimits">Adres geçmişi taraması, aracılı onayları ve listelenen işlemler dışındaki izinleri kaçırabilir. Elle kontrol kullanılabilir olmaya devam eder.</string>
+    <string name="ApprovalAccess_HistoryError">Adres geçmişi alınamadı. Bağlantınızı kontrol edip yeniden deneyin. Geçmiş hizmeti kullanılamıyor veya istekleri sınırlıyor olabilir.</string>
+    <string name="ApprovalAccess_HistoryTorRequired">Tor açık ancak bağlı değil. Bağlanmasını bekleyip yeniden deneyin.</string>
 </resources>

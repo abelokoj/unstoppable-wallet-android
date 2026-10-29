@@ -38,6 +38,7 @@ data class ApprovalAccessState(
     val head: Long? = null,
     val latestHead: Long? = null,
     val failedChecks: Int = 0,
+    val transactionHistoryOnly: Boolean = false,
     val message: Int? = null,
     val accountChanged: Boolean = false,
 ) {
@@ -133,7 +134,10 @@ class ApprovalAccessViewModel(val account: Account?) : ViewModel() {
         state = state.copy(approvals = result.approvals, items = items, scanned = true,
             selectedContracts = state.selectedContracts.intersect(items.map { it.contract }.toSet()),
             nextBlock = result.nextBlock, head = result.head, latestHead = result.latestHead, failedChecks = result.failedChecks,
-            message = if (result.historyError) R.string.ApprovalAccess_ScanError else null)
+            transactionHistoryOnly = result.transactionHistoryOnly,
+            message = if (result.historyError) {
+                if (result.transactionHistoryOnly) R.string.ApprovalAccess_HistoryError else R.string.ApprovalAccess_ScanError
+            } else null)
     }
 
     fun check(target: ApprovalTarget) = runOperation {
@@ -211,6 +215,9 @@ class ApprovalAccessViewModel(val account: Account?) : ViewModel() {
         job = viewModelScope.launch {
             try { block() }
             catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: ApprovalHistoryTorRequired) {
+                if (generation == operationGeneration) state = state.copy(message = R.string.ApprovalAccess_HistoryTorRequired)
+            }
             catch (_: Exception) {
                 if (generation == operationGeneration) state = state.copy(message = R.string.ApprovalAccess_ScanError)
             }

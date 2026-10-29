@@ -1987,7 +1987,7 @@
     <string name="ApprovalAccess_Title">Отозвать доступ</string>
     <string name="ApprovalAccess_SettingsDescription">Проверка разрешений для токенов и NFT в сетях EVM</string>
     <string name="ApprovalAccess_Intro">Найдите и отзовите разрешения на расходование средств, ранее выданные биржам и dapps. Отключение dapp не отзывает её разрешения в блокчейне.</string>
-    <string name="ApprovalAccess_Privacy">При сканировании выбранному провайдеру сети отправляются запросы с вашим публичным адресом. Дополнительный индексатор разрешений не используется. Если Tor включён, сканирование ждёт подключения к Tor.</string>
+    <string name="ApprovalAccess_Privacy">Запросы передают публичный адрес кошелька выбранному RPC и существующему сервису истории. Tor необязателен. Без Tor провайдеры могут видеть ваш IP-адрес. Если Tor включён, поиск ждёт подключения и не переходит на прямое соединение. Сохранённая история не используется.</string>
     <string name="ApprovalAccess_NoWallet">Сначала выберите кошелёк</string>
     <string name="ApprovalAccess_Network">Выбрать сеть</string>
     <string name="ApprovalAccess_Scan">Сканировать / Продолжить сканирование</string>
@@ -2095,4 +2095,8 @@
     <string name="CoinInfo_MintAddress">Адрес минта</string>
     <string name="CoinInfo_AssetIdentifier">Идентификатор актива</string>
     <string name="CoinInfo_MarketUnavailable">Рыночная информация для этого токена недоступна.</string>
+    <string name="ApprovalAccess_HistoryPartial">История адреса неполная. Продолжите поиск, чтобы проверить более старые транзакции.</string>
+    <string name="ApprovalAccess_HistoryLimits">Поиск по истории может пропустить разрешения, переданные через посредников, и доступы вне перечисленных транзакций. Ручная проверка остаётся доступной.</string>
+    <string name="ApprovalAccess_HistoryError">Не удалось получить историю адреса. Проверьте соединение и повторите попытку. Сервис может быть недоступен или ограничивать запросы.</string>
+    <string name="ApprovalAccess_HistoryTorRequired">Tor включён, но не подключён. Дождитесь подключения Tor и повторите попытку.</string>
 </resources>

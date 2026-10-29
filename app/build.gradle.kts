@@ -25,7 +25,7 @@ android {
         applicationId = "money.openswap.wallet"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
-        versionCode = 187
+        versionCode = 189
         versionName = "0.53.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -85,6 +85,9 @@ android {
 
     flavorDimensions += "distribution"
 
+    // Use the existing release BSC history credentials in both variants for representative testing.
+    val bscscanApiKeys = "FQ2HSNNEHVG71U96P1TF3WF9RTF6AF5MRA,G6K8VZDWYSJHTCRURRITFZ2ZWV48GRGTZQ,R396MSJNCKX2YK4EIMP3EWYAW21NSVMXRN,8QW2JNMPHPUPAACFGXZ3A5PVQY6PBCJPEG"
+
     val uswapApiKeyAndroid = "a32d6d05ef80c878c49eb7692aa6e2b36c4c0c7777b89e2c3c4d8e512a7cea61"
     val uswapApiKeyFdroid = "6e928d1db31e481ae57d42f34a9b7d58a64d7e2380f7ea696e652bd9a0ee516e"
 
@@ -130,7 +133,7 @@ android {
             manifestPlaceholders["appLinksHost"] = "dev.unstoppable.money"
             buildConfigFieldString("TWITTER_BEARER_TOKEN", "AAAAAAAAAAAAAAAAAAAAAJgeNwEAAAAA6xVpR6xLKTrxIA3kkSyRA92LDpA%3Da6auybDwcymUyh2BcS6zZwicUdxGtrzJC0qvOSdRwKLeqBGhwB")
             buildConfigFieldString("ETHERSCAN_KEY", "GKNHXT22ED7PRVCKZATFZQD1YI7FK9AAYE")
-            buildConfigFieldString("BSCSCAN_KEY", "R396MSJNCKX2YK4EIMP3EWYAW21NSVMXRN")
+            buildConfigFieldString("BSCSCAN_KEY", bscscanApiKeys)
             buildConfigFieldString("BLOCKSCOUT_KEY", "proapi_fzFc5CuNP9f9h2ah6k3Z7kcb6bKKcHUL6M2DfBWmgILHPDFrPMyNdlLfjjnjsMm7K_b9AqMj")
             buildConfigFieldString("GUIDES_URL", "https://raw.githubusercontent.com/horizontalsystems/blockchain-crypto-guides/v1.2/index.json")
             buildConfigFieldString("EDU_URL", "https://raw.githubusercontent.com/horizontalsystems/unstoppable.money/refs/heads/main/edu.json")
@@ -166,7 +169,7 @@ android {
             manifestPlaceholders["appLinksHost"] = "unstoppable.money"
             buildConfigFieldString("TWITTER_BEARER_TOKEN", "AAAAAAAAAAAAAAAAAAAAAJgeNwEAAAAA6xVpR6xLKTrxIA3kkSyRA92LDpA%3Da6auybDwcymUyh2BcS6zZwicUdxGtrzJC0qvOSdRwKLeqBGhwB")
             buildConfigFieldString("ETHERSCAN_KEY", "IEXTB9RE7MUV2UQ9X238RP146IEJB1J5HS,27S4V3GYJGMCPWQZ2T4SF9355QBQYQ3FI7,YK4KEA3TANM8KZ5J6E2Q1ZIM6YDM8TEABM,FU7CYEXQEUSMXJJF8MZR6BNRMP9XT8S9CP")
-            buildConfigFieldString("BSCSCAN_KEY", "FQ2HSNNEHVG71U96P1TF3WF9RTF6AF5MRA,G6K8VZDWYSJHTCRURRITFZ2ZWV48GRGTZQ,R396MSJNCKX2YK4EIMP3EWYAW21NSVMXRN,8QW2JNMPHPUPAACFGXZ3A5PVQY6PBCJPEG")
+            buildConfigFieldString("BSCSCAN_KEY", bscscanApiKeys)
             buildConfigFieldString("BLOCKSCOUT_KEY", "proapi_fzFc5CuNP9f9h2ah6k3Z7kcb6bKKcHUL6M2DfBWmgILHPDFrPMyNdlLfjjnjsMm7K_b9AqMj")
             buildConfigFieldString("GUIDES_URL", "https://raw.githubusercontent.com/horizontalsystems/blockchain-crypto-guides/v1.2/index.json")
             buildConfigFieldString("EDU_URL", "https://raw.githubusercontent.com/horizontalsystems/unstoppable.money/refs/heads/main/edu.json")

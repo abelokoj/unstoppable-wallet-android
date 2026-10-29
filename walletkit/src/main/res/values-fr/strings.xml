@@ -1980,7 +1980,7 @@
     <string name="ApprovalAccess_Title">Révoquer l\'accès</string>
     <string name="ApprovalAccess_SettingsDescription">Vérifiez les autorisations des tokens et NFT sur les réseaux EVM</string>
     <string name="ApprovalAccess_Intro">Recherchez et révoquez les autorisations de dépense précédemment accordées aux plateformes d\'échange et aux dapps. Déconnecter une dapp ne révoque pas ses approbations sur la chaîne.</string>
-    <string name="ApprovalAccess_Privacy">Les analyses interrogent le fournisseur de réseau sélectionné avec votre adresse publique. Aucun indexeur d\'approbations supplémentaire n\'est utilisé. Lorsque Tor est activé, l\'analyse attend la connexion de Tor.</string>
+    <string name="ApprovalAccess_Privacy">Les requêtes envoient votre adresse publique au RPC sélectionné et au fournisseur d’historique existant. Tor est facultatif. Sans Tor, les fournisseurs peuvent voir votre adresse IP. Avec Tor activé, la recherche attend sa connexion et ne passe pas en connexion directe. L’historique enregistré n’est pas utilisé.</string>
     <string name="ApprovalAccess_NoWallet">Sélectionnez d\'abord un portefeuille</string>
     <string name="ApprovalAccess_Network">Sélectionner un réseau</string>
     <string name="ApprovalAccess_Scan">Analyser / Poursuivre l\'analyse</string>
@@ -2088,4 +2088,8 @@
     <string name="CoinInfo_MintAddress">Adresse de mint</string>
     <string name="CoinInfo_AssetIdentifier">Identifiant de l’actif</string>
     <string name="CoinInfo_MarketUnavailable">Les informations de marché ne sont pas disponibles pour ce jeton.</string>
+    <string name="ApprovalAccess_HistoryPartial">L’historique de l’adresse est incomplet. Poursuivez la recherche pour vérifier les transactions plus anciennes.</string>
+    <string name="ApprovalAccess_HistoryLimits">La recherche dans l’historique peut manquer des autorisations relayées et des permissions hors des transactions répertoriées. La vérification manuelle reste disponible.</string>
+    <string name="ApprovalAccess_HistoryError">L’historique de l’adresse n’a pas pu être récupéré. Vérifiez votre connexion et réessayez. Le service peut être indisponible ou limiter les requêtes.</string>
+    <string name="ApprovalAccess_HistoryTorRequired">Tor est activé, mais non connecté. Attendez sa connexion et réessayez.</string>
 </resources>

@@ -11,4 +11,13 @@ class SwapPriceUIHelper(tokenIn: Token, tokenOut: Token, amountIn: BigDecimal, a
 
     val priceStr = "${CoinValue(tokenIn, BigDecimal.ONE).getFormattedFull()} = ${CoinValue(tokenOut, price).getFormattedFull()}"
     val priceInvStr = "${CoinValue(tokenOut, BigDecimal.ONE).getFormattedFull()} = ${CoinValue(tokenIn, priceInv).getFormattedFull()}"
+
+    val compactPriceStr = previewPrice(tokenIn, tokenOut, price, priceStr)
+    val compactPriceInvStr = previewPrice(tokenOut, tokenIn, priceInv, priceInvStr)
+
+    private fun previewPrice(unitToken: Token, outputToken: Token, value: BigDecimal, fullPrice: String): String =
+        formatCompactSwapAmount(value)?.let {
+            "${CoinValue(unitToken, BigDecimal.ONE).getFormattedFull()} = $it ${outputToken.coin.code}"
+        } ?: fullPrice
+
 }

@@ -111,7 +111,10 @@ data object ApprovalAccessPage : HSPage() {
                         if (model.account?.isWatchAccount == true) TextBlock(stringResource(R.string.ApprovalAccess_WatchOnly))
                         if (state.busy) TextBlock(stringResource(R.string.ApprovalAccess_Scanning))
                         if (state.scanned) {
-                            if (state.nextBlock != null) TextBlock(stringResource(R.string.ApprovalAccess_Partial, state.nextBlock))
+                            if (state.nextBlock != null) {
+                                if (state.transactionHistoryOnly) TextBlock(stringResource(R.string.ApprovalAccess_HistoryPartial))
+                                else TextBlock(stringResource(R.string.ApprovalAccess_Partial, state.nextBlock))
+                            }
                             if (state.head != state.latestHead) TextBlock(stringResource(R.string.ApprovalAccess_NewBlocksPending))
                             if (state.failedChecks > 0) TextBlock(stringResource(R.string.ApprovalAccess_FailedChecks, state.failedChecks))
                             if (state.items.isEmpty() && state.message == null && state.failedChecks == 0) TextBlock(stringResource(R.string.ApprovalAccess_Empty))
@@ -202,6 +205,7 @@ data object ApprovalAccessHelpPage : HSPage() {
             LazyColumn { item {
                 TextBlock(stringResource(R.string.ApprovalAccess_Intro))
                 TextBlock(stringResource(R.string.ApprovalAccess_Privacy))
+                TextBlock(stringResource(R.string.ApprovalAccess_HistoryLimits))
                 TextBlock(stringResource(R.string.ApprovalAccess_NamesHelp))
                 TextBlock(stringResource(R.string.ApprovalAccess_SeparateTransactions))
                 TextBlock(stringResource(R.string.ApprovalAccess_Limits))
