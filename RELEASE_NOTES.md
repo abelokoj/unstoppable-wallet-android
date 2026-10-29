@@ -1,3 +1,13 @@
+# Open Swap v0.53.1
+
+This update fixes a startup crash affecting saved custom tokens.
+
+## 🐛 Fixed
+
+- **Startup stability:** Fixed a crash when opening the app after an update, including when loading custom tokens saved by earlier versions.
+- **Custom tokens:** An invalid saved token no longer prevents other custom tokens from loading. Existing wallet data is preserved.
+
+---
 # Open Swap v0.53.0
 
 This update brings upstream Unstoppable Wallet 0.53.0 to Open Swap while retaining its current appearance, direct swap providers and route ratings.

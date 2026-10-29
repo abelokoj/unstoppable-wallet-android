@@ -1,3 +1,34 @@
+# Open Swap 0.53.1 release preparation - 2026-10-28T20:28:14-04:00
+
+- Prepared the completed startup hotfix for version 0.53.1 (186). The public notes describe startup stability and continued loading of valid custom tokens without internal test/device details. Previous releases and release-note sections are preserved.
+- Validation remains the successful 311-test wallet unit suite, the verified signed Fdroid Release APK, and the user's confirmation that the updated regular app opens and stays running. APK SHA-256: 5eae9f086892cc7fab124e5a0c5f89698c06e544e5e8341c7cb64b8436e75bbd. The optional optimized instrumentation did not complete, as recorded below; no funded transaction or recovery operation was tested.
+- The release will use this already-tested APK rather than another local build. Source commit, a new v0.53.1 tag and GitHub publication are pending at this recording point. No previous tag or asset is being replaced. Recording time in America/New_York before this commit.
+
+---
+# Startup hotfix handoff and test cleanup - 2026-10-28T19:47:29-04:00
+
+- The signed 0.53.1 (186) hotfix fixes the reported regular-app startup crash. The user installed it as an update and confirmed it opens and stays running; Android also reported the new installed version and a running process. The APK retains the established release signing certificate and SHA-256 5eae9f086892cc7fab124e5a0c5f89698c06e544e5e8341c7cb64b8436e75bbd.
+- Retained the seven custom-token persistence unit regressions. All 311 wallet unit tests passed with no failures, errors or skips. No production code changed after that successful suite or the user's signed-APK check.
+- The optional optimized instrumentation attempts did not execute their test cases: the first runner lacked androidx.tracing.Trace and the second lacked kotlin.LazyKt after shrinking. Stopped the subsequent test-only rebuild rather than delaying the completed startup fix further, removed both newly created disposable test packages, and removed the unexecuted Android harness from this source batch. Its diagnostic copy and logs remain outside the repository. No optimized instrumentation pass is claimed.
+- Regular and development wallet packages and their storage were preserved during test cleanup. No funded transaction or recovery operation was performed. Release notes describe the startup/storage fix without test-device details. This is local, uncommitted work, not a GitHub publication; the timestamp records this handoff in America/New_York. Earlier progress entries below remain intact.
+
+---
+# Startup crash hotfix validated - 2026-10-28T19:12:49-04:00
+
+- Fixed release-only custom-token catalog loading by writing explicit stable JSON keys and accepting the verified field aliases used by earlier optimized APKs. Invalid entries are isolated before token lookup, without rewriting the existing preference on read or changing account, key, seed or wallet databases.
+- Passed all 311 wallet unit tests with no failures, errors or skips, including seven persistence regression cases. Before the fix, the old reflective decoder failed four of those seven cases. The separate optimized Android persistence tests are still in progress at this recording point.
+- Built and verified the signed Fdroid Release APK for 0.53.1 (186), including its package/version and compatibility with the established release certificate. APK SHA-256: 5eae9f086892cc7fab124e5a0c5f89698c06e544e5e8341c7cb64b8436e75bbd. The user installed this hotfix as an update and confirmed that the previously crashing regular app now opens and stays running. No wallet storage was cleared, and no funded transaction or recovery operation was performed.
+- Local, uncommitted and not published to GitHub. This entry records the validation results now, in America/New_York; earlier in-progress notes below remain as historical recording points.
+
+---
+# Startup crash hotfix in progress - 2026-10-28T18:37:34-04:00
+
+- Captured repeated on-device release crashes in TokenQuery.fromId, reached through CoinManager.customTokens during EVM history loading. Verified that CustomTokenRecord's five JSON-backed fields were renamed to a/b/c/d/e in both the current optimized build and the prior published 0.52.3 APK. This explains a release-only saved-catalog compatibility failure; the previous development-only launch check did not exercise it.
+- Replaced reflective custom-token catalog persistence with explicit stable JSON keys and read support for the verified older optimized aliases. Each record is validated before it reaches token lookup; malformed entries cannot abort the whole catalog, and conflicting canonical/legacy identities are rejected. Reads do not rewrite or clear the existing preference. Account, seed, key and wallet databases are unchanged.
+- Prepared hotfix version 0.53.1 (186). Added seven focused unit cases and an Android persistence regression using its own disposable preferences. The baseline decoder failed four of the seven unit cases before the fix; the fixed wallet suite and optimized-device validation are still in progress at this recording point. No fixed APK or publication is claimed yet.
+- Local, uncommitted work recorded in America/New_York. Crash logs remain outside the repository; no private wallet inventory or credentials are included. Existing regular-wallet data will not be cleared or replaced with test fixtures.
+
+---
 # Release 0.53.0 published - 2026-10-28T18:09:59-04:00
 
 - Published the separate GitHub release v0.53.0 from d4f63de9da963607c53bbe1d114272f6d5dd694f after the user's successful manual development review and explicit publication request. GitHub Actions run 40775692405 completed successfully and attached the signed Fdroid Release APK open-swap-v0.53.0.apk (99,896,026 bytes). Earlier releases and tags remain intact.
