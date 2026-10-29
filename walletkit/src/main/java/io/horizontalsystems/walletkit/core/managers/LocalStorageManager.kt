@@ -367,12 +367,9 @@ class LocalStorageManager(
         }
 
     override var customTokenRecords: List<CustomTokenRecord>
-        get() = preferences.getString(CUSTOM_TOKEN_CATALOG, null)?.let { json ->
-            val type = object : TypeToken<ArrayList<CustomTokenRecord>>() {}.type
-            runCatching { gson.fromJson<ArrayList<CustomTokenRecord>>(json, type) }.getOrNull()
-        } ?: emptyList()
+        get() = CustomTokenCatalog.decode(preferences.getString(CUSTOM_TOKEN_CATALOG, null))
         set(value) {
-            preferences.edit().putString(CUSTOM_TOKEN_CATALOG, gson.toJson(value)).apply()
+            preferences.edit().putString(CUSTOM_TOKEN_CATALOG, CustomTokenCatalog.encode(value)).apply()
         }
 
     override var balanceViewType: BalanceViewType?

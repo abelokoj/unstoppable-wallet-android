@@ -1,3 +1,10 @@
+# Version 0.53.0 startup-only backport - 2026-10-28T20:54:55-04:00
+
+- Based this repair on the original v0.53.0 release commit d4f63de9da963607c53bbe1d114272f6d5dd694f. Applied only the tested custom-token persistence fix and its seven unit regression cases from 0.53.1: explicit stable JSON keys, compatibility with old optimized aliases, and isolation of malformed records. No UI, routes, features, wallet databases, signing settings or version numbers changed; this remains 0.53.0 (185).
+- The wallet test task succeeded with 311 passing test results and no failures or errors, reusing unchanged Gradle outputs where applicable. The production patch is the same one confirmed working in the signed 0.53.1 APK. The rebuilt 185 installer and asset replacement are still pending at this source-recording point; no older APK is being installed over a newer wallet, and no funded transaction or recovery test is claimed.
+- Preserved the original release tag and verified recoverable copies of its installer before any replacement. This commit records the crash-only backport source; final build, checksum and publication results will be recorded on the main branch. Recording time in America/New_York before this source commit.
+
+---
 # Release 0.53.0 preparation - 2026-10-28T17:52:36-04:00
 
 - The user reported that manual development testing is working and requested the APK build and GitHub publication. Prepared the separate v0.53.0 release with version 0.53.0 (185); application source is unchanged from the tested upstream merge cdba97d76. Existing releases and signing identity are preserved.
