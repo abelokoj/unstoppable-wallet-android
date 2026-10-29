@@ -1,3 +1,12 @@
+# Open Swap 0.53.2 published - 2026-10-29T02:13:58-04:00
+
+- Committed the completed wallet fixes and release preparation as a4669ad583cc0bf4a8f39c9ecfcd8aec8eebcf79, fast-forwarded master and pushed the separate annotated v0.53.2 tag. GitHub Actions run 40826194150 completed successfully and built/signed/published the production APK. No local production rebuild was performed; previous release tags and assets remain unchanged.
+- Downloaded the public open-swap-v0.53.2.apk and verified money.openswap.wallet version 0.53.2 (187), size 99,922,250 bytes, SHA-256 494e29e1a6e3b2968a0d9d09c0c69516ca4e60f0242b1747a49ae4f3a1a3c080. Its signature matches the established Open Swap release certificate, 277c10bbed425c98b8df4aa7372dfe483daeefdc6ddbc19b462ac83df8d8b295; GitHub asset 687560609 reports the same size and digest.
+- The workflow initially published commit text rather than the prepared release body. After it finished, restored the agreed full formatted notes and Open Swap release title without moving the tag or replacing the APK. Verified the public body against the prepared notes and confirmed v0.53.2 is the latest release: https://github.com/abelokoj/unstoppable-wallet-android/releases/tag/v0.53.2.
+- Broader hosted-catalogue coverage remains planned in TODO.md; no server or new metadata provider was introduced. Application validation remains the recorded 383 passing tests, translated strings, development build and user crash/discovery confirmations. The public optimized APK was checked for integrity, metadata and signature, but was not installed or used for funded transactions in this publication batch. Historical approval coverage and optional live supply/visual testing limits remain as recorded below.
+- This follow-up changes documentation only; no application code changed after the tagged release. Recording time in America/New_York before this publication-record commit and push.
+
+---
 # Open Swap 0.53.2 release preparation - 2026-10-29T01:53:31-04:00
 
 - Prepared all completed approval-discovery, approval-stability and unlisted-token Coin Info changes since 0.53.1 for version 0.53.2 (187). Public release notes describe user-facing changes and material discovery/market-data limits, preserve earlier release sections and follow the agreed category format without model attribution or em dashes. Updated the README's APK verification example.
