@@ -1,3 +1,10 @@
+# Version 0.52.3 startup-only backport - 2026-10-28T21:26:51-04:00
+
+- Based this repair on the original v0.52.3 release commit feb0a44840d1f60f15a94c6f79f13460dad3a647. Applied only the tested custom-token persistence fix and its seven unit regression cases from 0.53.1: stable JSON keys, compatibility with old optimized aliases, and isolation of malformed records. No UI, swap routes, other features, wallet databases, signing settings or version numbers changed; this remains 0.52.3 (184).
+- Passed all 245 wallet unit tests with no failures or errors, including all seven persistence regressions, against this original release source. The signed 184 APK rebuild and installer replacement are pending at this recording point. No older APK is being installed over a newer wallet, and no funded transaction or recovery operation is claimed.
+- Preserved the original release tag and verified recoverable copies of its installer before any replacement. This commit records the crash-only repair source; final build, checksum and publication results will be recorded on the main branch. Recording time in America/New_York before this source commit.
+
+---
 # Release preparation - 2026-10-28T14:59:06-04:00
 
 - Prepared OpenSwap 0.52.3 (184) for publication as a new release after v0.51.2, including the upstream 0.52.2 integration and all subsequent OpenSwap approval, send, swap, wallet-selection and provider-icon work. The upstream 0.53.0 investigation is complete, but none of that release is merged into this version.
