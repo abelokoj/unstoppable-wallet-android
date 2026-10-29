@@ -1,5 +1,10 @@
 # Open Swap TODO
 
+## Build 189 publication, updated 2026-10-29
+
+- [x] Publish the completed scanner and swap formatting source and replace the existing v0.53.2 release with the exact signed 0.53.2 (189) APK at the user's request. Verify the public download, checksum, certificate and updated notes; preserve the old public APK/tag metadata locally. No release above build 189 was created.
+- [ ] Receive personal device feedback on the latest main-swap layout, enlarged fonts, edit/cursor behavior and exact-value details. No new device test or funded revocation is inferred from publication.
+
 ## Main swap formatting, updated 2026-10-29
 
 - [x] Implement and build the approved 14-character unfocused input/received displays with exact-value editing/details, natural provider-rate wrapping and existing upstream typography/colors/spacing. Keep version 0.53.2 (189); all 334 wallet tests pass and the signed APK is preserved locally.
@@ -27,8 +32,8 @@
 
 - [x] Implement fresh address-history requests through the existing provider and Tor, independently of stored wallet transactions; validate receipt events and check current token/NFT permissions through the selected RPC.
 - [x] Align development BSC history credentials with the already-shipped regular-app pool, add accurate history progress/limits, pass 369 affected tests and all locale checks, and build/install the development update. See [implementation and validation](dev_notes/2026-10-29-bsc-live-approval-history.md).
-- [ ] Receive the user's BSC scan feedback. The user chose personal testing after installation; live Tor/scan results and relayed-approval coverage remain unverified.
-- [ ] Confirm the signed 0.53.3 candidate scans correctly in the regular app and publish a separate update after review. Optimized build/bytecode checks passed; the public 0.53.2 APK still contains the older scanner. The new source and signed candidate remain local and uncommitted.
+- [x] Receive the user's BSC scan feedback: main build 189 finds approvals. Observed Tor traffic and relayed-approval coverage remain unverified.
+- [x] Confirm the corrected main scanner and publish after review. The user confirmed main build 189 works, then authorized replacing v0.53.2 in place with signed 0.53.2 (189), superseding the separate-0.53.3 publication plan. The public APK now contains the fresh-history scanner and receipt fallback.
 
 ## Broader token information coverage, planned 2026-10-29
 
