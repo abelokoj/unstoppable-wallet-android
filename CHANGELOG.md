@@ -1,3 +1,11 @@
+# Release 0.53.1 published - 2026-10-28T20:34:28-04:00
+
+- Published the separate GitHub release v0.53.1 from hotfix commit 00a50cd059c2cc10375e0d40b0100b40cf7e465b with the agreed user-facing startup and custom-token notes. Earlier tags remain intact, including v0.53.0 at d4f63de9da963607c53bbe1d114272f6d5dd694f. Updated the homepage APK verification example to the new filename while preserving its upstream-version and financial-testing disclosures.
+- Uploaded the exact signed Fdroid Release APK already manually installed and confirmed working, rather than rebuilding it: open-swap-v0.53.1.apk, version 0.53.1 (186), 99,896,702 bytes, SHA-256 5eae9f086892cc7fab124e5a0c5f89698c06e544e5e8341c7cb64b8436e75bbd. Its signature matches the established release certificate. GitHub asset 686833804 reports the identical size and digest; the public APK URL returned HTTP 200 without authentication.
+- Verified the public release body exactly against the prepared Markdown notes. Release: https://github.com/abelokoj/unstoppable-wallet-android/releases/tag/v0.53.1. Cancelled only the duplicate tag-triggered Actions run 40794455174 before its release step so it cannot replace the already-tested upload; no additional build is claimed.
+- Actual application validation remains the 311 passing wallet unit tests and the signed-release startup confirmation. Optional optimized instrumentation did not complete, and no funded transaction or recovery test was performed. This follow-up changes documentation only; no application code changed after the tested hotfix. Recording time in America/New_York before this publication-record commit and push.
+
+---
 # Open Swap 0.53.1 release preparation - 2026-10-28T20:28:14-04:00
 
 - Prepared the completed startup hotfix for version 0.53.1 (186). The public notes describe startup stability and continued loading of valid custom tokens without internal test/device details. Previous releases and release-note sections are preserved.

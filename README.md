@@ -59,7 +59,7 @@ SHA-1:   5f1d0cf868588fd989ddcf05d0996c43a8cd7bd1
 Check a downloaded APK before installing it:
 
 ```text
-apksigner verify --print-certs open-swap-v0.53.0.apk
+apksigner verify --print-certs open-swap-v0.53.1.apk
 ```
 
 Do not install the file if the SHA-256 fingerprint does not match.
