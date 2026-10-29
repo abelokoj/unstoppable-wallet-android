@@ -1,3 +1,25 @@
+# Open Swap v0.53.2
+
+This update improves approval discovery and adds useful token details when market information is unavailable.
+
+## ✨ Added
+
+- **Basic Coin Info:** View an unlisted token's name, symbol, network, token standard, decimals and full copyable contract or mint address. Open its block explorer and see total supply when available on supported EVM and Solana networks.
+
+## 🔄 Updated
+
+- **Revoke Access:** Improved approval discovery on BNB Smart Chain and other EVM networks. Scanning can use already synchronized transaction history when the selected provider cannot supply complete approval logs. Open network settings from the scan page to review your provider.
+
+## 🐛 Fixed
+
+- **Approval details:** Fixed crashes when opening very large or unlimited approvals, corrected large-number formatting and improved text-selection stability.
+- **Coin Info:** Fixed crashes when opening information for tokens missing from the market catalogue. Recognized tokens retain their existing market page.
+
+## ⚠️ Notes
+
+Approval discovery depends on the selected network provider and available synchronized history, so some older approvals may not appear. Basic token details do not add missing market prices, charts or profiles; these still depend on catalogue coverage. Total supply is shown only when it can be verified through the selected provider.
+
+---
 # Open Swap v0.53.1
 
 This update fixes a startup crash affecting saved custom tokens.

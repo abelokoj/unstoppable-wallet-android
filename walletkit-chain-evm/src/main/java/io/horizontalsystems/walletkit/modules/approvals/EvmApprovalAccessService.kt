@@ -12,13 +12,18 @@ import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.entities.evmAddress
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.EvmTransactionData
 import io.horizontalsystems.walletkit.modules.settings.privacy.tor.TorStatus
+import io.horizontalsystems.ethereumkit.core.toHexString
+import io.horizontalsystems.ethereumkit.models.TransactionTag
 import io.horizontalsystems.ethereumkit.models.RpcSource
 import io.horizontalsystems.marketkit.models.BlockchainType
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -29,7 +34,7 @@ import java.math.BigInteger
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
-/** Only the configured RPC is queried. No indexer, remote ABI, signing or broadcast API. */
+/** Uses existing local wallet history and the configured RPC. No indexer or remote transaction calldata. */
 class EvmApprovalAccessService private constructor(
     private val account: Account,
     private val blockchainType: BlockchainType,
@@ -39,13 +44,31 @@ class EvmApprovalAccessService private constructor(
     // shortcut: session-only progress; persist per account if scans need to survive closing this page.
     private val candidates = linkedMapOf<String, ApprovalTarget>()
     private val history = ApprovalLogScan()
+    private class CachedPage(val tags: List<List<String>>) {
+        var cursor: ByteArray? = null
+        var complete = false
+    }
+    private val cachedPages = listOf(
+        CachedPage(listOf(listOf(TransactionTag.EIP20_APPROVE))), CachedPage(emptyList()),
+    )
+    private val seenReceipts = linkedSetOf<String>()
 
     override suspend fun scan(onProgress: (Long) -> Unit): ApprovalScan = mutex.withLock {
         val rpc = openRpc()
         val head = quantity(rpc.call("eth_blockNumber")).longValueExact()
-        history.scan(head, { from, to -> remember(fetchRange(rpc, from, to)) }, onProgress)
-        val active = mutableListOf<ActiveApproval>()
         var failed = 0
+        var historyError = false
+        try {
+            history.scan(head, { from, to -> remember(fetchRange(rpc, from, to)) }, onProgress)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            historyError = true
+        }
+        if (historyError || history.nextBlock != null || history.scannedHead < head) {
+            failed += readCachedApprovals(rpc)
+        }
+        val active = mutableListOf<ActiveApproval>()
         for (candidate in candidates.values) {
             try {
                 check(rpc, candidate)?.let(active::add)
@@ -55,7 +78,7 @@ class EvmApprovalAccessService private constructor(
                 failed++
             }
         }
-        ApprovalScan(active, history.nextBlock, history.scannedHead, failed, head)
+        ApprovalScan(active, history.nextBlock, history.scannedHead, failed, head, historyError)
     }
 
     override suspend fun check(target: ApprovalTarget): ActiveApproval? = mutex.withLock {
@@ -89,6 +112,42 @@ class EvmApprovalAccessService private constructor(
         ApprovalAssetMetadata(name ?: symbol!!, symbol ?: "", decimals)
     }
 
+    private suspend fun readCachedApprovals(rpc: Rpc): Int {
+        val wrapper = EvmKitManagerRegistry.existingEvmKitWrapper(account, blockchainType) ?: return 0
+        if (!wrapper.evmKit.receiveAddress.hex.equals(owner, true)) return 0
+        var failures = 0
+        for (page in cachedPages) {
+            currentCoroutineContext().ensureActive()
+            if (page.complete) { page.cursor = null; page.complete = false }
+            val transactions = try {
+                wrapper.evmKit.getFullTransactionsAsync(page.tags, page.cursor, 50)
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { failures++; continue }
+            var accepted = 0
+            for (full in transactions) {
+                currentCoroutineContext().ensureActive()
+                val tx = full.transaction
+                val block = tx.blockNumber
+                val rawHash = tx.hash.toHexString()
+                val hash = if (rawHash.startsWith("0x")) rawHash else "0x$rawHash"
+                try {
+                    if (block != null && block >= 0 && !tx.isFailed && hash !in seenReceipts) {
+                        require(tx.hash.size == 32)
+                        val receipt = rpc.call("eth_getTransactionReceipt", JsonArray().apply { add(hash) }).asJsonObject
+                        remember(parseReceipt(receipt, hash, "0x" + ApprovalAbi.addressWord(owner), block))
+                        seenReceipts.add(hash)
+                        if (seenReceipts.size > 5000) seenReceipts.remove(seenReceipts.first())
+                    }
+                    // A failed/malformed receipt stays at this cursor for a later retry.
+                    page.cursor = tx.hash
+                    accepted++
+                } catch (cancelled: CancellationException) { throw cancelled }
+                catch (_: Exception) { failures++; break }
+            }
+            page.complete = accepted == transactions.size && transactions.size < 50
+        }
+        return failures
+    }
     private fun remember(targets: List<ApprovalTarget>) {
         require((candidates.keys + targets.map { it.key }).size <= 5000) {
             "Too many permissions to scan in one session"
@@ -148,17 +207,30 @@ class EvmApprovalAccessService private constructor(
 
     private class Rpc(private val url: String, private val auth: String?, private val accountId: String) {
         suspend fun call(method: String, params: JsonArray = JsonArray()): JsonElement {
+            currentCoroutineContext().ensureActive()
             require(App.accountManager.activeAccount?.id == accountId) { "Wallet changed. Reopen Revoke Access." }
             val torEnabled = App.torKitManager.isTorEnabled
             if (torEnabled) check(App.torKitManager.torStatusFlow.value == TorStatus.Connected) { "Wait for Tor to connect" }
             val api = if (torEnabled) api(App.torKitManager.requireSocksProxy()) else directApi
-            val response = api.call(url, auth, JsonObject().apply {
-                addProperty("jsonrpc", "2.0"); addProperty("id", 1)
-                addProperty("method", method); add("params", params)
-            })
+            val response = try {
+                api.call(url, auth, JsonObject().apply {
+                    addProperty("jsonrpc", "2.0"); addProperty("id", 1)
+                    addProperty("method", method); add("params", params)
+                })
+            } catch (error: HttpException) {
+                if (method == "eth_getLogs" && error.code() in listOf(400, 413, 504)) throw ApprovalLogRangeError()
+                throw error
+            } catch (error: java.io.InterruptedIOException) {
+                currentCoroutineContext().ensureActive()
+                if (method == "eth_getLogs") throw ApprovalLogRangeError()
+                throw error
+            }
             // Discard a response if privacy/account settings changed while it was in flight.
             require(App.accountManager.activeAccount?.id == accountId && App.torKitManager.isTorEnabled == torEnabled)
-            if (response.has("error")) throw RpcFailure()
+            if (response.has("error")) {
+                if (method == "eth_getLogs") throw ApprovalLogRangeError()
+                throw RpcFailure()
+            }
             return response.get("result")?.takeUnless { it.isJsonNull } ?: throw RpcFailure()
         }
 
@@ -168,7 +240,7 @@ class EvmApprovalAccessService private constructor(
         })
     }
 
-    private class RpcFailure : ApprovalLogRangeError()
+    private class RpcFailure : Exception("The selected RPC could not complete the request")
 
     private interface Api {
         @POST suspend fun call(@Url url: String, @Header("Authorization") auth: String?, @Body body: JsonObject): JsonObject
@@ -210,6 +282,28 @@ class EvmApprovalAccessService private constructor(
             return quantity(value)
         }
 
+        internal fun parseReceipt(receipt: JsonObject, hash: String, ownerTopic: String, block: Long): List<ApprovalTarget> {
+            require(receipt.get("transactionHash")?.asString?.equals(hash, true) == true)
+            require(quantity(requireNotNull(receipt.get("blockNumber"))).longValueExact() == block)
+            receipt.get("status")?.takeUnless { it.isJsonNull }?.let {
+                val status = quantity(it)
+                require(status == BigInteger.ZERO || status == BigInteger.ONE)
+                if (status == BigInteger.ZERO) return emptyList()
+            }
+            val logs = requireNotNull(receipt.getAsJsonArray("logs"))
+            require(logs.size() < 10000)
+            return logs.mapNotNull { entry ->
+                val log = entry.asJsonObject
+                val topics = log.getAsJsonArray("topics") ?: return@mapNotNull null
+                if (topics.size() < 2) return@mapNotNull null
+                val signature = topics[0].asString.lowercase()
+                if (signature != APPROVAL_TOPIC && signature != APPROVAL_ALL_TOPIC) return@mapNotNull null
+                if (!topics[1].asString.equals(ownerTopic, true)) return@mapNotNull null
+                if (log.get("removed")?.asBoolean == true) return@mapNotNull null
+                require(log.get("transactionHash")?.asString?.equals(hash, true) == true)
+                parseLog(log, ownerTopic, signature, block, block)
+            }
+        }
         internal fun parseLog(log: JsonObject, ownerTopic: String, signature: String, from: Long, to: Long): ApprovalTarget? {
             if (log.get("removed")?.asBoolean == true) return null
             require(quantity(log.get("blockNumber")).longValueExact() in from..to)

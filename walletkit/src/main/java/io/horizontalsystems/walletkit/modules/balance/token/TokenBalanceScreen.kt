@@ -149,7 +149,7 @@ fun TokenBalanceScreen(
                         title = TranslatableString.ResString(R.string.Coin_Info),
                         onClick = {
                             val coinUid = uiState.balanceViewItem.wallet.coin.uid
-                            val arguments = CoinPage.Input(coinUid)
+                            val arguments = CoinPage.Input(coinUid, uiState.balanceViewItem.wallet.token)
 
                             navigation.slideFromRight(CoinPage(arguments))
 
@@ -853,7 +853,7 @@ private fun ButtonsRow(
                 enabled = !viewItem.wallet.token.isCustom,
                 onClick = {
                     val coinUid = viewItem.wallet.coin.uid
-                    val arguments = CoinPage.Input(coinUid)
+                    val arguments = CoinPage.Input(coinUid, viewItem.wallet.token)
 
                     navigation.slideFromRight(CoinPage(arguments))
 

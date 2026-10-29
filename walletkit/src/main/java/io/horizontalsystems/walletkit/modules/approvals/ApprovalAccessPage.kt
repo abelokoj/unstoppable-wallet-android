@@ -33,6 +33,7 @@ import io.horizontalsystems.walletkit.ui.compose.components.HsCheckbox
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
 import io.horizontalsystems.walletkit.ui.compose.components.HsImageCircle
 import io.horizontalsystems.walletkit.ui.compose.components.MenuItem
+import io.horizontalsystems.walletkit.modules.evmnetwork.EvmNetworkPage
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
@@ -57,8 +58,13 @@ data object ApprovalAccessPage : HSPage() {
         HSScaffold(
             title = stringResource(R.string.ApprovalAccess_Title),
             onBack = { if (state.selectedContracts.isNotEmpty()) model.clearSelection() else navigation.removeLastOrNull() },
-            menuItems = listOf(MenuItem(TranslatableString.ResString(R.string.Info_Title), R.drawable.ic_info_24,
-                onClick = { navigation.slideFromRight(ApprovalAccessHelpPage) })),
+            menuItems = listOfNotNull(
+                state.network?.let { network -> MenuItem(
+                    TranslatableString.ResString(R.string.BlockchainSettings_Title), R.drawable.ic_settings_24,
+                    onClick = { navigation.slideFromBottom(EvmNetworkPage(network)) }) },
+                MenuItem(TranslatableString.ResString(R.string.Info_Title), R.drawable.ic_info_24,
+                    onClick = { navigation.slideFromRight(ApprovalAccessHelpPage) }),
+            ),
             bottomBar = {
                 if (state.selectedContracts.isNotEmpty()) {
                     Column(Modifier.background(ComposeAppTheme.colors.tyler).imePadding()) {
@@ -108,7 +114,7 @@ data object ApprovalAccessPage : HSPage() {
                             if (state.nextBlock != null) TextBlock(stringResource(R.string.ApprovalAccess_Partial, state.nextBlock))
                             if (state.head != state.latestHead) TextBlock(stringResource(R.string.ApprovalAccess_NewBlocksPending))
                             if (state.failedChecks > 0) TextBlock(stringResource(R.string.ApprovalAccess_FailedChecks, state.failedChecks))
-                            if (state.items.isEmpty()) TextBlock(stringResource(R.string.ApprovalAccess_Empty))
+                            if (state.items.isEmpty() && state.message == null && state.failedChecks == 0) TextBlock(stringResource(R.string.ApprovalAccess_Empty))
                         }
                     }
                     if (manual) item { ManualApprovalCheck(state.network?.uid, canInteract && state.owner != null, model::check) }

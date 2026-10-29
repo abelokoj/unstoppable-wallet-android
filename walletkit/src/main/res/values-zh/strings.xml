@@ -2081,4 +2081,8 @@
     <string name="SwapConfirm_CommitRefreshRequired">报价已过期。已加载新的报价。</string>
     <string name="SwapConfirm_CommitFailed">无法开始兑换。已加载新的报价。</string>
     <string name="Zcash_Confirming">确认中</string>
+    <string name="CoinInfo_Standard">代币标准</string>
+    <string name="CoinInfo_MintAddress">铸币地址</string>
+    <string name="CoinInfo_AssetIdentifier">资产标识符</string>
+    <string name="CoinInfo_MarketUnavailable">此代币暂无市场信息。</string>
 </resources>

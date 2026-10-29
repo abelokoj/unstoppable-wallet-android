@@ -1,5 +1,25 @@
 # Open Swap TODO
 
+## Broader token information coverage, planned 2026-10-29
+
+Keep Unstoppable's hosted market service as the preferred source. The user does not want to operate a separate server. These are follow-up tasks, not features included in 0.53.2.
+
+- [ ] Prepare a request for upstream to lower or configure the automatic new-token admission threshold. The reviewed markets-server source filters new imports below $5 million market capitalization and requires reported volume; it does not apply that threshold to every existing token on each information request.
+- [ ] Collect exact network and contract/mint identifiers for missing tokens and prepare manual catalogue-addition requests. The upstream import tool supports explicit coin IDs, but only the hosted service's maintainers can change its catalogue.
+- [ ] Investigate an upstream contribution for on-demand import by exact network and contract/mint identity, with source verification, bounded requests and caching. It would require upstream acceptance and deployment before Open Swap could use it through their service.
+- [ ] Check catalogue refresh and recognition of saved custom tokens after an exact identity match becomes available. Retain the existing market page for recognized tokens and the basic Coin Info fallback otherwise; never match by symbol alone.
+- [ ] Revisit a separately hosted fork only if the user changes the no-server preference. The [user's markets-server fork](https://github.com/abelokoj/markets-server) is a source copy and does not change Unstoppable's running service. Wallet-supplied market-cap values cannot bypass a server-side import filter.
+
+Reference: [upstream markets-server](https://github.com/horizontalsystems/markets-server). No upstream request, issue, pull request or deployment has been made. Any new external data provider would require a separate privacy and availability decision.
+
+## Version 0.53.2 wallet fixes
+
+- [x] Improve BSC/EVM approval discovery through existing network providers and validated synchronized transaction receipts, with provider selection available from Revoke Access.
+- [x] Fix large/unlimited approval formatting crashes and the recorded text-selection toolbar crash.
+- [x] Fix Coin Info for unlisted tokens and show basic metadata, copyable token identity, explorer navigation and optional verified EVM/SPL total supply using the existing UI.
+- [x] Pass 383 affected unit tests and translation coverage for 1,853 strings across nine additional locales; build/install the development APK. The user confirmed BSC discovery and the formerly crashing token information page work.
+- [ ] Complete wider theme/text-size/RTL, live optional supply and old-history coverage checks. No funded transaction or revocation signing was performed for this batch.
+
 ## Upstream 0.53 integration, started 2026-10-28
 
 - [x] Compared upstream 0.53.0 with the published Open Swap baseline and resolved the local merge on `codex/merge-upstream-0.53.0`.

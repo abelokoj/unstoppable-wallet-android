@@ -80,6 +80,18 @@ import kotlin.reflect.KClass
  * providers, key rows, error conversion) are contributed by the Ethereum instance only.
  */
 class EvmChainPlugin(override val blockchainType: BlockchainType) : ChainPlugin {
+    override suspend fun tokenTotalSupply(token: Token): BigDecimal? {
+        val address = (token.type as? TokenType.Eip20)?.address ?: return null
+        require(token.blockchainType == blockchainType)
+        val source = App.evmSyncSourceManager.getHttpSyncSource(blockchainType) ?: return null
+        val chainId = App.evmBlockchainManager.getChainId(blockchainType) ?: return null
+        val rpc = io.horizontalsystems.walletkit.modules.coin.TokenSupplyRpc(source.uri.toString(),
+            source.auth?.let { okhttp3.Credentials.basic("", it) }) {
+            App.evmSyncSourceManager.getHttpSyncSource(blockchainType) == source
+        }
+        return rpc.evmSupply(address, token.decimals, chainId.toLong())
+    }
+
     override fun approvalAccessService(account: Account): ApprovalAccessService? =
         EvmApprovalAccessService.create(account, blockchainType)
 

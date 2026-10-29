@@ -1,5 +1,6 @@
 package io.horizontalsystems.walletkit.modules.coin
 
+import io.horizontalsystems.marketkit.models.FullCoin
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -8,11 +9,10 @@ import io.horizontalsystems.walletkit.core.App
 
 object CoinModule {
 
-    class Factory(private val coinUid: String) : ViewModelProvider.Factory {
+    class Factory(private val fullCoin: FullCoin) : ViewModelProvider.Factory {
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val fullCoin = App.marketKit.fullCoins(coinUids = listOf(coinUid)).first()
             val service = CoinService(fullCoin, App.marketFavoritesManager)
             return CoinViewModel(
                 service,

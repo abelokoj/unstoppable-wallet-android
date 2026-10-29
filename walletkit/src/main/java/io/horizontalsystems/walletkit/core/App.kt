@@ -6,6 +6,8 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
+import androidx.compose.foundation.ComposeFoundationFlags
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import coil.ImageLoader
@@ -235,6 +237,7 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
      */
     protected open fun registerChainPlugins() = Unit
 
+    @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate() {
         super.onCreate()
 
@@ -242,6 +245,9 @@ abstract class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         // creates this Application. Starting the wallet there would sync kits and open
         // databases a second time, so only the main process initializes.
         if (getProcessName() != packageName) return
+
+        // shortcut: use the legacy text menu until Compose fixes callbacks on detached text.
+        ComposeFoundationFlags.isNewContextMenuEnabled = false
 
         if (!BuildConfig.DEBUG) {
             //Disable logging for lower levels in Release build

@@ -2,6 +2,14 @@ package io.horizontalsystems.walletkit.modules.coin
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import io.horizontalsystems.marketkit.models.Token
+import io.horizontalsystems.walletkit.core.App
+import io.horizontalsystems.walletkit.modules.coin.overview.ui.Loading
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,15 +35,27 @@ data class CoinPage(val input: Input) : HSPage(accessibleWhileLocked = true) {
 
     @Composable
     override fun GetContent(navigation: HSNavigation) {
-        CoinScreen(
-            input.coinUid,
-            viewModel(factory = CoinModule.Factory(input.coinUid)),
-            navigation
-        )
+        val content by produceState<CoinInfoContent?>(null, input) {
+            value = try {
+                withContext(Dispatchers.IO) {
+                    val coins = App.marketKit.fullCoins(listOf(input.coinUid))
+                    val tokens = if (coins.any { it.coin.uid == input.coinUid }) emptyList() else
+                        listOfNotNull(input.token) + App.walletManager.activeWallets.map { it.token } + App.coinManager.customTokens
+                    resolveCoinInfo(input.coinUid, coins, tokens)
+                }
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { CoinInfoContent.Missing }
+        }
+        when (val content = content) {
+            is CoinInfoContent.Market -> CoinScreen(input.coinUid, viewModel(factory = CoinModule.Factory(content.coin)), navigation)
+            is CoinInfoContent.Basic -> BasicTokenInfoScreen(content.token, navigation)
+            CoinInfoContent.Missing -> CoinNotFound(input.coinUid, navigation)
+            null -> HSScaffold(title = stringResource(R.string.Coin_Info), onBack = navigation::removeLastOrNull) { Loading() }
+        }
     }
 
     @Serializable
-    data class Input(val coinUid: String)
+    data class Input(val coinUid: String, val token: Token? = null)
 }
 
 @Composable

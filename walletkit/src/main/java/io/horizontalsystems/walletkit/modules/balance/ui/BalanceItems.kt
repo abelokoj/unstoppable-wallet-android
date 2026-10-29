@@ -532,7 +532,7 @@ private fun handleContextMenuClick(
 
         BalanceContextMenuItem.CoinInfo -> {
             val coinUid = balanceViewItem.wallet.coin.uid
-            val arguments = CoinPage.Input(coinUid)
+            val arguments = CoinPage.Input(coinUid, balanceViewItem.wallet.token)
 
             navigation.slideFromRight(CoinPage(arguments))
 

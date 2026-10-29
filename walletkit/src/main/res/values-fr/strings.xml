@@ -2084,4 +2084,8 @@
     <string name="SwapConfirm_CommitRefreshRequired">La cotation a expiré. Une nouvelle cotation a été chargée.</string>
     <string name="SwapConfirm_CommitFailed">Le swap n\'a pas pu être lancé. Une nouvelle cotation a été chargée.</string>
     <string name="Zcash_Confirming">Confirmation</string>
+    <string name="CoinInfo_Standard">Standard du jeton</string>
+    <string name="CoinInfo_MintAddress">Adresse de mint</string>
+    <string name="CoinInfo_AssetIdentifier">Identifiant de l’actif</string>
+    <string name="CoinInfo_MarketUnavailable">Les informations de marché ne sont pas disponibles pour ce jeton.</string>
 </resources>

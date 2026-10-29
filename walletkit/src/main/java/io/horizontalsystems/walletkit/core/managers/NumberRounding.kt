@@ -3,8 +3,6 @@ package io.horizontalsystems.walletkit.core.managers
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
-import kotlin.math.log10
-import kotlin.math.pow
 
 class NumberRounding {
 
@@ -150,7 +148,7 @@ class NumberRounding {
     }
 
     private fun getShortened(value: BigDecimal): BigDecimalRounded.Large {
-        val base = log10(value.toDouble()).toInt() + 1
+        val base = value.precision() - value.scale()
         val groupCount = (base - 1) / 3
 
         return shortByGroupCount(groupCount, value)
@@ -176,17 +174,12 @@ class NumberRounding {
             else -> LargeNumberName.Scientific
         }
 
-        return when (suffix) {
-            null -> BigDecimalRounded.Large(value, LargeNumberName.None)
-            else -> {
-                val t = groupCount * 3
-                val shortened = value.divide(BigDecimal(10.0.pow(t.toDouble())))
-                if (shortened >= BigDecimal("999.5")) {
-                    shortByGroupCount(groupCount + 1, value)
-                } else {
-                    BigDecimalRounded.Large(shortened, suffix)
-                }
-            }
+        if (suffix == LargeNumberName.Scientific) return BigDecimalRounded.Large(value, suffix)
+        val shortened = value.movePointLeft(groupCount * 3)
+        return if (shortened >= BigDecimal("999.5")) {
+            shortByGroupCount(groupCount + 1, value)
+        } else {
+            BigDecimalRounded.Large(shortened, suffix)
         }
     }
 }

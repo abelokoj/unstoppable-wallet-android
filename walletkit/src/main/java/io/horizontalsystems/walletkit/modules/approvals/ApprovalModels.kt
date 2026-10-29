@@ -56,6 +56,7 @@ data class ApprovalScan(
     val head: Long,
     val failedChecks: Int,
     val latestHead: Long = head,
+    val historyError: Boolean = false,
 )
 
 interface ApprovalAccessService {

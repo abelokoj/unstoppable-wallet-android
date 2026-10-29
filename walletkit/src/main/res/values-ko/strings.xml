@@ -2078,4 +2078,8 @@
     <string name="SwapConfirm_CommitRefreshRequired">견적이 만료되었습니다. 새 견적을 불러왔습니다.</string>
     <string name="SwapConfirm_CommitFailed">스왑을 시작할 수 없습니다. 새 견적을 불러왔습니다.</string>
     <string name="Zcash_Confirming">확인 중</string>
+    <string name="CoinInfo_Standard">토큰 표준</string>
+    <string name="CoinInfo_MintAddress">민트 주소</string>
+    <string name="CoinInfo_AssetIdentifier">자산 식별자</string>
+    <string name="CoinInfo_MarketUnavailable">이 토큰의 시장 정보를 사용할 수 없습니다.</string>
 </resources>

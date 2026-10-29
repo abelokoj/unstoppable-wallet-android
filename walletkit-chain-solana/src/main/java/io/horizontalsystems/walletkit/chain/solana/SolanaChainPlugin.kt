@@ -87,6 +87,16 @@ class SolanaChainPlugin(
         return SolanaTransactionsAdapter(solanaKitWrapper, converter)
     }
 
+    override suspend fun tokenTotalSupply(token: Token): BigDecimal? {
+        val mint = (token.type as? TokenType.Spl)?.address ?: return null
+        require(token.blockchainType == blockchainType)
+        val source = rpcSourceManager.rpcSource
+        val rpc = io.horizontalsystems.walletkit.modules.coin.TokenSupplyRpc(source.url.toString()) {
+            rpcSourceManager.rpcSource == source
+        }
+        return rpc.splSupply(mint, token.decimals)
+    }
+
     override fun unlink(account: Account) {
         kitManager.unlink(account)
     }

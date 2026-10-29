@@ -47,6 +47,9 @@ import kotlin.reflect.KClass
 interface ChainPlugin {
     val blockchainType: BlockchainType
 
+    /** Optional public token supply, using the selected network provider. */
+    suspend fun tokenTotalSupply(token: Token): BigDecimal? = null
+
     fun swapProviders(): List<io.horizontalsystems.walletkit.modules.multiswap.providers.IMultiSwapProvider> = emptyList()
 
     /**

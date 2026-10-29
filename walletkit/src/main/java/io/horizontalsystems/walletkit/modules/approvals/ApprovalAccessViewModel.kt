@@ -75,6 +75,16 @@ class ApprovalAccessViewModel(val account: Account?) : ViewModel() {
     init {
         select(defaultApprovalNetwork(networks))
         viewModelScope.launch {
+            App.evmSyncSourceManager.syncSourceFlow.collect { blockchainType ->
+                val network = state.network
+                if (network?.type == blockchainType) {
+                    services.remove(network.uid)
+                    metadataCache.keys.removeAll { it.startsWith("${network.uid}:") }
+                    select(network)
+                }
+            }
+        }
+        viewModelScope.launch {
             App.accountManager.activeAccountStateFlow.collect {
                 if (App.accountManager.activeAccount?.id != account?.id) {
                     generation++
@@ -122,7 +132,8 @@ class ApprovalAccessViewModel(val account: Account?) : ViewModel() {
         if (generation != scanGeneration) return@runOperation
         state = state.copy(approvals = result.approvals, items = items, scanned = true,
             selectedContracts = state.selectedContracts.intersect(items.map { it.contract }.toSet()),
-            nextBlock = result.nextBlock, head = result.head, latestHead = result.latestHead, failedChecks = result.failedChecks)
+            nextBlock = result.nextBlock, head = result.head, latestHead = result.latestHead, failedChecks = result.failedChecks,
+            message = if (result.historyError) R.string.ApprovalAccess_ScanError else null)
     }
 
     fun check(target: ApprovalTarget) = runOperation {
