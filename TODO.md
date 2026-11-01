@@ -1,7 +1,7 @@
 ## Existing release refresh, updated 2026-10-31
 
 - [x] Preserve the original Tom and Jerry ground-search preview as a separate unchanged developer-note alternative and offline snapshot/ZIP.
-- [ ] Publish the completed wallet changes, refresh the existing v0.53.2 release notes and replace its APK with verified signed build 189. Preserve the old APK/tag metadata and verify the public download.
+- [x] Published the completed wallet changes, refreshed the existing v0.53.2 release notes and replaced its APK with the verified signed 0.53.2 (189) installer. Previous APK/tag metadata is backed up; the public download checksum, release body and source tag are verified. Older releases remain unchanged.
 
 ## Four-animation scan rotation, updated 2026-10-31
 
