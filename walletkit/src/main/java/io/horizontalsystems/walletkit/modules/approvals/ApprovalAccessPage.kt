@@ -36,6 +36,7 @@ import io.horizontalsystems.walletkit.ui.compose.components.MenuItem
 import io.horizontalsystems.walletkit.modules.evmnetwork.EvmNetworkPage
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
+import io.horizontalsystems.walletkit.uiv3.components.ApprovalScanningAnimation
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
 import io.horizontalsystems.walletkit.uiv3.components.bottombars.ButtonsGroupVertical
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftCoinIcon
@@ -109,7 +110,10 @@ data object ApprovalAccessPage : HSPage() {
                         state.message?.let { TextBlock(stringResource(it)) }
                         if (state.owner == null) TextBlock(stringResource(R.string.ApprovalAccess_UnsupportedAccount))
                         if (model.account?.isWatchAccount == true) TextBlock(stringResource(R.string.ApprovalAccess_WatchOnly))
-                        if (state.busy) TextBlock(stringResource(R.string.ApprovalAccess_Scanning))
+                        if (state.busy) {
+                            TextBlock(stringResource(R.string.ApprovalAccess_Scanning))
+                            ApprovalScanningAnimation(state.scanAnimation)
+                        }
                         if (state.scanned) {
                             if (state.nextBlock != null) {
                                 if (state.transactionHistoryOnly) TextBlock(stringResource(R.string.ApprovalAccess_HistoryPartial))
@@ -117,7 +121,7 @@ data object ApprovalAccessPage : HSPage() {
                             }
                             if (state.head != state.latestHead) TextBlock(stringResource(R.string.ApprovalAccess_NewBlocksPending))
                             if (state.failedChecks > 0) TextBlock(stringResource(R.string.ApprovalAccess_FailedChecks, state.failedChecks))
-                            if (state.items.isEmpty() && state.message == null && state.failedChecks == 0) TextBlock(stringResource(R.string.ApprovalAccess_Empty))
+                            if (!state.busy && state.items.isEmpty() && state.message == null && state.failedChecks == 0 && state.nextBlock == null) TextBlock(stringResource(R.string.ApprovalAccess_Empty))
                         }
                     }
                     if (manual) item { ManualApprovalCheck(state.network?.uid, canInteract && state.owner != null, model::check) }

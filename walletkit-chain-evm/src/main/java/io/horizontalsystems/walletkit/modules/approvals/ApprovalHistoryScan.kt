@@ -76,10 +76,3 @@ internal fun approvalHistoryUsesTor(enabled: Boolean, connected: Boolean): Boole
     if (enabled && !connected) throw ApprovalHistoryTorRequired()
     return enabled
 }
-
-/** A provider's null receipt means unavailable, never an empty transaction without approvals. */
-internal suspend fun readApprovalReceipt(
-    hash: String,
-    primary: suspend (String) -> JsonObject?,
-    fallback: (suspend (String) -> JsonObject?)?,
-): JsonObject = primary(hash) ?: requireNotNull(fallback?.invoke(hash)) { "Transaction receipt is unavailable" }

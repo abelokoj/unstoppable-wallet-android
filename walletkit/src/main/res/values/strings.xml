@@ -2337,7 +2337,7 @@
     <string name="ApprovalAccess_Title">Revoke Access</string>
     <string name="ApprovalAccess_SettingsDescription">Review token and NFT permissions on EVM networks</string>
     <string name="ApprovalAccess_Intro">Find and revoke spending permissions previously granted to exchanges and dapps. Disconnecting a dapp does not revoke its on-chain approvals.</string>
-    <string name="ApprovalAccess_Privacy">Scans send your public wallet address to the selected RPC and existing history provider. Tor is optional. Without Tor, providers may see your IP address. With Tor enabled, scanning waits for it to connect and does not fall back to a direct connection. Stored transaction history is not used.</string>
+    <string name="ApprovalAccess_Privacy">Scans use the selected RPC first, then other built-in and saved custom RPCs when a request fails or returns no approvals. They also use the existing address-history provider. Tor is optional. Without Tor, these providers may see your public address and IP address. With Tor enabled, scanning waits for it to connect and never falls back to a direct connection. Stored transaction history is not used.</string>
     <string name="ApprovalAccess_NoWallet">Select a wallet first</string>
     <string name="ApprovalAccess_Network">Select network</string>
     <string name="ApprovalAccess_Scan">Scan / Continue scan</string>

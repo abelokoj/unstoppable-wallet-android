@@ -425,7 +425,6 @@ private fun SwapScreenInner(
     }
 
     val quote = uiState.quote
-    val receivedAmountTitle = stringResource(R.string.Swap_YouGet)
 
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
@@ -494,16 +493,6 @@ private fun SwapScreenInner(
                     },
                     onClickCoinTo = {
                         navigateAfterKeyboardClosed(onClickCoinTo)
-                    },
-                    onClickAmountOut = {
-                        quote?.amountOut?.let { amount ->
-                            navigateAfterKeyboardClosed {
-                                navigation.slideFromBottom(SwapInfoSheet(SwapInfoSheet.Input(
-                                    receivedAmountTitle,
-                                    "${amount.toPlainString()} ${uiState.tokenOut?.coin?.code.orEmpty()}",
-                                )))
-                            }
-                        }
                     },
                     tokenIn = uiState.tokenIn,
                     tokenOut = uiState.tokenOut,
@@ -966,7 +955,6 @@ private fun SwapInput(
     onFiatValueChange: (BigDecimal?) -> Unit,
     onClickCoinFrom: () -> Unit,
     onClickCoinTo: () -> Unit,
-    onClickAmountOut: () -> Unit,
     tokenIn: Token?,
     tokenOut: Token?,
     currency: Currency,
@@ -1012,7 +1000,6 @@ private fun SwapInput(
                     currency = currency,
                     token = tokenOut,
                     onClickCoin = onClickCoinTo,
-                    onClickAmount = onClickAmountOut,
                 )
             }
             Box(Modifier.align(Alignment.Center)) {
@@ -1039,7 +1026,6 @@ private fun SwapCoinInputTo(
     currency: Currency,
     token: Token?,
     onClickCoin: () -> Unit,
-    onClickAmount: () -> Unit,
 ) {
     BoxBordered(bottom = true) {
         Row(
@@ -1047,15 +1033,13 @@ private fun SwapCoinInputTo(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
-                Text(
-                    text = formatSwapAmount(coinAmount ?: BigDecimal.ZERO, App.languageManager.currentLocale),
-                    modifier = Modifier
-                        .clickable(enabled = coinAmount != null, onClick = onClickAmount)
-                        .semantics { contentDescription = (coinAmount ?: BigDecimal.ZERO).toPlainString() },
-                    style = ComposeAppTheme.typography.headline1,
-                    color = if (coinAmount == null) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.leah,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                AmountInput(
+                    value = coinAmount,
+                    onValueChange = {},
+                    error = false,
+                    textAlign = TextAlign.Start,
+                    compactDisplay = true,
+                    readOnly = true,
                 )
                 if (hasRate) {
                     Row {
@@ -1141,6 +1125,7 @@ fun AmountInput(
     error: Boolean,
     textAlign: TextAlign = TextAlign.End,
     compactDisplay: Boolean = false,
+    readOnly: Boolean = false,
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val locale = App.languageManager.currentLocale
@@ -1183,7 +1168,12 @@ fun AmountInput(
             },
         visualTransformation = if (compactDisplay && !isFocused) displayTransformation else VisualTransformation.None,
         value = textFieldValue,
+        readOnly = readOnly,
         onValueChange = { newValue ->
+            if (readOnly) {
+                textFieldValue = textFieldValue.copy(selection = newValue.selection)
+                return@BasicTextField
+            }
             try {
                 val text = newValue.text
                 amount = if (text.isBlank()) {

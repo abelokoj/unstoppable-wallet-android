@@ -12,7 +12,7 @@ internal fun formatSwapAmount(value: BigDecimal, locale: Locale = Locale.US): St
     val sign = if (value.signum() < 0) "-" else ""
     val absolute = value.abs()
     val exponent = absolute.precision().toLong() - absolute.scale() - 1
-    val scientific = exponent >= 18 || exponent < -(12 - sign.length)
+    val scientific = exponent >= 18 || exponent < -(8 - sign.length)
     val shift = if (!scientific && exponent >= 3) (exponent / 3 * 3).toInt() else 0
     val suffix = when {
         scientific -> "E$exponent"
@@ -29,7 +29,7 @@ internal fun formatSwapAmount(value: BigDecimal, locale: Locale = Locale.US): St
         absolute.movePointLeft(shift)
     }
     val integerDigits = (amount.precision() - amount.scale()).coerceAtLeast(1)
-    val decimals = (14 - sign.length - suffix.length - integerDigits - 1).coerceAtLeast(0)
+    val decimals = (10 - sign.length - suffix.length - integerDigits - 1).coerceAtLeast(0)
     val rounded = amount.setScale(decimals, RoundingMode.DOWN)
     formatter.maximumFractionDigits = decimals
     // Use the whole budget when precision was lost, even if the last visible digits are zero.

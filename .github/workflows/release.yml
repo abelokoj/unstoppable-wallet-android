@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   release:
+    # Existing-tag refreshes publish a verified APK without a competing rebuild.
+    if: github.event.created == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

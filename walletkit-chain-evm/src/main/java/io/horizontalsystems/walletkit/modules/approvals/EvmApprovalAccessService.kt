@@ -7,25 +7,30 @@ import com.google.gson.JsonParser
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.managers.EvmKitManagerRegistry
 import io.horizontalsystems.walletkit.core.managers.evmTransactionSource
-import io.horizontalsystems.walletkit.core.managers.rpcSource
 import io.horizontalsystems.walletkit.core.managers.requireSocksProxy
 import io.horizontalsystems.walletkit.entities.Account
 import io.horizontalsystems.walletkit.entities.AccountType
 import io.horizontalsystems.walletkit.entities.evmAddress
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.EvmTransactionData
 import io.horizontalsystems.walletkit.modules.settings.privacy.tor.TorStatus
-import io.horizontalsystems.ethereumkit.models.RpcSource
 import io.horizontalsystems.ethereumkit.models.TransactionSource
 import io.horizontalsystems.marketkit.models.BlockchainType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
+import okio.ByteString
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -39,6 +44,7 @@ import retrofit2.http.Url
 import java.math.BigInteger
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** Uses on-chain logs and fresh address history. No stored wallet history or remote transaction calldata. */
 class EvmApprovalAccessService private constructor(
@@ -52,11 +58,10 @@ class EvmApprovalAccessService private constructor(
     private val history = ApprovalLogScan()
     private val remoteHistory = ApprovalHistoryScan()
     private var historyKeyIndex = 0
-    private var bscReceiptRpc: Rpc? = null
 
     override suspend fun scan(onProgress: (Long) -> Unit): ApprovalScan = mutex.withLock {
         val bsc = blockchainType == BlockchainType.BinanceSmartChain
-        val rpc = openRpc()
+        val rpc = openRpc(withFallback = true)
         val head = quantity(rpc.call("eth_blockNumber")).longValueExact()
         var failed = 0
         var historyError = false
@@ -90,7 +95,7 @@ class EvmApprovalAccessService private constructor(
     }
     override suspend fun check(target: ApprovalTarget): ActiveApproval? = mutex.withLock {
         ApprovalAbi.validate(target)
-        val checked = check(openRpc(), target)
+        val checked = check(openRpc(withFallback = true), target)
         remember(listOf(target))
         checked
     }
@@ -104,7 +109,7 @@ class EvmApprovalAccessService private constructor(
 
     override suspend fun metadata(target: ApprovalTarget): ApprovalAssetMetadata? = mutex.withLock {
         ApprovalAbi.validate(target)
-        val rpc = openRpc()
+        val rpc = openRpc(withFallback = true)
         suspend fun text(selector: String, maxLength: Int): String? = try {
             ApprovalMetadataParser.text(rpc.contractCall(target.contract, selector).asString, maxLength)
         } catch (cancelled: CancellationException) { throw cancelled }
@@ -120,20 +125,8 @@ class EvmApprovalAccessService private constructor(
     }
 
     private suspend fun receiptTargets(rpc: Rpc, tx: ApprovalHistoryTransaction): List<ApprovalTarget> {
-        val primary = bscReceiptRpc ?: rpc
-        var fallbackReader: Rpc? = null
-        val fallback: (suspend (String) -> JsonObject?)? =
-            if (blockchainType == BlockchainType.BinanceSmartChain && bscReceiptRpc == null) {
-                { hash ->
-                    rpc.guard(App.torKitManager.isTorEnabled)
-                    openRpc(historicalBscReceipt = true).also { fallbackReader = it }.receipt(hash)
-                }
-            } else null
-        val receipt = readApprovalReceipt(tx.hash, primary::receipt, fallback)
-        val targets = parseReceipt(receipt, tx.hash, "0x" + ApprovalAbi.addressWord(owner), tx.block)
-        // Reuse the historical reader only after its receipt passes identity/event validation.
-        fallbackReader?.let { bscReceiptRpc = it }
-        return targets
+        val receipt = requireNotNull(rpc.receipt(tx.hash)) { "Transaction receipt is unavailable" }
+        return parseReceipt(receipt, tx.hash, "0x" + ApprovalAbi.addressWord(owner), tx.block)
     }
 
     private fun historyUsesTor() = approvalHistoryUsesTor(
@@ -223,28 +216,30 @@ class EvmApprovalAccessService private constructor(
         }
     }
 
-    private suspend fun openRpc(historicalBscReceipt: Boolean = false): Rpc {
+    private suspend fun openRpc(withFallback: Boolean = false): Rpc {
         require(App.accountManager.activeAccount?.id == account.id) { "Wallet changed. Reopen Revoke Access." }
         val expectedChain = requireNotNull(App.evmBlockchainManager.getChainId(blockchainType))
-        val selected = requireNotNull(App.evmSyncSourceManager.getHttpSyncSource(blockchainType))
-        val readSource = if (historicalBscReceipt) {
-            require(blockchainType == BlockchainType.BinanceSmartChain)
-            App.evmSyncSourceManager.defaultSyncSources(blockchainType).first { it.name == "Binance" }
-        } else selected
-        val source = readSource.rpcSource as? RpcSource.Http
-            ?: error("This network has no HTTP RPC source")
-        val url = source.uris.firstOrNull()?.toString() ?: error("No RPC source")
-        val rpc = Rpc(url, source.auth?.let { Credentials.basic("", it) }, account.id, blockchainType, selected.id)
-        require(quantity(rpc.call("eth_chainId")) == expectedChain.toBigInteger()) { "RPC network does not match the selected network" }
-        return rpc
+        val selected = App.evmSyncSourceManager.getSyncSource(blockchainType)
+        val endpoints = approvalRpcEndpoints(selected,
+            if (withFallback) App.evmSyncSourceManager.allSyncSources(blockchainType) else emptyList())
+        return Rpc(endpoints, expectedChain.toBigInteger(), account.id, blockchainType, selected.id,
+            App.torKitManager.isTorEnabled).also { it.call("eth_chainId") }
     }
 
-    private class Rpc(private val url: String, private val auth: String?, private val accountId: String,
-        private val network: BlockchainType, private val sourceId: String) {
+    private class Rpc(private val endpoints: List<ApprovalRpcEndpoint>, private val chainId: BigInteger,
+        private val accountId: String, private val network: BlockchainType, private val sourceId: String,
+        private val usesTor: Boolean) {
+        private val verified = mutableSetOf<ApprovalRpcEndpoint>()
+        private val failures = mutableMapOf<Pair<ApprovalRpcEndpoint, String>, Exception>()
+
         fun guard(torEnabled: Boolean) {
             require(App.accountManager.activeAccount?.id == accountId) { "Wallet changed. Reopen Revoke Access." }
-            require(App.evmSyncSourceManager.getHttpSyncSource(network)?.id == sourceId) { "Network provider changed" }
-            require(App.torKitManager.isTorEnabled == torEnabled) { "Privacy settings changed" }
+            require(App.evmSyncSourceManager.getSyncSource(network).id == sourceId) { "Network provider changed" }
+            val configured = App.evmSyncSourceManager.allSyncSources(network).flatMap { source ->
+                source.uris.map { ApprovalRpcEndpoint(it.toString(), source.auth) }
+            }
+            require(endpoints.all { it in configured }) { "Network providers changed. Retry the scan." }
+            require(App.torKitManager.isTorEnabled == usesTor && torEnabled == usesTor) { "Privacy settings changed" }
             if (torEnabled) check(App.torKitManager.torStatusFlow.value == TorStatus.Connected) { "Wait for Tor to connect" }
         }
         suspend fun receipt(hash: String): JsonObject? {
@@ -252,16 +247,57 @@ class EvmApprovalAccessService private constructor(
             return result.takeUnless { it.isJsonNull }?.asJsonObject
         }
 
-        suspend fun call(method: String, params: JsonArray = JsonArray(), allowMissing: Boolean = false): JsonElement {
-            currentCoroutineContext().ensureActive()
-            val torEnabled = App.torKitManager.isTorEnabled
-            guard(torEnabled)
-            val api = if (torEnabled) api(App.torKitManager.requireSocksProxy()) else directApi
+        suspend fun call(method: String, params: JsonArray = JsonArray(), allowMissing: Boolean = false): JsonElement =
+            readApprovalRpcSources(endpoints, { guard(usesTor) }, { result ->
+                isEmptyApprovalRpcResult(method, result)
+            }) { endpoint ->
+                val key = endpoint to method
+                failures[key]?.let { throw it }
+                try {
+                    // Validate every endpoint before disclosing any owner/contract query to it.
+                    if (endpoint !in verified) {
+                        require(quantity(request(endpoint, "eth_chainId", JsonArray(), false)) == chainId) {
+                            "RPC network does not match the selected network"
+                        }
+                        verified += endpoint
+                    }
+                    val result = request(endpoint, method, params, allowMissing)
+                    when (method) {
+                        "eth_chainId" -> require(quantity(result) == chainId)
+                        "eth_blockNumber" -> require(quantity(result).signum() > 0)
+                        "eth_getLogs" -> require(result.isJsonArray)
+                        "eth_getTransactionReceipt" -> if (!result.isJsonNull) {
+                            require(result.isJsonObject)
+                            require(result.asJsonObject.get("transactionHash")?.asString?.equals(params[0].asString, true) == true)
+                            requireNotNull(result.asJsonObject.getAsJsonArray("logs"))
+                        }
+                    }
+                    result
+                } catch (cancelled: CancellationException) { throw cancelled }
+                catch (error: Exception) {
+                    // Cache transport outages only; range limits and contract errors depend on query parameters.
+                    if (error is java.io.IOException || (error is HttpException && error.code() in listOf(401, 403, 429, 502, 503, 504))) {
+                        failures[key] = error
+                    }
+                    throw error
+                }
+            }
+
+        private suspend fun request(endpoint: ApprovalRpcEndpoint, method: String, params: JsonArray,
+            allowMissing: Boolean): JsonElement {
+            guard(usesTor)
+            val body = JsonObject().apply {
+                addProperty("jsonrpc", "2.0"); addProperty("id", 1)
+                addProperty("method", method); add("params", params)
+            }
+            val auth = endpoint.auth?.let { Credentials.basic("", it) }
             val response = try {
-                api.call(url, auth, JsonObject().apply {
-                    addProperty("jsonrpc", "2.0"); addProperty("id", 1)
-                    addProperty("method", method); add("params", params)
-                })
+                if (endpoint.url.startsWith("ws://") || endpoint.url.startsWith("wss://")) {
+                    websocketCall(endpoint.url, auth, body, usesTor)
+                } else {
+                    val api = if (usesTor) api(App.torKitManager.requireSocksProxy()) else directApi
+                    api.call(endpoint.url, auth, body)
+                }
             } catch (error: HttpException) {
                 if (method == "eth_getLogs" && error.code() in listOf(400, 413, 504)) throw ApprovalLogRangeError()
                 throw error
@@ -270,12 +306,12 @@ class EvmApprovalAccessService private constructor(
                 if (method == "eth_getLogs") throw ApprovalLogRangeError()
                 throw error
             }
-            // Discard a response if privacy/account settings changed while it was in flight.
-            guard(torEnabled)
+            guard(usesTor)
             if (response.has("error")) {
                 if (method == "eth_getLogs") throw ApprovalLogRangeError()
                 throw RpcFailure()
             }
+            require(response.get("id")?.asInt == 1) { "Invalid RPC response identity" }
             val result = response.get("result") ?: throw RpcFailure()
             if (result.isJsonNull && !allowMissing) throw RpcFailure()
             return result
@@ -309,6 +345,54 @@ class EvmApprovalAccessService private constructor(
             return Retrofit.Builder().baseUrl("https://localhost/").client(client)
                 .addConverterFactory(GsonConverterFactory.create()).build().create(Api::class.java)
         }
+        private suspend fun websocketCall(url: String, auth: String?, body: JsonObject, usesTor: Boolean): JsonObject =
+            withTimeoutOrNull(30_000) {
+                suspendCancellableCoroutine { continuation ->
+                    val finished = AtomicBoolean(false)
+                    fun finish(result: Result<JsonObject>) {
+                        if (finished.compareAndSet(false, true)) continuation.resumeWith(result)
+                    }
+                    val client = rpcClient.newBuilder().apply {
+                        if (usesTor) proxy(App.torKitManager.requireSocksProxy())
+                    }.build()
+                    val request = Request.Builder().url(url).apply {
+                        auth?.let { header("Authorization", it) }
+                    }.build()
+                    val socket = client.newWebSocket(request, object : WebSocketListener() {
+                        override fun onOpen(webSocket: WebSocket, response: Response) {
+                            if (!webSocket.send(body.toString())) {
+                                finish(Result.failure(RpcFailure()))
+                                webSocket.cancel()
+                            }
+                        }
+                        override fun onMessage(webSocket: WebSocket, text: String) {
+                            finish(runCatching {
+                                require(text.length <= 4 * 1024 * 1024) { "RPC response is too large" }
+                                JsonParser.parseString(text).asJsonObject
+                            })
+                            webSocket.close(1000, null)
+                        }
+                        override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+                            if (bytes.size > 4 * 1024 * 1024) {
+                                finish(Result.failure(RpcFailure()))
+                                webSocket.cancel()
+                            } else onMessage(webSocket, bytes.utf8())
+                        }
+                        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                            finish(Result.failure(RpcFailure()))
+                        }
+                        override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                            webSocket.close(code, reason)
+                            finish(Result.failure(RpcFailure()))
+                        }
+                        override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                            finish(Result.failure(RpcFailure()))
+                        }
+                    })
+                    continuation.invokeOnCancellation { finished.set(true); socket.cancel() }
+                }
+            } ?: throw RpcFailure()
+
         private val directApi by lazy { api() }
 
         fun create(account: Account, blockchainType: BlockchainType): EvmApprovalAccessService? {

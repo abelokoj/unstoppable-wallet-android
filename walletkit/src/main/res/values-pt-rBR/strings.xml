@@ -1983,7 +1983,7 @@
     <string name="ApprovalAccess_Title">Revogar acesso</string>
     <string name="ApprovalAccess_SettingsDescription">Revise as permissões de tokens e NFTs em redes EVM</string>
     <string name="ApprovalAccess_Intro">Encontre e revogue permissões de gasto concedidas anteriormente a corretoras e dapps. Desconectar uma dapp não revoga suas aprovações na blockchain.</string>
-    <string name="ApprovalAccess_Privacy">As consultas enviam seu endereço público ao RPC selecionado e ao provedor de histórico existente. O Tor é opcional. Sem Tor, os provedores podem ver seu endereço IP. Com Tor ativado, a busca aguarda a conexão e não muda para uma conexão direta. O histórico salvo não é usado.</string>
+    <string name="ApprovalAccess_Privacy">As verificações usam primeiro o RPC selecionado e, se uma solicitação falhar ou não retornar autorizações, tentam outros RPCs integrados e personalizados salvos. Também usam o provedor existente do histórico de endereços. O Tor é opcional. Sem Tor, esses provedores podem ver seu endereço público e IP. Com o Tor ativado, a verificação aguarda a conexão e nunca usa uma conexão direta como alternativa. O histórico de transações armazenado não é usado.</string>
     <string name="ApprovalAccess_NoWallet">Selecione uma carteira primeiro</string>
     <string name="ApprovalAccess_Network">Selecionar rede</string>
     <string name="ApprovalAccess_Scan">Verificar / Continuar verificação</string>

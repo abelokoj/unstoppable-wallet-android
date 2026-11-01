@@ -1974,7 +1974,7 @@
     <string name="ApprovalAccess_Title">접근 권한 철회</string>
     <string name="ApprovalAccess_SettingsDescription">EVM 네트워크에서 토큰 및 NFT 권한 검토</string>
     <string name="ApprovalAccess_Intro">거래소와 dapp에 이전에 부여한 지출 권한을 찾아 철회합니다. dapp 연결을 해제해도 온체인 승인은 철회되지 않습니다.</string>
-    <string name="ApprovalAccess_Privacy">조회 시 공개 지갑 주소가 선택한 RPC와 기존 내역 제공업체로 전송됩니다. Tor는 선택 사항입니다. Tor를 사용하지 않으면 제공업체가 IP 주소를 볼 수 있습니다. Tor가 켜져 있으면 연결될 때까지 기다리며 직접 연결로 전환하지 않습니다. 저장된 거래 내역은 사용하지 않습니다.</string>
+    <string name="ApprovalAccess_Privacy">스캔은 선택한 RPC를 먼저 사용하고 요청이 실패하거나 승인이 반환되지 않으면 다른 내장 RPC 및 저장된 사용자 지정 RPC를 시도합니다. 기존 주소 기록 제공업체도 사용합니다. Tor는 선택 사항입니다. Tor를 사용하지 않으면 이 제공업체에 공개 주소와 IP 주소가 보일 수 있습니다. Tor를 켜면 연결될 때까지 기다리며 직접 연결로 전환하지 않습니다. 저장된 거래 기록은 사용하지 않습니다.</string>
     <string name="ApprovalAccess_NoWallet">먼저 지갑을 선택하세요</string>
     <string name="ApprovalAccess_Network">네트워크 선택</string>
     <string name="ApprovalAccess_Scan">스캔 / 스캔 계속</string>

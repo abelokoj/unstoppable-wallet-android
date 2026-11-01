@@ -32,6 +32,7 @@ data class ApprovalAccessState(
     val items: List<ApprovalAccessItem> = emptyList(),
     val selectedContracts: Set<String> = emptySet(),
     val busy: Boolean = false,
+    val scanAnimation: ApprovalScanAnimation = ApprovalScanAnimation.Scanner,
     val scanned: Boolean = false,
     val nextBlock: Long? = null,
     val scannedFrom: Long? = null,
@@ -124,6 +125,9 @@ class ApprovalAccessViewModel(val account: Account?) : ViewModel() {
     fun scan() = runOperation {
         val scanGeneration = generation
         val service = service() ?: error("Unsupported wallet")
+        val animation = ApprovalScanAnimation.fromStoredIndex(App.localStorage.approvalScanAnimationIndex)
+        App.localStorage.approvalScanAnimationIndex = animation.next.ordinal
+        state = state.copy(scanAnimation = animation)
         val result = withContext(Dispatchers.IO) {
             service.scan { from -> viewModelScope.launch {
                 if (generation == scanGeneration) state = state.copy(scannedFrom = minOf(state.scannedFrom ?: from, from))

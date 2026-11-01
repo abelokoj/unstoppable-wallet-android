@@ -366,6 +366,10 @@ class LocalStorageManager(
             _appFontSizeFlow.value = value
         }
 
+    override var approvalScanAnimationIndex: Int
+        get() = preferences.getInt("approval_scan_next_animation", 0)
+        set(value) { preferences.edit().putInt("approval_scan_next_animation", value).apply() }
+
     override var customTokenRecords: List<CustomTokenRecord>
         get() = CustomTokenCatalog.decode(preferences.getString(CUSTOM_TOKEN_CATALOG, null))
         set(value) {

@@ -66,39 +66,4 @@ class ApprovalHistoryScanTest {
         assertTrue(approvalHistoryUsesTor(true, true))
         assertThrows(ApprovalHistoryTorRequired::class.java) { approvalHistoryUsesTor(true, false) }
     }
-    @Test fun `a provider returning a missing receipt uses the permitted historical reader`() = runBlocking {
-        val hash = tx(1, 90).hash
-        val expected = JsonParser.parseString("""{"transactionHash":"$hash","blockNumber":"0x5a","logs":[]}""").asJsonObject
-        var fallbackCalls = 0
-        val receipt = readApprovalReceipt(hash, { null }, {
-            assertEquals(hash, it)
-            fallbackCalls++
-            expected
-        })
-        assertSame(expected, receipt)
-        assertEquals(1, fallbackCalls)
-    }
-
-    @Test fun `an available selected-provider receipt never contacts the fallback`() = runBlocking {
-        val expected = JsonParser.parseString("""{"logs":[]}""").asJsonObject
-        assertSame(expected, readApprovalReceipt(tx(1, 90).hash, { expected }, { error("Unexpected fallback") }))
-    }
-
-    @Test fun `a missing receipt without an available fallback remains a discovery failure`() = runBlocking {
-        for (fallback in listOf<(suspend (String) -> com.google.gson.JsonObject?)?>(null, { null })) {
-            try {
-                readApprovalReceipt(tx(1, 90).hash, { null }, fallback)
-                fail("A missing receipt cannot be an empty successful scan")
-            } catch (_: IllegalArgumentException) { }
-        }
-    }
-
-    @Test fun `cancellation or provider guard errors never trigger a receipt fallback`() = runBlocking {
-        for (error in listOf(kotlinx.coroutines.CancellationException(), IllegalStateException("Provider changed"))) {
-            try {
-                readApprovalReceipt(tx(1, 90).hash, { throw error }, { fail("Unexpected fallback"); null })
-                fail("Expected original failure")
-            } catch (actual: Exception) { assertSame(error, actual) }
-        }
-    }
 }

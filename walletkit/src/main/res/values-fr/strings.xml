@@ -1980,7 +1980,7 @@
     <string name="ApprovalAccess_Title">Révoquer l\'accès</string>
     <string name="ApprovalAccess_SettingsDescription">Vérifiez les autorisations des tokens et NFT sur les réseaux EVM</string>
     <string name="ApprovalAccess_Intro">Recherchez et révoquez les autorisations de dépense précédemment accordées aux plateformes d\'échange et aux dapps. Déconnecter une dapp ne révoque pas ses approbations sur la chaîne.</string>
-    <string name="ApprovalAccess_Privacy">Les requêtes envoient votre adresse publique au RPC sélectionné et au fournisseur d’historique existant. Tor est facultatif. Sans Tor, les fournisseurs peuvent voir votre adresse IP. Avec Tor activé, la recherche attend sa connexion et ne passe pas en connexion directe. L’historique enregistré n’est pas utilisé.</string>
+    <string name="ApprovalAccess_Privacy">Les analyses utilisent le RPC sélectionné en premier, puis les autres RPC intégrés et personnalisés enregistrés si une requête échoue ou ne renvoie aucune autorisation. Elles utilisent aussi le fournisseur existant de l’historique des adresses. Tor est facultatif. Sans Tor, ces fournisseurs peuvent voir votre adresse publique et votre adresse IP. Si Tor est activé, l’analyse attend sa connexion et ne passe jamais à une connexion directe. L’historique des transactions stocké n’est pas utilisé.</string>
     <string name="ApprovalAccess_NoWallet">Sélectionnez d\'abord un portefeuille</string>
     <string name="ApprovalAccess_Network">Sélectionner un réseau</string>
     <string name="ApprovalAccess_Scan">Analyser / Poursuivre l\'analyse</string>

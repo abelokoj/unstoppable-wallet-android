@@ -1,3 +1,165 @@
+# Prepare the existing build 189 GitHub release refresh - 2026-10-31T22:21:46-04:00
+
+- Prepared a source push and in-place refresh of v0.53.2 using the exact signed 0.53.2 (189) Animation-Rotation installer delivered for personal testing. Updated the current public release-note section for 10-character amount displays, inline expansion on both swap sides, selected-first built-in/custom RPC fallback and the four-scan animation rotation. Preserved older release sections and excluded developer/device details, model attribution and em dashes from public notes.
+- Guarded release automation so only newly created version tags build automatically. Updating the existing release tag will preserve the verified manual installer instead of starting a competing automatic upload. New release tags retain their normal build behavior. Parsed the workflow and checked created, updated, deleted and missing event cases against the intended condition.
+- Preserved the original Tom and Jerry ground-search preview unchanged as a separate versioned developer-note alternative, plus a self-contained local snapshot and ZIP. SHA-256: 82d3fecd07657604b9ecbf958421a7b671f51a167b06a09d649d70d1cbe5fe73. The current four-animation app rotation is unchanged. Moved the historical approval-tool research into dev_notes with an explicit prototype/proposal status.
+- Both APK builds, 16 focused approval checks, signing/resource checks and Downloads transfer checks already passed. All 393 affected tests passed (338 wallet and 55 EVM); all nine locale checks and patch checks passed before pushing. The archived preview is marked binary to preserve its exact bytes across checkouts. No application source changed during this release-preparation step, so the verified installer is retained. GitHub publication and public-download verification are pending at this recording time; a follow-up record will document the result. Earlier release/tag metadata and the replaced installer will be preserved locally.
+
+---
+# Approval scan animations rotate between scans - 2026-10-31T21:55:07-04:00
+
+- Added the three approved cap-free cartoon loops: Tom and Jerry together, Tom alone and Jerry alone. New scans cycle through the existing crypto scanner, Together, Tom, Jerry and back to the scanner. Persist only the next animation index in local app preferences, so the sequence survives reopening the page/app. Accepted scans advance once; manual checks, rejected duplicate starts, scrolling, redraws and appearance changes do not consume the sequence.
+- Both appearances offer the same four choices. Keep the existing light/dark scanner assets and use three transparent native WebP animations on the selected app surface. Preserve the approved walking, sand inspections, slower turns and 13.6-second cartoon loop with 30 fps movement; identical still frames are coalesced. The scanner retains its 2.4-second loop. Playback remains decorative, pauses offscreen and respects disabled system animations. Use the existing native Coil decoder; no web view, remote asset fetch or new runtime dependency is introduced.
+- Display checking feedback during repeat scans even when the previous results remain visible. Remove it when the operation finishes; never delay scanning to finish an animation. Approval discovery, authentication, signing and transaction behavior are unchanged.
+- Validation: rendered the approved movement against light/dark surfaces and corrected offline mesh clip seams. Decoded all three optimized assets, verified transparent corners, infinite looping and exact 13,600-millisecond duration. All 16 focused approval tests passed, including sequence/wrap/invalid-index recovery and native-asset checks. Both development and signed regular builds passed. Verified their version/build, signing certificates, ZIP integrity, all five source-matching animation resources and bundled license/provenance files. The three WebP files total 22,651,686 bytes. Bundled artwork provenance; third-party character rights are not granted by that record.
+- Local, uncommitted testing batch. Keep version 0.53.2 (189). Both APKs are copied to the phone's Downloads folder with matching remote SHA-256 checksums; local APK/checksum backups and the production mapping are retained. No installation or GitHub publication was performed. Personal device playback/scan feedback remains pending. Recording time in America/New_York.
+
+---
+# Approval scanning animation integrated - 2026-10-31T20:17:40-04:00
+
+- Added the approved Searching animation directly below Checking permissions on Revoke Access. It loops while discovery is active and there are no results, then disappears when results arrive or scanning stops. Suppressed the empty-result message during an active scan.
+- Bundled light/dark vector assets with the decorative sample addresses and crypto symbols. The selected app appearance controls the variant; the approved 1.5x speed remains a 2.4-second loop. Playback pauses offscreen, respects disabled system animations, and remains decorative to screen readers. Added Lottie 6.7.1 and bundled the animation and renderer licenses. No remote asset or font fetch is used; scanning, authentication and signing behavior is unchanged.
+- Corrected the earlier asset-preparation surface assumption: the scanning list uses tyler (light #EDEDED, dark #000000), rather than the lawrence header/card colors cited in the preceding entry. Adjusted the native edge fades to match the actual list and preserved the earlier prototype assets.
+- Validation: all 14 focused approval tests passed, including local-vector, sample-address, motion and duration checks. Development packaging passed; its APK signature, version, resource bytes, licenses and ZIP integrity were checked, and the copy in Downloads has a matching checksum. Signed regular release packaging also passed. Verified its production certificate, version, resource bytes, licenses and ZIP integrity. Both development and signed regular 0.53.2 (189) APKs are copied to the connected phone's Downloads folder with matching remote SHA-256 checksums; the production mapping and local APK backups are preserved.
+- Local, uncommitted batch; version 0.53.2 (189) retained. No GitHub publication or installation was performed. The user will install and test both APKs personally; native device appearance and scan-state transitions await feedback. Recording time in America/New_York.
+
+---
+# Crypto address animation prepared for light and dark appearance - 2026-10-31T18:33:36-04:00
+
+- Added the user's decorative sample addresses (0xdead..., 0x0000, 0x...dead, 0xaaaa and 0x2026...) to the moving papers, replacing generic paragraph strokes with two address rows per document. Included matching address rows on highlighted/masked copies and retained the Ethereum/wallet symbols. Converted existing Public Sans glyphs to vector outlines; the native assets need no font download and contain no user wallet data.
+- Prepared matching light/dark Lottie JSON and dotLottie files. Transparent edge fades match the current scanning surface: White #FFFFFF and Dark #151515. Adapted dark papers, folds, ink, magnifier and warm highlights to the existing app palette. Both themes retain the same motion and 1.5x speed, with a 2.4-second loop at runtime playback speed 1.0.
+- Saved themed GIF/PNG previews, source/font licenses, reproducible build/render scripts, manifests, checksums and an archive. Updated the selected asset record and future integration notes. Prior versions remain preserved.
+- Validation: native rendering confirms both 2.4-second durations; all 144 GIF frames decode and each theme totals 2,400 milliseconds. Checks cover all five example strings across 22 outlined address rows, consistent vector contours, transparent corners, absence of runtime image/font/network/expression dependencies, identical theme motion and unchanged matte adjacency. Inspected both rendered theme previews. The final package passed CRC and source-byte checks. Native Android rendering remains untested.
+- Local, uncommitted asset and documentation batch only. As requested, scanning-page integration is deferred until afterward. No application code, APK, signing flow, network behavior, wallet data, version/build number or GitHub release changed. Recording time in America/New_York.
+
+---
+# Final crypto-themed scanner animation prepared at 1.5x speed - 2026-10-31T18:16:21-04:00
+
+- Adapted Faaiza's original Searching Lottie animation with Ethereum gems and wallet symbols on the moving background documents. Reused Open Swap's existing Ethereum and wallet vector paths, including matching symbols on the two highlighted/masked documents. Preserved the original magnifying glass, document motion, colors, keyframes, transforms and track-matte layer adjacency.
+- Baked the requested 1.5x speed into the asset metadata: 216 frame units at 90 fps produce a 2.4-second loop instead of the original native source's 3.6 seconds. The app renderer must use a 1.0 playback multiplier to avoid applying the increase twice.
+- Saved the final selected JSON/dotLottie files, a matching review GIF, source vectors, original animation, licenses, checksums, build/render tools and an asset package. Existing original and Tom/Jerry alternatives remain preserved. Updated the selected-animation record and pending native-integration TODO.
+- Validation: assertions confirm the original layers and motion remain unchanged apart from the added symbols and frame-rate metadata. Native rlottie rendering confirms the 1.5x duration ratio; all 72 exported GIF frames decode and total exactly 2,400 milliseconds. Visually compared original/modified native renders and the exported frame sequence; corrected premultiplied-alpha handling in the review exporter. Vector contours are consistent, with no external resources, image/font dependencies or expression fields. Native Android rendering is still pending.
+- Local, uncommitted animation asset and documentation batch only. No application code, APK, signing flow, wallet data, version/build number or GitHub release changed. Recording time in America/New_York.
+
+---
+# Original LottieFiles Searching replacement assets saved - 2026-10-31T18:01:39-04:00
+
+- Retrieved the exact original Searching animation by Faaiza from the user's LottieFiles link, instead of recreating it. Saved the site's unmodified GIF (1,547,569 bytes), unmodified dotLottie source (5,057 bytes), separate optimized JSON download and the original native JSON payload extracted unchanged from the dotLottie container (105,279 bytes). Included creator/source records, the Lottie Simple License, checksums and a portable asset package.
+- Recorded this as the requested scanner replacement and retained the previously chosen Tom/Jerry Option 2 set separately. The original native source is 1000 by 600 at 60 fps with a 3.6-second loop. The site's own GIF export is 640 by 640 with 121 frames and an 8.64-second loop; documented this difference rather than changing either original. Prefer the native Lottie payload to match the page's original playback.
+- Validation: parsed both JSON payloads, checked the dotLottie ZIP integrity and decoded every GIF frame. The native payload contains no external references, image assets, font resources or JavaScript expression fields, so the saved animation can be bundled for offline use. Recorded original download hashes. Native Android rendering remains untested.
+- Local, uncommitted asset/provenance records and pending-work notes only. Native integration remains pending; no application code, APK, signing flow, wallet data, version/build number or GitHub release changed. Recording time in America/New_York.
+
+---
+# Refined Option 2 selected for the approval scanner - 2026-10-31T17:54:49-04:00
+
+- Recorded the user's approval of the refined cap-free Option 2 sand-search animation as the design to use. Preserved the corrected head shapes, extended inspection pauses and slower turns, with Together/Jerry/Tom variants retained. Earlier designs remain alternatives.
+- Saved the selection in the animation set's SELECTED.md, manifest, selection index and updated ZIP. Marked design selection complete in TODO and kept native integration as a separate pending task.
+- Validation: saved preview and artwork hashes match the approved revision; the existing archive and manifest were checked before recording selection. No artwork or animation behavior changed. This is local, uncommitted selection metadata and documentation only; native application code, APKs, signing, wallet data, version/build number and GitHub releases remain unchanged. Recording time in America/New_York.
+
+---
+# Option 2 head shapes and inspection timing refined - 2026-10-31T17:52:02-04:00
+
+- Refined Tom and Jerry's natural head crowns and hair tufts in both profile and turnaround illustrations using the user's supplied classic Tom reference. Both remain cap-free. Retained the other character poses, downward gaze, magnifiers and original transparent canvas dimensions.
+- Lengthened the side-on sand inspection from one second to 2.6 seconds. Replaced the 0.4-second turn with an eased 0.8-second turn toward the viewer, a one-second lowered-head inspection hold and an eased 0.8-second turn away. The unchanged 1.6-second walking segments now form a 13.6-second repeating round trip.
+- Updated all three Option 2 variants, independent offline pages, carousel export, artwork and ZIP archive. Preserved the previous Option 2 directory and ZIP as a timestamped snapshot; earlier animation sets remain unchanged.
+- Validation: edited artwork was visually inspected against the supplied reference. The actual-script checks passed phase durations, continuity, full repeated playback, three variants, pause, background pause, reduced motion and support-foot contacts. All 360,360 sampled deformation triangles remained finite, unfolded and within the preview bounds. The carousel export completed. Browser/native frame-rate perception remains for personal review.
+- Local, uncommitted design preview and pending-choice notes only. Native app integration, application code, APKs, signing, wallet data, version/build number and GitHub releases are unchanged. Recording time in America/New_York.
+
+---
+# Cap-free sand-search animations saved as Option 2 - 2026-10-31T17:20:01-04:00
+
+- Removed the caps from both Tom and Jerry in the profile and turnaround artwork, restoring their natural fur and hair tufts. Saved Together/Jerry/Tom variants as Option 2, with three independent offline-playable pages, a comparison page, carousel export, PNG/WebP artwork, checksums and a ZIP archive. Earlier saved sets and the capped sand-search previews remain unchanged.
+- Retained the approved six-second movement, lowered-head searching posture, magnifiers, ground, character positions, controls and accessibility behavior. Only embedded artwork and its visible-cell coverage changed; an assertion confirms the animation behavior is identical to the approved sand-search script.
+- Validation: edited images were visually inspected and retain their original transparent 1774 by 887 canvases. Playback and geometry checks passed for all three variants, including 159,720 finite, unfolded triangles within the preview bounds, ground contact, looping, pause, background pause and reduced motion. The carousel export completed. Native Android playback and perceived frame rate remain untested.
+- Local, uncommitted saved design preview and pending-choice notes only. Application code, APKs, signing, wallet data, version/build number and GitHub releases are unchanged. Native integration remains pending a separate selection. Recording time in America/New_York.
+
+---
+# Saved walking set and down-facing sand-search previews - 2026-10-31T17:10:14-04:00
+
+- Saved the previous Together/Jerry/Tom walking previews as a separate dated archive, including three independent offline-playable pages, original embedded-art previews, original WebP artwork, checksums and a review-carousel export. The export uses compressed copies to meet the wrapper's size limit; the full-quality originals are preserved unchanged.
+- Added a separate three-variant sand-searching set. New complete character illustrations keep their heads, eyes and low-held magnifying glasses aimed downward while moving right, inspecting the ground, turning and moving left. Continuous foot, torso and tail motion replaces walking-pose switching; matching complete down-facing turn illustrations preserve the searching posture. The repeated six-second route retains local Play/Pause, reduced-motion handling and background pausing. All consumed artwork is embedded locally.
+- Validation: the actual preview script passed syntax and drawing/interaction assertions across all three variants, asset loading, complete loop phases, repeated playback, pause, background pause and reduced motion. Geometric checks covered 166,496 triangles across all four character layouts and found no folding, non-finite coordinates or horizontal clipping. Actual deformed support-foot controls remain stationary on the ground during stance. Browser/native frame rate and perceived cartoon realism remain for personal review.
+- Local, uncommitted preview and pending-choice notes only. Earlier designs are retained. Application code, APKs, signing, wallet data, version/build number and GitHub releases are unchanged; native integration is still pending the user's selection. Recording time in America/New_York.
+
+---
+# Walking ground-search animation previews - 2026-10-31T16:48:03-04:00
+
+- Added the requested repeating walk-right, inspect, turn and walk-left sequence for all three review variants: Tom and Jerry together, Jerry alone and Tom alone. Complete character poses alternate footsteps while holding magnifying glasses, with ground inspection pauses and a front-facing turn. Earlier previews are preserved.
+- The six-second round trip uses continuous travel, blended walking poses, foot-contact alignment and a stationary ground patch. Playback repeats until paused and respects reduced motion and background visibility. All artwork is embedded; the preview makes no network requests.
+- Validation: the final script passed syntax and assert-based drawing/interaction checks for all three variants, route phases, repeated loops, finite drawing coordinates, continuous modeled foot contacts, pause, background pause and reduced motion. Actual browser/native frame rate and visual realism remain for personal review.
+- Local, uncommitted preview and pending-choice notes only. Native integration remains pending the user's choice; application code, APKs, signing, wallet data, version/build number and GitHub releases are unchanged. Recording time in America/New_York.
+
+---
+# Faster continuous-motion search previews - 2026-10-31T16:12:31-04:00
+
+- Increased all three continuous-motion ground-search variants from a four-second cycle to 2.4 seconds, matching the earlier pose-based preview's pace while retaining continuous motion, unchanged artwork, fixed ground and anchored foot pivots. The bounded preview now stops after six complete cycles so the endpoint matches the initial pose. Preserved the earlier slower versions.
+- Validation: syntax and assertions verify the faster timing, unchanged motion shape, bounded frame-to-frame movement and identical loop endpoints. All Together/Jerry/Tom paths passed the actual-script drawing/DOM harness for loading, drawing, playback and the updated stop time. Browser/native frame-rate perception remains for personal review.
+- Updated the local preview and pending-choice notes only. No application code, version/build number, APK, signing flow, wallet data or GitHub release changed. Recording time in America/New_York.
+
+---
+# Three continuous-motion ground-search previews - 2026-10-31T16:07:25-04:00
+
+- Addressed the user's feedback about visible jumps in the eight-pose ground-search preview. Replaced pose switching/crossfading with elapsed-time continuous leaning, upper-body sway and breathing, using stable full-body character cutouts with held magnifying glasses. The earth patch is stationary and each character's foot pivot remains fixed. Provided the three requested variants: Tom and Jerry together, Jerry alone and Tom alone.
+- Generated and visually inspected separate matching full-body Tom/Jerry artwork plus the ground asset, preserving the previous concept and all earlier preview files. The new self-contained page uses one image draw per character, requestAnimationFrame playback, periodic motion and reduced-motion handling. No network requests or invented scanning results are added.
+- Validation: JavaScript syntax passed. Assert checks cover bounded/continuous motion, small frame-to-frame changes and identical four-second loop endpoints for both character phases. Executed all three actual preview paths in a drawing/DOM harness, checking loading, playback/stopping, reduced motion, fixed foot pivots through the applied transforms and a fixed ground height. Actual visual smoothness/frame rate in a browser or native Android view remains for personal review because browser control is unavailable.
+- Updated the pending animation-choice TODO. This is preview-only: application code, wallet data, signing flow, version/build number, APKs and GitHub release remain unchanged. Recording time in America/New_York.
+
+---
+# Full-body Tom and Jerry ground-search loader preview - 2026-10-31T15:53:11-04:00
+
+- Created the user's new joint searching-loader concept with full recognizable Tom and Jerry heads and bodies at normal character proportions. Both crouch over a small patch of earth and hold magnifying glasses as though looking for something buried; the earlier oversized-head/pink-body treatment is not used in this concept.
+- Generated and visually inspected an eight-frame coordinated character scene, embedded an optimized transparent atlas, and added centered local playback with blended poses and reduced-motion handling. The standalone review page is self-contained and makes no network requests. All earlier concepts remain preserved.
+- Validation: JavaScript syntax passed; assert checks cover sprite/frame bounds, blend weights and loop indexing. Executed the actual preview script in a drawing/DOM harness to check asset loading, compositing, playback/stopping and reduced-motion behavior. Real browser/native Android rendering remains unverified because browser control is unavailable.
+- Updated the pending choice in TODO. This is a design preview only: no application code, wallet data, version/build number, APK, GitHub release or signing flow changed. Recording time in America/New_York.
+
+---
+# Tom and Jerry oversized-head turning previews - 2026-10-31T15:45:08-04:00
+
+- Inspected the user's specifically linked oversized-head GIF: 39 frames, 970 by 546 pixels and a 1,560 ms loop. Recreated that turning-head/tiny-body motion as two review variants, using Tom and Jerry heads. The small pink body passes behind and in front of the head, following the reference's proportions and occlusion pattern; this is a coded recreation, not a frame-for-frame edited copy of the original GIF.
+- Generated and inspected eight-direction transparent head atlases for each character, embedded optimized versions into the self-contained preview, and blended adjacent directions while preserving head visibility. Retained local playback, reduced-motion handling and centered placement. Earlier swimming and bar previews remain preserved.
+- Validation: JavaScript syntax passed; pose assertions verify periodicity, finite/bounded coordinates, sprite indices and front/back body order. The actual preview script passed a drawing/DOM harness for asset loading, layered frame compositing, playback and stopping in both variants. Character artwork and reference frames were visually inspected; real browser/native Android rendering is unverified because browser control is unavailable.
+- Added the new review page and pending animation choice to the local notes. No application code, installed wallet data, build/version, signed APK or GitHub release changed. The user must choose an animation before native integration. Recording time in America/New_York.
+
+---
+# Controlled bar sweeps and reference-inspired loader previews - 2026-10-31T15:22:28-04:00
+
+- Created three centered animation-6 previews that move only one, two or at most three adjacent bars at a time, strictly from left to right. Other bars stay stationary; groups settle before the next group moves and the loop restarts after a short pause.
+- Inspected frames from the user's linked elastic-bounce, domino and swimming references. Created fresh elastic and domino motion plus Tom and Jerry swimming variants using generated transparent character-head assets; no human head is used. The review page is self-contained with embedded optimized assets, local playback, reduced-motion support and no network requests or invented scanning percentages. Earlier preview versions remain preserved.
+- Validation: JavaScript syntax passed; an assert-based motion check sampled 30 seconds for each bar mode and verified the active-bar maximum, contiguous groups, bounded scales and left-to-right progression. Executed the actual preview script against a minimal drawing/DOM harness to check initialization, drawing, playback/stopping and both embedded image loads for all seven variants. These are implementation checks, not visual verification in a native Android view; automated browser control was unavailable.
+- Updated the local review page and pending animation-choice TODO. No native app animation was integrated, and no code, signature, build/version number, APK, GitHub release or wallet data changed. The previously verified 0.53.2 (189) development/main installers remain the testing candidates. Recording time in America/New_York.
+
+---
+# Seven-dot previews and three equalizer alternatives - 2026-10-31T14:56:09-04:00
+
+- At the user's next design revision, reduced both centered dot styles from ten dots to seven while retaining their wider placement. Remade equalizer option 6 as three distinct previews: 6A Flowing wave, 6B Center pulse and 6C Traveling highlight. The flowing/breathing profiles use smooth tapered bars; the highlight variant keeps its waveform shape stable while emphasis travels across it. The existing sweeping-line preview is retained for comparison.
+- Checked both seven-dot counts, all three waveform variants, local resource use and JavaScript syntax. Preserved earlier previews and opened the new review page. This supersedes the ten-dot preview direction, not a shipped app behavior. Native animation integration still awaits the user's choice.
+- The completed, signed 0.53.2 (189) APKs and their 389 passing unit tests are unchanged. Both development/main installers have been provided for personal testing. No additional build, release, installation, transaction or GitHub push occurred in this preview-only revision. Recording time in America/New_York.
+
+---
+# Wider centered scanning animation previews prepared for review - 2026-10-31T14:50:41-04:00
+
+- Remade the requested Soft dots (option 2), Bouncing dots (3), Sweeping line (4) and Equalizer (6) previews with centered placement below Checking permissions. Both dot variants contain ten dots; the line spans 228 pixels in the preview and the equalizer uses twenty bars. Preview playback is longer and all variants honor reduced motion. Original previews remain preserved.
+- Checked the four option identities, exact dot/bar counts, lack of external resources and JavaScript syntax. These are browser-rendered design previews, not native Android verification. The already verified development/main 0.53.2 (189) test APKs below remain unchanged and contain no new scanning animation. Await the user's visual choice before app integration.
+- Changelog/TODO and implementation source remain local/uncommitted and synchronized to the main checkout. No GitHub push, release replacement, device installation or transaction was performed. Recording time in America/New_York.
+
+---
+# Local development and signed scanner/swap test APKs completed - 2026-10-31T14:46:44-04:00
+
+- Completed both development and optimized signed production APKs from the final source at 0.53.2 (189). Final Gradle invocation passed in 14m 34s: 1,169 tasks, 83 executed and 1,086 up-to-date, including production shrinking and vital lint. The earlier intermediate packaging invocation was stopped before delivery to include the final RPC configuration guard; no intermediate candidate is being handed off.
+- All 389 affected unit tests pass (334 wallet and 55 EVM), with zero failures, errors or skips. Translation coverage passed for 1,857 source strings across nine additional locales. The scoped source layout detector returned no findings. Saved built APKs and production mapping/checksums under C:\dev\openswap-release-backups\2026-10-31. APK integrity/signatures/package/version and production non-debuggable status are verified; the final provider-change guard is present in both APKs. Production uses the unchanged signing certificate.
+- Development APK: 147,484,343 bytes, SHA-256 b170e39de0f2ed7bad00b593f5952c1be0be13b5d27a97d66d179c5c4064eeb5. Main installer: 99,968,006 bytes, SHA-256 250a15dfca7a08e52f85cee10167470058f1f1208b9c5bc55c4f4188fa19a220. The main installer can update the same-signed main build 189 without uninstalling, subject to Android installation rules; no device installation was performed.
+- Source changes are synchronized to C:\dev\openswap and remain local/uncommitted. No tag, GitHub release, published APK or version/build number was changed. Existing saved APKs and unrelated files are preserved. Native layout/cursor/large-font/RTL checks, live provider coverage, observed Tor routing and funded revocation testing remain unverified; the user will test personally.
+- Prepared seven separate scanning animation previews. The user requested wider, centered variants of Soft dots, Bouncing dots, Sweeping line and Equalizer, with ten dots for both dot variants. These previews are separate from this APK batch; no scanner animation has been added to the app yet. Recording time in America/New_York.
+
+---
+# Ten-character swap amounts and configured approval RPC fallback - 2026-10-31T14:13:29-04:00
+
+- Local, uncommitted test candidate: reduce both unfocused main-swap token amounts from 14 to 10 characters, retaining compact units, downward display rounding and tiny-value scientific notation. Focusing either amount reveals its full decimal value inline; the received amount is read-only and its former details popup is removed. Existing fonts, colors, precision for quotes/signing and the default Send/CrossPay input behavior are preserved.
+- Approval reads try the selected provider first, followed by every other built-in and saved custom endpoint, including all URLs within a provider and HTTP/WebSocket transports. Missing receipts, empty log responses, zero allowances and request failures trigger fallback. Verify each endpoint's chain before owner/contract queries, keep credentials attached only to their own endpoint, stop on cancellation or account/provider/privacy changes, and follow the existing optional Tor setting without direct fallback when Tor is enabled. Keep revocation signing and its final selected-provider recheck on the existing route.
+- Reuse per-request-method failures within one scan to avoid repeated timeouts for each transaction. A failed endpoint plus only negative responses remains an incomplete check, not a clean empty result. Suppress the empty-state claim while historical pagination is incomplete. Fresh remote address history remains the source of BSC transaction identities; stored wallet history is not used and RPC rotation cannot expand history-provider coverage.
+- Updated the scanner privacy explanation in all ten shipped languages. Translation coverage passes for all 1,857 source strings. The changed formatter tests first reproduced the prior 14-character behavior with seven expected failures; the affected wallet/EVM suite subsequently passed. Development and optimized signed packaging, final artifact checks and personal device testing are pending at recording time. Keep version 0.53.2 (189); no GitHub publication or wallet-data change is authorized in this batch.
+
+---
 # Open Swap v0.53.2 replaced with verified build 189 - 2026-10-29T17:27:00-04:00
 
 - Committed the completed scanner, native approval-flow and swap formatting changes as 11cf9676caaf9af1245e331442c2d622eacde7e3, fast-forwarded master and atomically pushed master plus the explicitly authorized replacement v0.53.2 tag. The tag now points to matching source, with updated user-facing release notes. The earlier annotated tag object and original build-187 APK/release metadata remain preserved locally; no earlier-version release or tag was changed.

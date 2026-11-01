@@ -1979,7 +1979,7 @@
     <string name="ApprovalAccess_Title">Erişimi iptal et</string>
     <string name="ApprovalAccess_SettingsDescription">EVM ağlarındaki token ve NFT izinlerini inceleyin</string>
     <string name="ApprovalAccess_Intro">Borsalara ve dapp\'lere daha önce verilen harcama izinlerini bulun ve iptal edin. Bir dapp\'in bağlantısını kesmek, zincir üzerindeki onaylarını iptal etmez.</string>
-    <string name="ApprovalAccess_Privacy">Sorgular, herkese açık cüzdan adresinizi seçilen RPC’ye ve mevcut geçmiş sağlayıcısına gönderir. Tor isteğe bağlıdır. Tor olmadan sağlayıcılar IP adresinizi görebilir. Tor açıkken tarama bağlantıyı bekler ve doğrudan bağlantıya geçmez. Kayıtlı işlem geçmişi kullanılmaz.</string>
+    <string name="ApprovalAccess_Privacy">Tarama önce seçili RPC’yi kullanır; istek başarısız olursa veya izin döndürmezse diğer yerleşik ve kayıtlı özel RPC’leri dener. Mevcut adres geçmişi sağlayıcısı da kullanılır. Tor isteğe bağlıdır. Tor olmadan bu sağlayıcılar herkese açık adresinizi ve IP adresinizi görebilir. Tor etkinken tarama bağlantıyı bekler ve asla doğrudan bağlantıya geçmez. Kayıtlı işlem geçmişi kullanılmaz.</string>
     <string name="ApprovalAccess_NoWallet">Önce bir cüzdan seçin</string>
     <string name="ApprovalAccess_Network">Ağ seçin</string>
     <string name="ApprovalAccess_Scan">Tara / Taramaya devam et</string>

@@ -149,6 +149,7 @@ dependencies {
     api(libs.coil.compose)
     api(libs.coil.svg)
     api(libs.coil.gif)
+    implementation(libs.lottie.compose)
 
     // Logging
     api(libs.timber)

@@ -1,3 +1,23 @@
+## Existing release refresh, updated 2026-10-31
+
+- [x] Preserve the original Tom and Jerry ground-search preview as a separate unchanged developer-note alternative and offline snapshot/ZIP.
+- [ ] Publish the completed wallet changes, refresh the existing v0.53.2 release notes and replace its APK with verified signed build 189. Preserve the old APK/tag metadata and verify the public download.
+
+## Four-animation scan rotation, updated 2026-10-31
+
+- [x] Integrate the existing scanner, Tom and Jerry together, Tom alone and Jerry alone as a persistent round-robin sequence selected once per accepted scan. Offer four choices in either appearance with five local assets. Preserve approved motion, theme surfaces, offscreen pause and disabled-motion handling.
+- [x] Build development and signed regular 0.53.2 (189) APKs with the rotation. All 16 focused approval tests pass; versions, signatures, ZIP integrity, five animation resources and licenses/provenance are verified. Both Animation-Rotation APKs are in phone Downloads with matching checksums. No installation or GitHub publication was performed.
+- [ ] Receive personal feedback for the four-scan sequence, reopening, repeat scans with existing results, both appearances, cancellation and background/disabled-motion behavior. Do not infer installation or funded transaction testing.
+
+## Swap display and approval fallback testing, updated 2026-10-31
+
+- [x] Reduce unfocused main swap amounts to 10 characters and reveal the full amount inline on focus for both sides; remove the received-amount popup and keep output read-only.
+- [x] Complete and verify both development and signed production APKs at 0.53.2 (189). All 389 affected tests pass; APKs, checksums and the production mapping are saved under the 2026-10-31 release-backup folder.
+- [ ] Receive personal feedback for Blockrazor/custom-RPC scanning and inline amount expansion. No funded transaction testing is required for this handoff.
+- [x] Prepare the final scanner animation: Faaiza's Searching animation with Ethereum/wallet symbols, outlined sample crypto addresses and matching light/dark variants. Retained 1.5x speed and the 2.4-second loop. Saved native JSON/dotLottie, themed GIF/PNG previews, source/font licenses, provenance and checksums. Earlier versions remain saved.
+- [x] Integrate the final themed crypto-address Searching animation below Checking permissions while scanning with no results. Local light/dark vector assets follow the selected app appearance, retain the 2.4-second loop and outlined sample addresses, pause offscreen, and respect disabled system animations. Bundle animation and renderer licenses. Correct edge fades to the actual scanning surface. All 14 focused approval checks and development packaging pass.
+- [ ] Receive personal device feedback for the integrated scanner in light/dark appearance, loading/results/no-results and cancellation. Development and signed regular 0.53.2 (189) APKs are in Downloads with verified transfer checksums for manual installation. Both builds passed; all 14 focused approval tests passed. No installation or signing test is inferred.
+
 # Open Swap TODO
 
 ## Build 189 publication, updated 2026-10-29
@@ -14,7 +34,7 @@
 
 - [x] User confirmed main build 189 finds BSC approvals. Retain the working fresh-history/receipt fallback.
 - [x] Match Revoke Access to the wallet's existing approval/signing route by removing its extra PIN-only wrapper; leave shared PIN/biometrics and ordinary approvals unchanged. Candidate build 190 completed signed packaging; user testing of signing remains pending. The route-layout candidate is version 0.53.2 (189), following the user's explicit request to match installed build 189 without increasing it further; signed packaging is complete.
-- [ ] Await the user's decision on a scanner-only preferred RPC followed by attempts across built-in providers. Current behavior uses selected-provider reads with the internal BSC missing-receipt fallback. Failures or incomplete discovery must never become a claim that no approvals exist. Do not implement the proposed provider sweep without that decision.
+- [x] User authorized selected-first approval RPC fallback on 2026-10-31. Implemented fallback across built-in/custom endpoints on missing, empty or failed reads with unchanged signing and Tor guards; packaging and device validation are recorded in the latest changelog. This supersedes the preceding single historical BSC reader.
 
 ## In-place rollback builds, planned 2026-10-29
 

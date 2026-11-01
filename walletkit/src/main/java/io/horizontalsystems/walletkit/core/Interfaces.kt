@@ -120,6 +120,7 @@ interface ILocalStorage {
     val appFontFlow: StateFlow<AppFont>
     var appFontSize: AppFontSize
     val appFontSizeFlow: StateFlow<AppFontSize>
+    var approvalScanAnimationIndex: Int
     var customTokenRecords: List<CustomTokenRecord>
     var mainTab: MainModule.MainNavigation?
     fun moneroActiveAccount(accountId: String): Int
