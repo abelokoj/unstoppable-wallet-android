@@ -1,3 +1,10 @@
+# Correct automated signing-output verification - 2026-11-02T12:53:56-05:00
+
+- The first v0.53.3 GitHub run 41491920095 passed tests, built the signed F-Droid 0.53.3 (190) APK and passed flavor/version/build checks, then stopped before release publication. Its actual production certificate matched the pinned fingerprint. The new guard incorrectly required the older apksigner label "Signer #1" while the runner prints "V2 Signer".
+- Replaced label-specific matching with extraction of certificate SHA-256 digests, requiring the complete normalized digest set to equal the unchanged production fingerprint. Actual CI output, legacy output and uppercase digests pass; empty, wrong and mixed certificate outputs fail. Cryptographic apksigner verification still runs first. No app code, version, signing key or approved release note changed.
+- The failed run published no release or APK. Recorded the original new-tag object and failure logs locally. The still-unpublished v0.53.3 tag will be recreated on this workflow-only fix to trigger a fresh created-tag build; existing published tags/releases remain untouched. This entry records pre-restart preparation in America/New_York, not successful publication.
+
+---
 # Start approved 0.53.3 (190) publication - 2026-11-02T12:29:51-05:00
 
 - Adopted the user's revised commit message, including the minor user enhancements bullet, and retained the reviewed 0.53.3 release notes. Preparing a new v0.53.3 annotated tag to trigger GitHub's automated signed F-Droid build and release attachment; no existing release tag or asset is being replaced.
