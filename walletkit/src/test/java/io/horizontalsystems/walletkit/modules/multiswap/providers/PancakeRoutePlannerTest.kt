@@ -40,6 +40,37 @@ class PancakeRoutePlannerTest {
         assertTrue(PancakeRoutePlanner.candidates(routes, 1, 1, native, native).isEmpty())
     }
 
+    @Test fun `dapp pattern for BNB to native ETH uses its direct destination bridge asset`() {
+        val routes = listOf(PancakeCrossChainApi.Route(56, 1, usdc, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
+            PancakeCrossChainApi.Route(56, 1, bscEth, eth))
+        val result = PancakeRoutePlanner.dappCandidates(routes, 56, 1, native, native)
+        assertEquals(1, result.size)
+        assertEquals(bscEth, result.single().route.originToken)
+        assertTrue(result.single().sourceSwap)
+        assertFalse(result.single().destinationSwap)
+    }
+
+    @Test fun `dapp bridge-first pattern keeps the requested origin bridge asset`() {
+        val routes = listOf(PancakeCrossChainApi.Route(1, 56, eth, bscEth),
+            PancakeCrossChainApi.Route(1, 56, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", usdc))
+        val result = PancakeRoutePlanner.dappCandidates(routes, 1, 56, native, native)
+        assertEquals(1, result.size)
+        assertFalse(result.single().sourceSwap)
+        assertTrue(result.single().destinationSwap)
+    }
+
+    @Test fun `dapp direct bridge and two-swap patterns retain their distinct candidates`() {
+        val routes = listOf(PancakeCrossChainApi.Route(1, 56, eth, bscEth),
+            PancakeCrossChainApi.Route(1, 56, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", usdc))
+        val direct = PancakeRoutePlanner.dappCandidates(routes, 1, 56, native, bscEth)
+        assertEquals(0, direct.single().swapCount)
+        val arbitrary = "0x1111111111111111111111111111111111111111"
+        val both = PancakeRoutePlanner.dappCandidates(routes, 1, 56, arbitrary, arbitrary)
+        assertEquals(2, both.size)
+        assertTrue(both.all { it.swapCount == 2 })
+        assertTrue(PancakeRoutePlanner.dappCandidates(routes, 56, 1, arbitrary, arbitrary).isEmpty())
+    }
+
     @Test fun `slippage rounds down and divides the allowance between swap legs`() {
         val out = BigInteger("1000000")
         assertEquals(out, PancakeRoutePlanner.minimum(out, "0".toBigDecimal(), 2))

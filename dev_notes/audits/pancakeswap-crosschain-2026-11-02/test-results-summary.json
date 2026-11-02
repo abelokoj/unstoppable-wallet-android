@@ -1,0 +1,44 @@
+[
+  {
+    "name": "io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeAmmQuoteTest",
+    "tests": "3",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeCrossChainTest",
+    "tests": "7",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeInfinityStableQuoteTest",
+    "tests": "1",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeNonEvmQuoteTest",
+    "tests": "2",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeRoutePlannerTest",
+    "tests": "4",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "io.horizontalsystems.walletkit.modules.multiswap.providers.PancakeSwapCalldataTest",
+    "tests": "6",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  }
+]

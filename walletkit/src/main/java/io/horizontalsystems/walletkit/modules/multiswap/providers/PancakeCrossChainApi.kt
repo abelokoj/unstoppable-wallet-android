@@ -28,6 +28,11 @@ internal interface PancakeCrossChainApi {
     @POST("v1/calldata")
     suspend fun calldata(@Body body: JsonObject): JsonObject
 
+    @GET("https://pancakeswap.finance/api/pools/candidates")
+    suspend fun pools(@Query("chainId") chain: Long, @Query("addressA") input: String,
+                      @Query("addressB") output: String, @Query("type") type: String = "full",
+                      @Query("protocol") protocols: String = "stable,v2,v3,infinityCl,infinityBin"): JsonObject
+
     @GET("https://hub-gateway.pancakeswap.com/v2/quote")
     suspend fun ammQuote(@Query("chainId") chain: Long, @Query("inputToken") input: String,
                          @Query("outputToken") output: String, @Query("amount") amount: String,

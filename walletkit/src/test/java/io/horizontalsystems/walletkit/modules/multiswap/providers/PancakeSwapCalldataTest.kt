@@ -32,6 +32,39 @@ class PancakeSwapCalldataTest {
             bridge["originChainRecipient"].asString, request["recipientOnDestChain"].asString,
             data.quoteTimestamp!! + 5)
     }
+    @Test fun threeCommandPlanPreservesMinimumsAndRefundsBridgeSurplus() {
+        val f = fixture("three-command-real")
+        val request = f.getAsJsonObject("request")
+        val commands = request.getAsJsonArray("commands")
+        val bridge = commands[1].asJsonObject.getAsJsonObject("data")
+        fun swap(index: Int, key: String): PancakeSwapExpectation {
+            val raw = f.getAsJsonObject(key)
+            val parsed = PancakeAmmQuote.parse(raw, raw["chainId"].asLong, raw["srcToken"].asString,
+                raw["dstToken"].asString, raw["inputAmount"].asString.toBigInteger())
+            val trade = commands[index].asJsonObject.getAsJsonObject("data").getAsJsonObject("trade")
+            return PancakeSwapExpectation(parsed.chainId, parsed.inputToken, parsed.outputToken, parsed.amountIn,
+                trade.getAsJsonObject("outputAmount")["numerator"].asString.toBigInteger(), parsed.raw)
+        }
+        val data = gson.fromJson(bridge["bridgeTransactionData"], PancakeBridgeQuote.BridgeData::class.java)
+        val source = swap(0, "sourceQuote")
+        val destination = swap(2, "destinationQuote")
+        val order = PancakeSwapOrder(56, 1, request["inputToken"].asString, request["outputToken"].asString,
+            request["inputAmount"].asString.toBigInteger(), bridge["inputToken"].asString, bridge["outputToken"].asString,
+            bridge["inputAmount"].asString.toBigInteger(), data, source, destination,
+            bridge["originChainRecipient"].asString, request["recipientOnDestChain"].asString, data.quoteTimestamp!! + 5)
+        val calldata = f.getAsJsonObject("response").getAsJsonObject("transactionData")["calldata"].asString
+        val checks = PancakeCrossChainTransaction.routerChecks(order, calldata)
+        assertEquals(setOf(56L, 1L), checks.map { it.chainId }.toSet())
+        val built = PancakeCrossChainTransaction.buildWithSwaps(order, calldata, checks)
+        val encoded = Numeric.toHexStringNoPrefix(built.input)
+        val exactDestination = destination.inputToken.removePrefix("0x").lowercase().padStart(64, '0') +
+            destination.amountIn.toString(16).padStart(64, '0')
+        assertTrue(encoded.contains(exactDestination))
+        assertTrue(source.minimumOut < source.rawQuote["outputAmount"].asString.toBigInteger())
+        assertTrue(destination.minimumOut < destination.rawQuote["outputAmount"].asString.toBigInteger())
+        assertEquals(order.amount, built.value)
+    }
+
     private fun calldata(name: String) = fixture(name).getAsJsonObject("response")
         .getAsJsonObject("transactionData")["calldata"].asString
 

@@ -30,6 +30,30 @@ class PancakeAmmQuoteTest {
         }
     }
 
+    @Test fun decimalRoutePercentagesRetainTheExactBudget() {
+        val raw = fixture("v3").getAsJsonObject("quote")
+        val route = raw.getAsJsonArray("routes").single().asJsonObject
+        val input = raw["inputAmount"].asString.toBigInteger()
+        val output = raw["outputAmount"].asString.toBigInteger()
+        val a = route.deepCopy().apply {
+            addProperty("percent", "33.33333333333333")
+            addProperty("inputAmount", (input / BigInteger.valueOf(3)).toString())
+            addProperty("outputAmount", (output / BigInteger.valueOf(3)).toString())
+        }
+        val b = route.deepCopy().apply {
+            addProperty("percent", "66.66666666666667")
+            addProperty("inputAmount", (input - a["inputAmount"].asString.toBigInteger()).toString())
+            addProperty("outputAmount", (output - a["outputAmount"].asString.toBigInteger()).toString())
+        }
+        raw.add("routes", com.google.gson.JsonArray().apply { add(a); add(b) })
+        assertEquals(input, parse(raw).amountIn)
+        for (percent in listOf("1e999999", "NaN", "-1", "100.01", "999999999999999999999999")) {
+            val bad = raw.deepCopy()
+            bad.getAsJsonArray("routes")[0].asJsonObject.addProperty("percent", percent)
+            assertThrows(Exception::class.java) { parse(bad) }
+        }
+    }
+
     @Test fun `rejects changed intent non PCS pools and added application fees`() {
         val raw = fixture("v3").getAsJsonObject("quote")
         val amount = raw["inputAmount"].asString.toBigInteger()

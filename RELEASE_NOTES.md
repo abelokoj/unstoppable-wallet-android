@@ -1,3 +1,24 @@
+# Open Swap v0.53.3
+
+Build 190 improves PancakeSwap cross-chain quotes, refreshes approval-scan animations and restores larger home-page token icons.
+
+## 🔄 Updated
+
+- **PancakeSwap Cross-chain:** Improved quote selection with broader liquidity-pool discovery, multi-hop routes and split swaps on supported EVM networks. Source swaps, bridging and destination swaps now use a more consistent comparison of expected output and minimum received.
+- **Scan animation order:** Successive Revoke Access scans now cycle through Tom and Jerry together, Tom and Jerry Original, the crypto-document scanner, Tom alone and Jerry alone. The rotation continues between visits and follows the app's light or dark appearance.
+- **Original animation:** Refreshed the original Tom and Jerry ground-search animation. The crypto scanner and the other animation styles are unchanged.
+
+## 🐛 Fixed
+
+- **Balances icons:** Restored the larger token icons on the home page after an upstream update reduced their size. Blockchain badges and sync-error indicators are retained.
+
+## ⚠️ Notes
+
+PancakeSwap Cross-chain remains a preview. Pool, bridge, provider and network fees may apply; no Open Swap developer or referral fee is added. Quotes can change before confirmation, and identical prices to the PancakeSwap website are not guaranteed. Funded settlement and refund-recovery testing remain pending.
+
+Existing wallet signing and Tor preferences are retained. Enabled but disconnected Tor is not bypassed for supported routing requests.
+
+---
 # Open Swap v0.53.2
 
 Build 189 improves approval discovery, adds animated scanning and makes token swaps easier to read.

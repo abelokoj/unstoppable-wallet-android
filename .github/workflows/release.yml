@@ -25,6 +25,15 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Test wallet routing and scan animations
+        run: >-
+          ./gradlew :walletkit:testDebugUnitTest
+          --tests '*Pancake*Test'
+          --tests '*ApprovalScanningAnimationTest'
+          --tests '*OpenSwapProviderRatingsTest'
+          --tests '*SwapProviderIdMappingTest'
+          --no-daemon
+
       - name: Restore keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -51,10 +60,17 @@ jobs:
       - name: Verify F-Droid distribution
         run: |
           python3 - <<'PY'
-          import json
+          import json, os, re
           from pathlib import Path
           metadata = json.loads(Path("app/build/outputs/apk/fdroid/release/output-metadata.json").read_text())
           assert metadata["variantName"] == "fdroidRelease"
+          assert metadata["applicationId"] == "money.openswap.wallet"
+          assert len(metadata["elements"]) == 1
+          built = metadata["elements"][0]
+          assert built["versionName"] == os.environ["GITHUB_REF_NAME"].removeprefix("v"), "APK version does not match release tag"
+          source = Path("app/build.gradle.kts").read_text()
+          source_build = int(re.search(r"(?m)^\s*versionCode\s*=\s*(\d+)", source).group(1))
+          assert built["versionCode"] == source_build, "APK build number does not match source"
           config = Path("app/build/generated/source/buildConfig/fdroid/release/io/horizontalsystems/bankwallet/BuildConfig.java").read_text()
           assert "FDROID_BUILD = true;" in config
           PY
@@ -62,10 +78,12 @@ jobs:
       - name: Rename APK
         run: mv app/build/outputs/apk/fdroid/release/app-fdroid-release.apk open-swap-${{ github.ref_name }}.apk
 
-      - name: Print fingerprint
+      - name: Verify release signing identity
         run: |
           APKSIGNER=$(ls -d $ANDROID_HOME/build-tools/*/apksigner | sort -V | tail -1)
-          "$APKSIGNER" verify --print-certs open-swap-${{ github.ref_name }}.apk
+          "$APKSIGNER" verify --print-certs open-swap-${{ github.ref_name }}.apk > "$RUNNER_TEMP/apk-signing.txt"
+          cat "$RUNNER_TEMP/apk-signing.txt"
+          grep -F "Signer #1 certificate SHA-256 digest: 277c10bbed425c98b8df4aa7372dfe483daeefdc6ddbc19b462ac83df8d8b295" "$RUNNER_TEMP/apk-signing.txt"
 
       - name: Release notes from the annotated tag
         run: git tag -l --format='%(contents)' "${{ github.ref_name }}" > RELEASE_NOTES.md
@@ -74,3 +92,4 @@ jobs:
         with:
           files: open-swap-${{ github.ref_name }}.apk
           body_path: RELEASE_NOTES.md
+          fail_on_unmatched_files: true

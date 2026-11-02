@@ -1,0 +1,166 @@
+{
+  "recordedAt": "2026-11-02T01:49:06-05:00",
+  "screenshot": {
+    "inputBNB": "0.493441",
+    "appDisplayedETH": "0.151993268",
+    "websiteDisplayedETH": "0.152730",
+    "differenceETH": "0.000736732",
+    "differencePercentOfWebsite": "0.4823754337720159759051921692",
+    "limitation": "Rounded screenshot values, without exact quote times, request IDs, route details or slippage settings. Not a synchronized execution comparison."
+  },
+  "smallBridgeProbe": {
+    "origin": 56,
+    "destination": 1,
+    "sourceAsset": "BSC WETH",
+    "destinationAsset": "native ETH",
+    "rawExpectedInput": "1000000000000000",
+    "rawProtectedInput": "990099009900990",
+    "rawExpectedOutput": "982082431567369",
+    "rawProtectedOutput": "972190813287007",
+    "commonQuoteTimestamp": 1793601371,
+    "limitation": "Smaller public bridge-only probe isolates protected-input arithmetic. It is not the user's full BNB swap or a funded settlement."
+  },
+  "batchCatalogue": [
+    {
+      "origin": 1,
+      "destination": 56,
+      "candidates": 3
+    },
+    {
+      "origin": 1,
+      "destination": 324,
+      "candidates": 4
+    },
+    {
+      "origin": 1,
+      "destination": 8453,
+      "candidates": 5
+    },
+    {
+      "origin": 1,
+      "destination": 42161,
+      "candidates": 5
+    },
+    {
+      "origin": 56,
+      "destination": 1,
+      "candidates": 3
+    },
+    {
+      "origin": 56,
+      "destination": 324,
+      "candidates": 3
+    },
+    {
+      "origin": 56,
+      "destination": 8453,
+      "candidates": 4
+    },
+    {
+      "origin": 56,
+      "destination": 42161,
+      "candidates": 4
+    },
+    {
+      "origin": 324,
+      "destination": 1,
+      "candidates": 4
+    },
+    {
+      "origin": 324,
+      "destination": 56,
+      "candidates": 3
+    },
+    {
+      "origin": 324,
+      "destination": 8453,
+      "candidates": 4
+    },
+    {
+      "origin": 324,
+      "destination": 42161,
+      "candidates": 5
+    },
+    {
+      "origin": 8453,
+      "destination": 1,
+      "candidates": 4
+    },
+    {
+      "origin": 8453,
+      "destination": 56,
+      "candidates": 3
+    },
+    {
+      "origin": 8453,
+      "destination": 324,
+      "candidates": 3
+    },
+    {
+      "origin": 8453,
+      "destination": 42161,
+      "candidates": 4
+    },
+    {
+      "origin": 42161,
+      "destination": 1,
+      "candidates": 4
+    },
+    {
+      "origin": 42161,
+      "destination": 56,
+      "candidates": 3
+    },
+    {
+      "origin": 42161,
+      "destination": 324,
+      "candidates": 4
+    },
+    {
+      "origin": 42161,
+      "destination": 8453,
+      "candidates": 5
+    }
+  ],
+  "batchCounterexample": {
+    "outputs": [
+      100,
+      99,
+      98,
+      110
+    ],
+    "existingPolicyOutput": 100,
+    "globalBestOutput": 110,
+    "synthetic": true
+  },
+  "splitLimitProbe": [
+    {
+      "maxSplits": 3,
+      "status": 200,
+      "code": 0,
+      "outputAmount": "153135942144651902",
+      "minBlockNumber": 131194852,
+      "routeCount": 2,
+      "url": "https://hub-gateway.pancakeswap.com/v2/quote?chainId=56&inputToken=0x0000000000000000000000000000000000000000&outputToken=0x2170Ed0880ac9A755fd29B2688956BD959F933F8&amount=493441000000000000&tradeType=exactIn&swapFeeBps=0&protocol=v2%2Cv3%2Cstableswap%2CinfinityCl%2CinfinityBin&provider=pancakeswap&maxSplits=3"
+    },
+    {
+      "maxSplits": 10,
+      "status": 200,
+      "code": 0,
+      "outputAmount": "153135942144651902",
+      "minBlockNumber": 131194852,
+      "routeCount": 2,
+      "url": "https://hub-gateway.pancakeswap.com/v2/quote?chainId=56&inputToken=0x0000000000000000000000000000000000000000&outputToken=0x2170Ed0880ac9A755fd29B2688956BD959F933F8&amount=493441000000000000&tradeType=exactIn&swapFeeBps=0&protocol=v2%2Cv3%2Cstableswap%2CinfinityCl%2CinfinityBin&provider=pancakeswap&maxSplits=10"
+    }
+  ],
+  "tests": {
+    "total": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "disclosures": "Only public tokens, chains and trade amounts were sent. No user wallet addresses, credentials, signatures or transactions were used.",
+  "runtimeChanges": false,
+  "newAPK": false,
+  "githubPublication": false
+}

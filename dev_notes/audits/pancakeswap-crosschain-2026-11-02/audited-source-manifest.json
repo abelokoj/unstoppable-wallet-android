@@ -1,0 +1,118 @@
+[
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeAmmQuote.kt",
+    "sha256": "7e6562872b1b202f0fa2f01cbe3373148056670ce2fa63437fda3b629ee14a86"
+  },
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeCrossChainApi.kt",
+    "sha256": "eec0b45fbe0a90c6d6fbf6cd27110757ae27ca77850920228a0a12ee1db642e9"
+  },
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeCrossChainNetwork.kt",
+    "sha256": "14207745b22d66477ad096fe03f648b3521ac246bb215d41b565d521705cc28d"
+  },
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeCrossChainProvider.kt",
+    "sha256": "0603bb6307c6bf5d0f25d6c5ef076bcba4ac3fce35ca178bad6de44168e5160a"
+  },
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeCrossChainTransaction.kt",
+    "sha256": "61e3ef8e6fd3a7cabc4e7d060ec87b17486ab8c9c755fab6b74ef14d3633c4b7"
+  },
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeInfinityStableQuote.kt",
+    "sha256": "6655a6213cade2f5d7f95a5e875c5aad511fc905c832964aa5b71e499c780f85"
+  },
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeNonEvmQuote.kt",
+    "sha256": "be41cfa7f89ac03fd7223ccd5f09c0a6fa29406a6f9c117547410ee2e5ebc326"
+  },
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeRoutePlanner.kt",
+    "sha256": "164ee691dc7c6457f70b31c6bdbf5d5ded78a904c133aec3cd3abc463c7dec29"
+  },
+  {
+    "path": "walletkit/src/main/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeSwapCalldata.kt",
+    "sha256": "8ba482a0dab6ec1b82335e04749085a1e4ca9015a5ac41a6c188792e45ec35a1"
+  },
+  {
+    "path": "walletkit/src/test/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeAmmQuoteTest.kt",
+    "sha256": "b749267461b3819d26adf68c095ea4d5d7f229ecdd9d1312d1b6f15a72f5416b"
+  },
+  {
+    "path": "walletkit/src/test/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeCrossChainTest.kt",
+    "sha256": "082a85fdbe156af464ba6af81c9de7dc1e1812146175864b38c75468d557cea1"
+  },
+  {
+    "path": "walletkit/src/test/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeInfinityStableQuoteTest.kt",
+    "sha256": "3f21873eaa81da04b1353909ea0a8dcc8128fe7d26dd79edb9185866e2e6b7a9"
+  },
+  {
+    "path": "walletkit/src/test/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeNonEvmQuoteTest.kt",
+    "sha256": "98c6d9682a14b395226f25d4dfbb2e1fbd3e736c4299794ac926946db82ef695"
+  },
+  {
+    "path": "walletkit/src/test/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeRoutePlannerTest.kt",
+    "sha256": "1cc723719dafd9c0449aaf813fda70aefd9ce657bbc1ffd5cb361e40a8c4f51e"
+  },
+  {
+    "path": "walletkit/src/test/java/io/horizontalsystems/walletkit/modules/multiswap/providers/PancakeSwapCalldataTest.kt",
+    "sha256": "7bba49b7b8cc7557ae00d19ac7cf624d9efdb8b0b882a28274b1de4fb796f0c1"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-amm-infinityCl.json",
+    "sha256": "579c46e6fd1a94f344e06cadde4e20d562f7a6d6b4aeedf863adce48a52a1f1f"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-amm-infinityStable-state.json",
+    "sha256": "043119027d44da07e789cd25ec26f10d53413cd064e2708bfb7d75e3bffb48d9"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-amm-stableswap.json",
+    "sha256": "f01d6298786626d1fa48a88db9d890d59a55d1753b574827d51fe2b8256a8855"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-amm-v2.json",
+    "sha256": "7dbe9829cad046ee9d4b79eb11520bc03c5460425494a87712e926c5c09d1918"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-amm-v3.json",
+    "sha256": "2584488b9a7287cc33ad6c3c2ee6ecf88f4c4cc210670272147c056187144f46"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-crosschain-erc20.json",
+    "sha256": "dfc661d97469b90f12b0f69e76b3bfbcdbcd1bf51c1884aff406bb4245c88e23"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-crosschain-native.json",
+    "sha256": "b6cc6c277a5a6f440cc9722f926d5414c647f2597e440340bd7842f79f6f38ff"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-relay-ERC20_to_SOL.json",
+    "sha256": "e18afd074978cea516b16233f2f2bbc36ebe816ac55526d0c5dd32ef13764e58"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-relay-nativeSOL_to_EVM.json",
+    "sha256": "46f4e3b067c89204491a5f04da3800180ee7455bff7dec2ea013fa5706fa6400"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-swap-bnb-eth-real.json",
+    "sha256": "00fa1886dd378a2a52674a1c7f157fde363919988a12221e34cce5f820ffe9fa"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-swap-eth-bnb-real.json",
+    "sha256": "47301dce7884c5e80bf499b9f72b8403d02c393cee53ad74fe987a6fa482aedc"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-swap-infinityCl-real.json",
+    "sha256": "00922eeafca28e6bbffdbe2aec82fddebcf4d3568a99bbd6daa4210d4501cb1a"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-swap-stableswap-real.json",
+    "sha256": "a45ebaa98d15413db678c838ebd5aebbb131c56b3b58f6d2412295e729ed4443"
+  },
+  {
+    "path": "walletkit/src/test/resources/pancake-swap-v2-real.json",
+    "sha256": "2f6248ce52fe258f381487f2ad3246ed8de94c6880bf5ef43bb17c16fe1da9ec"
+  }
+]

@@ -1,0 +1,119 @@
+[
+  {
+    "name": "app-protocols-3",
+    "at": "2026-11-02T01:40:38.771657-05:00",
+    "url": "https://hub-gateway.pancakeswap.com/v2/quote?chainId=56&inputToken=0x0000000000000000000000000000000000000000&outputToken=0x2170Ed0880ac9A755fd29B2688956BD959F933F8&amount=493441000000000000&tradeType=exactIn&swapFeeBps=0&protocol=v2%2Cv3%2Cstableswap%2CinfinityCl%2CinfinityBin&maxSplits=3",
+    "status": 200,
+    "code": 0,
+    "message": "success",
+    "outputAmount": "153068070835549765",
+    "minBlockNumber": 131194677,
+    "swapFeeBps": "0",
+    "swapFee": "0",
+    "routes": [
+      {
+        "percent": 55,
+        "protocols": [
+          "v3"
+        ],
+        "providers": [
+          "pancakeswap"
+        ]
+      },
+      {
+        "percent": 45,
+        "protocols": [
+          "v3",
+          "v3"
+        ],
+        "providers": [
+          "pancakeswap",
+          "pancakeswap"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "classic-3",
+    "at": "2026-11-02T01:40:38.772451-05:00",
+    "url": "https://hub-gateway.pancakeswap.com/v2/quote?chainId=56&inputToken=0x0000000000000000000000000000000000000000&outputToken=0x2170Ed0880ac9A755fd29B2688956BD959F933F8&amount=493441000000000000&tradeType=exactIn&swapFeeBps=0&protocol=v2%2Cv3%2Cstableswap&maxSplits=3",
+    "status": 200,
+    "code": 0,
+    "message": "success",
+    "outputAmount": "153065936326525866",
+    "minBlockNumber": 131194676,
+    "swapFeeBps": "0",
+    "swapFee": "0",
+    "routes": [
+      {
+        "percent": 63,
+        "protocols": [
+          "v3"
+        ],
+        "providers": [
+          "pancakeswap"
+        ]
+      },
+      {
+        "percent": 37,
+        "protocols": [
+          "v3",
+          "v3"
+        ],
+        "providers": [
+          "pancakeswap",
+          "pancakeswap"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pcs-only-3",
+    "at": "2026-11-02T01:40:38.773394-05:00",
+    "url": "https://hub-gateway.pancakeswap.com/v2/quote?chainId=56&inputToken=0x0000000000000000000000000000000000000000&outputToken=0x2170Ed0880ac9A755fd29B2688956BD959F933F8&amount=493441000000000000&tradeType=exactIn&swapFeeBps=0&protocol=v2%2Cv3%2Cstableswap%2CinfinityCl%2CinfinityBin&maxSplits=3&provider=pancakeswap",
+    "status": 200,
+    "code": 0,
+    "message": "success",
+    "outputAmount": "153068300630481646",
+    "minBlockNumber": 131194675,
+    "swapFeeBps": "0",
+    "swapFee": "0",
+    "routes": [
+      {
+        "percent": 58,
+        "protocols": [
+          "v3"
+        ],
+        "providers": [
+          "pancakeswap"
+        ]
+      },
+      {
+        "percent": 42,
+        "protocols": [
+          "v3",
+          "infinityCl",
+          "v3"
+        ],
+        "providers": [
+          "pancakeswap",
+          "pancakeswap",
+          "pancakeswap"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pcs-with-stable-10",
+    "at": "2026-11-02T01:40:38.773979-05:00",
+    "url": "https://hub-gateway.pancakeswap.com/v2/quote?chainId=56&inputToken=0x0000000000000000000000000000000000000000&outputToken=0x2170Ed0880ac9A755fd29B2688956BD959F933F8&amount=493441000000000000&tradeType=exactIn&swapFeeBps=0&protocol=v2%2Cv3%2Cstableswap%2CinfinityCl%2CinfinityBin%2CinfinityStable&maxSplits=10&provider=pancakeswap",
+    "status": 400,
+    "code": 40101,
+    "message": "invalid input",
+    "outputAmount": null,
+    "minBlockNumber": null,
+    "swapFeeBps": null,
+    "swapFee": null,
+    "routes": []
+  }
+]

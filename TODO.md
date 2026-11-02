@@ -1,3 +1,39 @@
+## Release 0.53.3 (190) preparation, 2026-11-02
+
+- [x] Prepare version/build 0.53.3 (190), the requested Together → Original → Scanner → Tom → Jerry rotation and the release-note draft. Preserve the 48dp home icons and all prior native routing/media work.
+- [x] Pass the updated animation regression, all 64 focused native tests and automated F-Droid publication/version/signature guard checks. Confirm the GitHub workflow/signing configuration is available and the new tag is unused.
+- [ ] Obtain the user's release-note/commit-message review before publishing; commit the relevant source, create a new annotated v0.53.3 tag with verbatim approved notes and push to trigger GitHub's signed F-Droid build.
+- [ ] Monitor the automated release, then verify the attached APK's F-Droid flavor, version 0.53.3 (190), production certificate and published notes. Do not replace earlier release tags or manually upload the old local APK.
+
+## Upstream UI carryovers reviewed, 2026-11-02
+
+- [x] Restore home/Balances token icons to the shared 48dp size, retaining badges and other contexts. Both F-Droid 0.53.2 (189) APKs with 48dp home icons and checksum sidecars are verified in Downloads under distinct Pancake-Kotlin-48dp filenames. All 64 focused tests, release vital lint, signatures, metadata and exact media checks pass. No device installation or publication performed.
+- [ ] User decision: swap-token icons also changed from 48dp to 40dp in upstream 0.52.2, and their labels changed from a 16sp base style to 20sp. These remain unchanged by the home-icon fix; do not silently revert additional UI.
+
+## Kotlin-only PancakeSwap rewrite, 2026-11-02
+
+- [x] Replace the new app JavaScript/WebView quote engine with Kotlin, retaining V2/V3/Stable/Infinity math, adaptive splitting, native contract verification and full fallback selection. Archive development-only JavaScript outside the repository; remove Node/JavaScript build requirements.
+- [x] Pass exact pool/graph/ABI and captured five-EVM quote regressions. Preserve signing, Tor, anonymous previews, input/refund safeguards, scanner and direct-PNG Original. Require user approval before future app language/runtime changes.
+- [x] Both Kotlin-only F-Droid 0.53.2 (189) APKs and checksum sidecars are verified in Downloads. All 64 focused native tests and release vital lint pass; retained signatures, native engine, removed JavaScript and all 18 media assets are verified. Earlier JavaScript APKs below are superseded local test artifacts. Source/release remain uncommitted and unpublished.
+- [ ] Obtain device lifecycle, live Tor cancellation and funded EVM/Solana settlement feedback. Absolute different-time app/dapp price equality is not established. Do not push or install as part of this batch.
+
+## PancakeSwap cross-chain quote parity audit, recorded 2026-11-02
+
+- [x] Check the official public API/SDK options: keyless Unified API same-chain quote works; no supported complete cross-chain planner was found. Preserve the client-planner implementation requirement and document unconfirmed partner-only access.
+- [x] Audit the supplied BSC-to-Ethereum quote discrepancy against current official dapp behavior, public quotes, wallet code and 23 focused passing tests. See docs/audits/2026-11-02-pancakeswap-crosschain.md. Confirm the same bridge infrastructure without claiming identical quote selection or an added developer fee.
+- [x] Separate expected/protected plans, verify the gateway minimum semantics and bridge surplus scaling, preserve exact destination funding/refunds and the current signing/safety checks. Local implementation; both-swap calldata is covered by a real unsigned fixture.
+- [x] Align the inspected dapp strategies: official primary single-hop/full SDK plus adaptive routing, active V2/V3/Stable/Infinity settings, and all allowed bridge candidates for the both-swap pattern. Correction: active Infinity StableSwap is disabled in the reference dapp; enabling it or comparing every pattern would not match that configuration.
+- [x] Add expected/minimum and all-pattern native regressions, seven exact dapp-core vectors, all-active-pool directional checks and no-network packaged-asset replays across all five EVM chains. Existing Solana direction fixtures remain passing; previews retain placeholders under the wallet privacy policy.
+- [x] Produce and verify the Development F-Droid 0.53.2 (189) APK with the sharper Original and unchanged scanner; 39 native and nine JavaScript tests pass.
+- [x] Both final F-Droid 0.53.2 (189) APKs are verified in computer Downloads with checksums, retained certificates, exact assets and compact archives. The signed regular installer is 103,248,727 bytes; 39 native and nine JavaScript tests pass. This batch remains local/uncommitted; do not push yet.
+- [ ] Obtain native Android lifecycle, Tor-cancellation and EVM/Solana funded-test feedback. Synchronized live dapp-versus-wallet complete settlements are not claimed by offline core vectors or unsigned quote tests.
+
+## Direct-PNG Original source correction
+
+- [x] Export both Original themes directly from the preserved PNG frames and update local app assets, stills, fixtures and provenance. Preserve the scanner, other cartoons and saved 60-fps archive.
+- [x] All 21 focused tests and the F-Droid development build passed. Verified signing, version 0.53.2 (189), packaged media and unchanged scanner; saved the distinct Original-PNG development APK in computer Downloads.
+- [ ] Review the new Original before/after player; GitHub publication and a regular installer refresh are not part of this local batch yet.
+
 ## Compact scan-video integration and release refresh
 
 - [x] Integrate the four selected themed Baseline MP4 cartoons and reduced-motion stills; remove the large animated cartoon WebPs. Preserve the crypto scanner and archived 60-fps alternative.

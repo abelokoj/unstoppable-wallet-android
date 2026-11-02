@@ -50,8 +50,8 @@ class ApprovalScanningAnimationTest {
 
     @Test
     fun animationSelectionCyclesInOrderAndRecoversInvalidStoredValues() {
-        val expected = listOf(ApprovalScanAnimation.Scanner, ApprovalScanAnimation.Together,
-            ApprovalScanAnimation.Tom, ApprovalScanAnimation.Jerry, ApprovalScanAnimation.Original)
+        val expected = listOf(ApprovalScanAnimation.Together, ApprovalScanAnimation.Original,
+            ApprovalScanAnimation.Scanner, ApprovalScanAnimation.Tom, ApprovalScanAnimation.Jerry)
         var stored = 0
         repeat(15) { scan ->
             val selected = ApprovalScanAnimation.fromStoredIndex(stored)
@@ -59,7 +59,7 @@ class ApprovalScanningAnimationTest {
             stored = selected.next.ordinal
         }
         for (invalid in listOf(-1, 5, Int.MIN_VALUE, Int.MAX_VALUE)) {
-            assertEquals(ApprovalScanAnimation.Scanner, ApprovalScanAnimation.fromStoredIndex(invalid))
+            assertEquals(ApprovalScanAnimation.Together, ApprovalScanAnimation.fromStoredIndex(invalid))
         }
     }
 

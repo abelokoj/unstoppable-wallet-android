@@ -1,0 +1,58 @@
+[
+  {
+    "name": "legacy-same-chain",
+    "at": "2026-11-02T02:00:07.784727-05:00",
+    "method": "GET",
+    "url": "https://router.pancakeswap.finance/v0/quote",
+    "params": {
+      "tokenInAddress": "BNB",
+      "tokenInChainId": "56",
+      "tokenOutAddress": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+      "tokenOutChainId": "56",
+      "amount": "493441000000000000",
+      "type": "exactIn",
+      "maxHops": "3",
+      "maxSplits": "4"
+    },
+    "errorType": "ConnectionError"
+  },
+  {
+    "name": "legacy-cross-chain",
+    "at": "2026-11-02T02:00:07.785937-05:00",
+    "method": "GET",
+    "url": "https://router.pancakeswap.finance/v0/quote",
+    "params": {
+      "tokenInAddress": "BNB",
+      "tokenInChainId": "56",
+      "tokenOutAddress": "ETH",
+      "tokenOutChainId": "1",
+      "amount": "493441000000000000",
+      "type": "exactIn",
+      "maxHops": "3",
+      "maxSplits": "4"
+    },
+    "errorType": "ConnectionError"
+  },
+  {
+    "name": "gateway-full-bnb-eth",
+    "at": "2026-11-02T02:00:07.786634-05:00",
+    "method": "POST",
+    "url": "https://cross-chain.pancakeswap.com/gateway/api/v1/metadata?originChainId=56&destinationChainId=1&inputToken=0x0000000000000000000000000000000000000000&outputToken=0x0000000000000000000000000000000000000000&amount=493441000000000000",
+    "body": {},
+    "status": 200,
+    "contentType": "application/json",
+    "bytes": 52,
+    "excerpt": "{\"supported\":false,\"reason\":\"Route is not enabled.\"}"
+  },
+  {
+    "name": "unified-same-chain",
+    "at": "2026-11-02T02:00:07.966838-05:00",
+    "method": "GET",
+    "url": "https://swap.pancakeswap.com/v1/quote?chainId=56&tokenIn=0x0000000000000000000000000000000000000000&tokenOut=0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82&amount=493441000000000000&sources=agg&swapFeeBps=0",
+    "body": null,
+    "status": 200,
+    "contentType": "application/json",
+    "bytes": 2915,
+    "excerpt": "{\"candidates\":[{\"chainId\":56,\"quoteId\":\"usq_caaca95a24fe4ccb9f5c596eef94e652\",\"expiresAt\":1793603023,\"inputAmount\":\"493441000000000000\",\"outputAmount\":\"183891921484468408328\",\"slippageTolerance\":0.005,\"gasUseEstimate\":\"112600\",\"gasUseEstimateUsd\":\"3990557856513355\",\"priceImpactBps\":5,\"priceImpactBpsWithoutFee\":0,\"swapFeeBps\":\"0\",\"swapFee\":\"0\",\"agg\":{\"requestId\":\"539ffe86449342a44e63222826cc0510\",\"srcToken\":\"0x0000000000000000000000000000000000000000\",\"dstToken\":\"0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82\",\"chainId\":56,\"tradeType\":\"exactIn\",\"inputAmount\":\"493441000000000000\",\"outputAmount\":\"183891921484468408328\",\"gasUseEstimate\":\"112600\",\"gasUseEstimateUsd\":\"3990557856513355\",\"priceImpactBps\":5,\"priceImpactBpsWithoutFee\":0,\"aggregatorAddress\":\"0x2f68417A18dA681589F4eA64B9Cc9839209acfF7\",\"swapFeeBps\":\"0\",\"swapFee\":\"0\",\"routes\":[{\"percent\":100,\"inputAmount\":\"493441000000000000\",\"outputAmount\":\"183891921484468408328\",\"priceImpactBps\":5,\"priceImpactBpsWithoutFee\":0,\"path\":[{\"address\":\"0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c\",\"decimals\":18,\"symbol\":\"WBNB\"},{\"address\":\"0x0E09FaBB73Bd3Ad"
+  }
+]

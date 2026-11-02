@@ -89,15 +89,16 @@ object PancakeCrossChainProvider : IMultiSwapProvider {
         var requestId: String? = null
         when (plan) {
             is EvmPlan -> {
+                val quoted = plan.value
                 spender = PancakeCrossChainTransaction.chain(origin).sender
-                if (plan.source == null && plan.destination == null) {
+                if (quoted.source == null && quoted.destination == null) {
                     sendData = SendTransactionData.Evm(PancakeCrossChainTransaction.build(origin, destination,
-                        tokenIn.currency!!, tokenOut.currency!!, amount, plan.bridge.bridgeTransactionData!!, sender, receiver), null)
+                        tokenIn.currency!!, tokenOut.currency!!, amount, quoted.bridge.bridgeTransactionData!!, sender, receiver), null)
                 } else {
                     val commands = JsonArray()
-                    plan.source?.let { commands.add(swapCommand(it, plan.slippageBps, plan.rpcs)) }
-                    commands.add(bridgeCommand(origin, destination, plan.bridgeInput, plan.bridgeOutput, plan.bridgeAmount, plan.bridge, sender))
-                    plan.destination?.let { commands.add(swapCommand(it, plan.slippageBps, plan.rpcs)) }
+                    quoted.source?.let { commands.add(swapCommand(it, quoted.slippageBps, plan.rpcs)) }
+                    commands.add(bridgeCommand(origin, destination, quoted.bridgeInput, quoted.bridgeOutput, quoted.bridgeAmount, quoted.bridge, sender))
+                    quoted.destination?.let { commands.add(swapCommand(it, quoted.slippageBps, plan.rpcs)) }
                     val response = PancakeCrossChainNetwork.request { api -> api.calldata(JsonObject().apply {
                         addProperty("inputToken", tokenIn.currency); addProperty("outputToken", tokenOut.currency)
                         addProperty("inputAmount", amount.toString()); addProperty("originChainId", origin)
@@ -108,8 +109,8 @@ object PancakeCrossChainProvider : IMultiSwapProvider {
                     require(transaction.get("router")?.asString.equals(spender, true))
                     val data = requireNotNull(transaction.get("calldata")?.asString)
                     val order = PancakeSwapOrder(origin, destination, tokenIn.currency!!, tokenOut.currency!!, amount,
-                        plan.bridgeInput, plan.bridgeOutput, plan.bridgeAmount, plan.bridge.bridgeTransactionData!!,
-                        plan.source?.expectation(), plan.destination?.expectation(), sender, receiver, System.currentTimeMillis() / 1000)
+                        quoted.bridgeInput, quoted.bridgeOutput, quoted.bridgeAmount, quoted.bridge.bridgeTransactionData!!,
+                        quoted.source?.expectation(), quoted.destination?.expectation(), sender, receiver, System.currentTimeMillis() / 1000)
                     val checks = PancakeCrossChainTransaction.routerChecks(order, data)
                     for (check in checks) {
                         val result = plan.rpcs.computeIfAbsent(check.chainId) { PancakeCrossChainNetwork.Rpc(it) }
@@ -161,16 +162,14 @@ object PancakeCrossChainProvider : IMultiSwapProvider {
         val seconds: Long?
         val hasSwap: Boolean
     }
-    private data class AmmLeg(val quote: PancakeAmmQuote, val minimum: BigInteger) {
-        fun expectation() = PancakeSwapExpectation(quote.chainId, quote.inputToken, quote.outputToken, quote.amountIn, minimum, quote.raw)
-    }
-    private data class EvmPlan(val bridge: PancakeBridgeQuote, val bridgeInput: String, val bridgeOutput: String,
-        val bridgeAmount: BigInteger, val source: AmmLeg?, val destination: AmmLeg?, val slippageBps: Int,
+    private fun PancakeEvmPlanner.Leg.expectation() = PancakeSwapExpectation(quote.chainId,
+        quote.inputToken, quote.outputToken, quote.amountIn, minimum, quote.raw)
+    private data class EvmPlan(val value: PancakeEvmPlanner.Plan,
         val rpcs: ConcurrentHashMap<Long, PancakeCrossChainNetwork.Rpc>) : Plan {
-        override val output get() = destination?.quote?.amountOut ?: PancakeCrossChainTransaction.uint(bridge.bridgeTransactionData!!.outputAmount)
-        override val minimum get() = destination?.minimum ?: output
-        override val seconds get() = bridge.expectedFillTimeSec?.toLongOrNull()?.takeIf { it > 0 }
-        override val hasSwap get() = source != null || destination != null
+        override val output get() = value.expectedOutput
+        override val minimum get() = value.minimumOutput
+        override val seconds get() = value.bridge.expectedFillTimeSec?.toLongOrNull()?.takeIf { it > 0 }
+        override val hasSwap get() = value.source != null || value.destination != null
     }
     private data class NonEvmPlan(val quote: PancakeNonEvmQuote, val slippageBps: Int) : Plan {
         override val output get() = quote.amountOut
@@ -194,73 +193,39 @@ object PancakeCrossChainProvider : IMultiSwapProvider {
                 }) }
             return NonEvmPlan(PancakeNonEvmQuote.parse(response, origin, destination, input.currency!!, output.currency!!, raw, bps), bps)
         }
-        val candidates = PancakeRoutePlanner.candidates(routes, origin, destination, input.currency!!, output.currency!!)
         val rpcs = ConcurrentHashMap<Long, PancakeCrossChainNetwork.Rpc>()
-        // Start with routes needing fewer swaps, but keep every catalog bridge available as a fallback.
-        for (batch in candidates.chunked(3)) {
-            val plans = coroutineScope { batch.map { candidate -> async {
-                try { evmPlan(candidate, origin, destination, input.currency!!, output.currency!!, raw, slippage, recipient ?: dummyEvm, rpcs) }
-                catch (e: CancellationException) { throw e } catch (_: Exception) { null }
-            } }.awaitAll().filterNotNull() }
-            plans.maxByOrNull { it.output }?.let { return it }
+        val decimals = ConcurrentHashMap<Pair<Long, String>, Int>().apply {
+            put(origin to input.currency!!.lowercase(), input.decimals)
+            put(destination to output.currency!!.lowercase(), output.decimals)
         }
-        error("PancakeSwap found no executable cross-chain route")
-    }
-
-    private suspend fun evmPlan(candidate: PancakeRoutePlanner.Candidate, origin: Long, destination: Long,
-        input: String, output: String, amount: BigInteger, slippage: BigDecimal, recipient: String,
-        rpcs: ConcurrentHashMap<Long, PancakeCrossChainNetwork.Rpc>): EvmPlan {
-        val source = if (candidate.sourceSwap) {
-            val quote = ammQuote(origin, input, candidate.route.originToken, amount, rpcs)
-            AmmLeg(quote, PancakeRoutePlanner.minimum(quote.amountOut, slippage, candidate.swapCount))
-        } else null
-        val bridgeInput = if (source == null) input else candidate.route.originToken
-        val bridgeOutput = if (candidate.destinationSwap) candidate.route.destinationToken else output
-        val bridgeAmount = source?.minimum ?: amount
-        val bps = PancakeRoutePlanner.slippageBps(slippage, candidate.swapCount)
-        var bridge = bridgeQuote(origin, destination, bridgeInput, bridgeOutput, bridgeAmount)
-        if (!candidate.destinationSwap) return EvmPlan(bridge, bridgeInput, bridgeOutput, bridgeAmount, source, null, bps, rpcs)
-        repeat(4) {
-            val bridgeOut = PancakeCrossChainTransaction.uint(bridge.bridgeTransactionData!!.outputAmount)
-            val quote = ammQuote(destination, bridgeOutput, output, bridgeOut, rpcs)
-            val target = AmmLeg(quote, PancakeRoutePlanner.minimum(quote.amountOut, slippage, candidate.swapCount))
-            val command = swapCommand(target, bps, rpcs)
-            val adjusted = bridgeQuote(origin, destination, bridgeInput, bridgeOutput, bridgeAmount, JsonObject().apply {
-                addProperty("recipientOnDestChain", recipient); add("commands", JsonArray().apply { add(command) })
+        val planner = PancakeEvmPlanner(routes,
+            { chain, from, to, value -> ammQuote(chain, from, to, value, rpcs) },
+            { fromChain, toChain, from, to, value, body -> PancakeCrossChainNetwork.request {
+                it.quote(fromChain, toChain, from, to, value.toString(), body)
+            } },
+            { leg, bps -> swapCommand(leg, bps, rpcs) },
+            { chain, token ->
+                val key = chain to token.lowercase()
+                decimals[key] ?: if (token == PancakeCrossChainTransaction.NATIVE) 18 else {
+                    val result = rpcs.computeIfAbsent(chain) { PancakeCrossChainNetwork.Rpc(it) }
+                        .read(PancakePoolCall(token, "0x313ce567"))
+                    require(result.matches(Regex("^0x[0-9a-fA-F]{64}$"))) { "Invalid bridge token decimals" }
+                    result.drop(2).toBigInteger(16).intValueExact().also {
+                        require(it in 0..255); decimals[key] = it
+                    }
+                }
             })
-            if (adjusted.bridgeTransactionData!!.outputAmount == bridge.bridgeTransactionData!!.outputAmount) {
-                return EvmPlan(adjusted, bridgeInput, bridgeOutput, bridgeAmount, source, target, bps, rpcs)
-            }
-            bridge = adjusted
-        }
-        throw RetryableSwapError()
+        return EvmPlan(planner.quote(origin, destination, input.currency!!, output.currency!!,
+            raw, slippage, recipient ?: dummyEvm), rpcs)
     }
-
-    private suspend fun bridgeQuote(origin: Long, destination: Long, input: String, output: String, amount: BigInteger,
-                                    body: JsonObject = JsonObject()): PancakeBridgeQuote =
-        PancakeCrossChainNetwork.request { it.quote(origin, destination, input, output, amount.toString(), body) }.also {
-            it.validated(origin, destination, input, output, amount, System.currentTimeMillis() / 1000)
-        }
 
     private suspend fun ammQuote(chain: Long, input: String, output: String, amount: BigInteger,
                                  rpcs: ConcurrentHashMap<Long, PancakeCrossChainNetwork.Rpc>): PancakeAmmQuote {
-        suspend fun hub(from: String, to: String, value: BigInteger, splits: Int = 3): JsonObject? {
-            for (protocols in listOf("v2,v3,stableswap,infinityCl,infinityBin", "v2,v3,stableswap")) {
-                try {
-                    val response = PancakeCrossChainNetwork.request { it.ammQuote(chain, from, to, value.toString(), protocols = protocols, splits = splits) }
-                    val body = response.getAsJsonObject("data") ?: response
-                    return PancakeAmmQuote.parse(body, chain, from, to, value).raw
-                } catch (e: CancellationException) { throw e } catch (_: Exception) { }
-            }
-            return null
-        }
-        val raw = hub(input, output, amount) ?: PancakeInfinityStableQuote.quote(chain, input, output, amount,
-            { call -> rpcs.computeIfAbsent(chain) { PancakeCrossChainNetwork.Rpc(it) }.read(call) },
-            { from, to, value -> hub(from, to, value, 1) }) ?: error("PancakeSwap AMM route unavailable")
-        return PancakeAmmQuote.parse(raw, chain, input, output, amount)
+        return PancakeAmmRouting.quote(chain, input, output, amount,
+            rpcs.computeIfAbsent(chain) { PancakeCrossChainNetwork.Rpc(it) })
     }
 
-    private suspend fun swapCommand(leg: AmmLeg, bps: Int,
+    private suspend fun swapCommand(leg: PancakeEvmPlanner.Leg, bps: Int,
                                     rpcs: ConcurrentHashMap<Long, PancakeCrossChainNetwork.Rpc>): JsonObject {
         val rpc = rpcs.computeIfAbsent(leg.quote.chainId) { PancakeCrossChainNetwork.Rpc(it) }
         val states = mutableMapOf<PancakePoolCall, String>()

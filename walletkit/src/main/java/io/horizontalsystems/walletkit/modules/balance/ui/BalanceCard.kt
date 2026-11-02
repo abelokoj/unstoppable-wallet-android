@@ -44,6 +44,7 @@ import io.horizontalsystems.walletkit.modules.balance.contextMenuItems
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.syncerror.SyncErrorSheet
 import io.horizontalsystems.walletkit.ui.compose.ComposeAppTheme
+import io.horizontalsystems.walletkit.ui.compose.IconSizes
 import io.horizontalsystems.walletkit.ui.compose.components.HsDivider
 import io.horizontalsystems.walletkit.ui.compose.components.body_leah
 import io.horizontalsystems.walletkit.uiv3.components.cell.CellLeftCoinIcon
@@ -234,6 +235,7 @@ fun IconCell(
         syncFailed = failedIconVisible,
         iconAlpha = iconAlpha,
         onClickSyncError = onClickSyncError,
+        size = IconSizes.Token,
     )
 }
 

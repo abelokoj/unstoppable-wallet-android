@@ -76,8 +76,10 @@ internal class PancakeAmmQuote private constructor(
         fun pathCurrency(token: JsonObject) = currency(token.text("address"), token.int("decimals"), token.text("symbol"))
         fun poolTrade(pool: JsonObject, path: List<JsonObject>): JsonObject {
             val type = pool.text("type")
-            val cur0 = pathCurrency(path.first { it.text("address") == pool.text("token0") })
-            val cur1 = pathCurrency(path.first { it.text("address") == pool.text("token1") })
+            fun poolCurrency(token: String): JsonObject = if (token == NATIVE) currency(NATIVE, 18, "")
+                else pathCurrency(path.first { it.text("address") == token })
+            val cur0 = poolCurrency(pool.text("token0"))
+            val cur1 = poolCurrency(pool.text("token1"))
             val target = pool.text("address")
             return JsonObject().apply {
                 when (type) {
@@ -174,7 +176,7 @@ internal class PancakeAmmQuote private constructor(
                 addProperty("type", if (types.size == 1) routeType(types.single()) else 3)
                 add("path", JsonArray().apply { path.forEach { add(pathCurrency(it)) } })
                 add("pools", JsonArray().apply { pools.forEach { add(poolTrade(it, path)) } })
-                addProperty("percent", route.int("percent"))
+                addProperty("percent", route.percent())
                 add("inputAmount", amount(pathCurrency(path.first()), route.uint("inputAmount")))
                 add("outputAmount", amount(pathCurrency(path.last()), minimum))
             })
@@ -218,12 +220,15 @@ internal class PancakeAmmQuote private constructor(
             require(raw.uint("swapFeeBps") == ZERO && raw.uint("swapFee") == ZERO) { "Unexpected PancakeSwap application fee" }
             val outputAmount = raw.uint("outputAmount").also { require(it > ZERO) }
             val routes = raw.getAsJsonArray("routes").also { require(it.size() in 1..32) }.map { it.asJsonObject }
-            require(routes.sumOf { it.int("percent") } == 100)
+            val percentTotal = routes.fold(java.math.BigDecimal.ZERO) { sum, route -> sum + route.percent() }
+            require((percentTotal - java.math.BigDecimal(100)).abs() <= java.math.BigDecimal("0.0001") * routes.size.toBigDecimal())
             require(routes.fold(ZERO) { sum, r -> sum + r.uint("inputAmount") } == expectedAmount)
             require(routes.fold(ZERO) { sum, r -> sum + r.uint("outputAmount") } == outputAmount)
             val decimalsByToken = mutableMapOf<String, Int>()
             for (route in routes) {
-                require(route.int("percent") in 1..100 && route.uint("inputAmount") > ZERO && route.uint("outputAmount") > ZERO)
+                val percent = route.percent()
+                require(percent > java.math.BigDecimal.ZERO && percent <= java.math.BigDecimal(100) &&
+                    route.uint("inputAmount") > ZERO && route.uint("outputAmount") > ZERO)
                 val path = route.getAsJsonArray("path").also { require(it.size() in 2..17) }.map { it.asJsonObject }
                 val pools = route.getAsJsonArray("pools").map { it.asJsonObject }
                 require(pools.size == path.size - 1)
@@ -240,7 +245,9 @@ internal class PancakeAmmQuote private constructor(
                     val type = pool.text("type"); require(type in setOf("v2", "v3", "stableswap", "infinityCl", "infinityBin", "infinityStable"))
                     val t0 = address(pool.text("token0")); val t1 = address(pool.text("token1"))
                     pool.addProperty("token0", t0); pool.addProperty("token1", t1)
-                    require(t0 < t1 && setOf(t0, t1) == setOf(path[i].text("address"), path[i + 1].text("address")))
+                    fun canonical(token: String) = if (token == NATIVE) wrappedNative.getValue(expectedChainId) else token
+                    require(t0 < t1 && setOf(canonical(t0), canonical(t1)) ==
+                        setOf(canonical(path[i].text("address")), canonical(path[i + 1].text("address"))))
                     val fee = pool.uint("fee")
                     require(if (type == "stableswap") fee < BigInteger.TEN.pow(10) else fee < BigInteger.valueOf(1000000) || type == "infinityStable" && fee == BigInteger.valueOf(8388608)) { "Unbounded pool fee" }
                     if (type == "v2") require(fee == BigInteger.valueOf(2500))
@@ -282,6 +289,9 @@ internal class PancakeAmmQuote private constructor(
             require(value.signum() > 0 && value.bitLength() <= 160)
         }
 
+        private fun JsonObject.percent(): java.math.BigDecimal = text("percent").also {
+            require(it.matches(Regex("^[0-9]{1,3}(?:\\.[0-9]{1,16})?$"))) { "Invalid route percentage" }
+        }.toBigDecimal()
         private fun JsonObject.text(key: String): String = requireNotNull(get(key)?.takeIf { it.isJsonPrimitive }) { "Missing $key" }.asString
         private fun JsonObject.uint(key: String): BigInteger = text(key).also { require(it.matches(Regex("[0-9]{1,78}"))) }.toBigInteger().also { require(it.bitLength() <= 256) }
         private fun JsonObject.int(key: String) = uint(key).intValueExact()

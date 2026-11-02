@@ -7,3 +7,5 @@ Original source preview SHA-256: 82d3fecd07657604b9ecbf958421a7b671f51a167b06a09
 Original preserved GIF SHA-256: 76e82602311dcfd37e0bb15a0926fea718527cd02dd53a392c762c85d354fc18
 
 These custom character depictions are not official licensed artwork. Tom and Jerry names and likenesses belong to their respective rights holders. This provenance record does not grant third-party character rights. The original masters and sharper 60-fps alternative remain preserved separately for later reuse.
+
+Original MP4 source update: exported directly from the 72 preserved full-RGBA 600 by 400 PNG frames, without a GIF or animated-WebP intermediate. The existing 480 by 320 Baseline MP4 format, 30 fps, 2.4-second loop and light/dark appearances are preserved.

@@ -32,7 +32,7 @@ data class ApprovalAccessState(
     val items: List<ApprovalAccessItem> = emptyList(),
     val selectedContracts: Set<String> = emptySet(),
     val busy: Boolean = false,
-    val scanAnimation: ApprovalScanAnimation = ApprovalScanAnimation.Scanner,
+    val scanAnimation: ApprovalScanAnimation = ApprovalScanAnimation.Together,
     val scanned: Boolean = false,
     val nextBlock: Long? = null,
     val scannedFrom: Long? = null,

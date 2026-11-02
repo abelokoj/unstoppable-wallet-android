@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.horizontalsystems.marketkit.models.Token
 import io.horizontalsystems.walletkit.R
@@ -42,8 +43,7 @@ private const val syncFailedGlyphScale = 24f / 20f
 private val syncFailedIconSize = badgeIconSize * syncFailedGlyphScale
 private val syncFailedBorderSize = badgeSize * syncFailedGlyphScale
 
-// The badge hangs past the coin icon so it reads as a separate mark rather than a hole punched
-// into it. The icon keeps its 40.dp layout size, so the overhang eats into the cell's leading gap.
+// The badge overhang stays independent of the requested coin size so it reads as a separate mark.
 private val badgeOverhang = 3.dp
 
 private val badgeIconShape = RoundedCornerShape(4.dp)
@@ -61,6 +61,7 @@ fun CellLeftCoinIcon(
     syncFailed: Boolean = false,
     iconAlpha: Float = 1f,
     onClickSyncError: (() -> Unit)? = null,
+    size: Dp = iconSize,
 ) {
     val clickable = if (syncFailed && onClickSyncError != null) {
         Modifier.clickable(
@@ -72,11 +73,11 @@ fun CellLeftCoinIcon(
         Modifier
     }
 
-    Box(modifier = Modifier.size(iconSize).then(clickable)) {
+    Box(modifier = Modifier.size(size).then(clickable)) {
         CoinImage(
             token = token,
             modifier = Modifier
-                .size(iconSize)
+                .size(size)
                 .alpha(iconAlpha),
         )
 

@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://cross-chain.pancakeswap.com/gateway/api/openapi.json",
+    "status": 404,
+    "contentType": "application/json",
+    "excerpt": "{\"error\":{\"code\":\"CCA-4000\",\"message\":\"Resource not found.\"}}"
+  },
+  {
+    "url": "https://cross-chain.pancakeswap.com/gateway/api/swagger.json",
+    "status": 404,
+    "contentType": "application/json",
+    "excerpt": "{\"error\":{\"code\":\"CCA-4000\",\"message\":\"Resource not found.\"}}"
+  },
+  {
+    "url": "https://cross-chain.pancakeswap.com/gateway/api/docs",
+    "status": 404,
+    "contentType": "application/json",
+    "excerpt": "{\"error\":{\"code\":\"CCA-4000\",\"message\":\"Resource not found.\"}}"
+  }
+]

@@ -88,11 +88,11 @@
       "name": "original",
       "theme": "light",
       "video": "approval_scanning_original_light.mp4",
-      "sha256": "fa2896b80d7c40f4144628c72d8b70b4881c6d9855b2382ff216b0894152f9aa",
-      "bytes": 202402,
+      "sha256": "1e77391085b3847ec3b099f161712eaaf3198fb3e87d4903343510b351fb65ea",
+      "bytes": 202431,
       "poster": "approval_scanning_original_light_poster.webp",
-      "posterSha256": "9fe6d9329542ffca6e5e84a6cbd023407cc2b2f81dcb2a4c5f733e43dc446c8c",
-      "posterBytes": 58158,
+      "posterSha256": "93491846c123fa7ed9e0a4d4108a48c27641d92138c536de14310a75192ff271",
+      "posterBytes": 58168,
       "width": 480,
       "height": 320,
       "fps": 30,
@@ -102,11 +102,11 @@
       "name": "original",
       "theme": "dark",
       "video": "approval_scanning_original_dark.mp4",
-      "sha256": "893e13df2985760c4a6c6eb9943a38cb1d4e539bf0216390dce6be90a340a0e2",
-      "bytes": 202008,
+      "sha256": "81f5766ab8e0c93dc8dfe75b4ad8270b4b620ea4f67987097f2c2606408aef17",
+      "bytes": 201954,
       "poster": "approval_scanning_original_dark_poster.webp",
-      "posterSha256": "0d93453ad3fe84b706b20a083014f32a95c5f3de7d1fea03dfea87a9198c6c65",
-      "posterBytes": 56396,
+      "posterSha256": "c2ca9ba5a13262f611831faf4c4b42a8fda97deaecb095e45583ef853c88af1f",
+      "posterBytes": 56918,
       "width": 480,
       "height": 320,
       "fps": 30,
@@ -129,5 +129,5 @@
       "matchesExistingApk": true
     }
   ],
-  "estimatedPackagedMediaBytes": 2705561
+  "estimatedPackagedMediaBytes": 2706068
 }

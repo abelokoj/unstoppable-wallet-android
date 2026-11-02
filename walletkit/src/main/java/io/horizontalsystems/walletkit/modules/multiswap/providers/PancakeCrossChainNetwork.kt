@@ -14,6 +14,7 @@ import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
 internal object PancakeNetworks {
@@ -80,10 +81,17 @@ internal object PancakeCrossChainNetwork {
         suspend fun read(call: PancakePoolCall): String {
             verify()
             val target = PancakeCrossChainTransaction.address(call.address)
-            require(call.data.matches(Regex("^0x(?:[0-9a-fA-F]{2}){4,4096}$")))
+            require(call.data.matches(Regex("^0x(?:[0-9a-fA-F]{2}){4,131072}$")))
             return raw("eth_call", JsonArray().apply {
                 add(JsonObject().apply { addProperty("to", target); addProperty("data", call.data) }); add("latest")
-            }).asString.also { require(it.matches(Regex("^0x(?:[0-9a-fA-F]{2}){0,16384}$"))) }
+            }).asString.also { require(it.matches(Regex("^0x(?:[0-9a-fA-F]{2}){0,131072}$"))) }
+        }
+
+        suspend fun gasPrice(): BigInteger {
+            verify()
+            val value = raw("eth_gasPrice", JsonArray()).asString
+            require(value.matches(Regex("^0x[0-9a-fA-F]{1,32}$"))) { "Malformed gas price" }
+            return value.drop(2).toBigInteger(16)
         }
 
         suspend fun receipt(hash: String): JsonObject? {

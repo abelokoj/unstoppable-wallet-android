@@ -339,3 +339,8 @@ Explain what the code cannot show by itself: an invariant, an ordering that
 matters, a reason something cannot be simplified. Do not describe what the
 code does or how it got here. When the same explanation applies in several
 places, it belongs in `docs/` or in this file instead.
+
+## Language and runtime changes
+
+- Ask the user before introducing or switching the app implementation language or execution runtime.
+- Keep app features in the existing Kotlin architecture unless the user explicitly approves an alternative. The current Kotlin-only PancakeSwap rewrite is authorized; a JavaScript/WebView quote engine is not an approved future default.

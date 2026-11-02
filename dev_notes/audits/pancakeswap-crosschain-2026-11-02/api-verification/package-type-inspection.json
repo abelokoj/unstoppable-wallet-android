@@ -1,0 +1,67 @@
+[
+  {
+    "package": "@pancakeswap/smart-router",
+    "version": "7.8.0",
+    "tarballSha256": "89216c1f528728359092f349df439e832b109c448917a136eb351eceb4e43c72",
+    "declarationFiles": 164,
+    "crosschainTypeHits": [],
+    "getBestTradeDeclarations": [
+      {
+        "file": "package/dist/evm/v3-router/getBestTrade.d.ts",
+        "declaration": "export declare function getBestTrade(amount: CurrencyAmount<Currency>, currency: Currency, tradeType: TradeType, config: TradeConfig): Promise<SmartRouterTrade<TradeType> | null>;"
+      },
+      {
+        "file": "package/dist/evm/v3-router/getBestTrade.d.ts",
+        "declaration": "//# sourceMappingURL=getBestTrade.d.ts.map"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTrade.d.ts",
+        "declaration": "export declare const getBestTradeExactIn: (amountIn: CurrencyAmount<Currency>, output: Currency, options: BestTradeOptions) => Promise<TradeWithStableSwap<Currency, Currency, TradeType> | null>;"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTrade.d.ts",
+        "declaration": "export declare const getBestTradeExactOut: (amountIn: CurrencyAmount<Currency>, output: Currency, options: BestTradeOptions) => Promise<TradeWithStableSwap<Currency, Currency, TradeType> | null>;"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTrade.d.ts",
+        "declaration": "//# sourceMappingURL=getBestTrade.d.ts.map"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTradeFromStablePools.d.ts",
+        "declaration": "export declare function getBestTradeFromStablePools(amount: CurrencyAmount<Currency>, output: Currency, { maxHops, provider }: BestTradeOptions): Promise<TradeWithStableSwap<Currency, Currency, TradeType> | null>;"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTradeFromStablePools.d.ts",
+        "declaration": "//# sourceMappingURL=getBestTradeFromStablePools.d.ts.map"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTradeFromV2.d.ts",
+        "declaration": "export declare const getBestTradeFromV2ExactIn: <In extends Currency, Out extends Currency>(amountIn: CurrencyAmount<In>, output: Out, options: BestTradeOptions) => Promise<Trade<In, Out, TradeType.EXACT_INPUT> | Trade<Out, In, TradeType.EXACT_OUTPUT> | null>;"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTradeFromV2.d.ts",
+        "declaration": "export declare const getBestTradeFromV2ExactOut: <In extends Currency, Out extends Currency>(amountIn: CurrencyAmount<In>, output: Out, options: BestTradeOptions) => Promise<Trade<In, Out, TradeType.EXACT_INPUT> | Trade<Out, In, TradeType.EXACT_OUTPUT> | null>;"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTradeFromV2.d.ts",
+        "declaration": "export declare function getBestTradeFromV2<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(amountIn: CurrencyAmount<TInput>, output: TOutput, tradeType: TTradeType, options: BestTradeOptions): Promise<Trade<TInput, TOutput, TradeType.EXACT_INPUT> | Trade<TOutput, TInput, TradeType.EXACT_OUTPUT> | null>;"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTradeFromV2.d.ts",
+        "declaration": "//# sourceMappingURL=getBestTradeFromV2.d.ts.map"
+      },
+      {
+        "file": "package/dist/legacy-router/getBestTradeWithStableSwap.d.ts",
+        "declaration": "export declare function getBestTradeWithStableSwap(baseTrade: Trade<Currency, Currency, TradeType>, stableSwapPairs: StableSwapPair[], options: BestTradeOptions): Promise<{"
+      }
+    ]
+  },
+  {
+    "package": "@pancakeswap/solana-core-sdk",
+    "version": "0.2.1",
+    "tarballSha256": "8769f7d99cb7ac219dd35770a7e933ffafc7b694a7e6ff940fff9844d3e507b9",
+    "declarationFiles": 130,
+    "crosschainTypeHits": [],
+    "getBestTradeDeclarations": []
+  }
+]

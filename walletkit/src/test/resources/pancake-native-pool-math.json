@@ -1,0 +1,4928 @@
+{
+  "source": "Pinned official SDK via existing createPoolAdapter, generated offline; not runtime code",
+  "versions": {
+    "sdk": "5.9.3",
+    "v3": "3.10.3",
+    "stable": "2.0.15",
+    "infinity": "1.1.0"
+  },
+  "cases": [
+    {
+      "name": "live-0-0",
+      "chain": 56,
+      "pool": {
+        "type": 0,
+        "reserve0": {
+          "currency": {
+            "address": "0x55d398326f99059fF775485246999027B3197955",
+            "decimals": 18,
+            "symbol": "USDT"
+          },
+          "value": "15778705937061367913740705"
+        },
+        "reserve1": {
+          "currency": {
+            "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "decimals": 18,
+            "symbol": "WBNB"
+          },
+          "value": "22288601164308153782774"
+        },
+        "address": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE"
+      },
+      "input": "0x55d398326f99059ff775485246999027b3197955",
+      "output": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "1409043196860379",
+          "denominator": "1",
+          "quotient": "1409043196860379"
+        },
+        "gas": "185000",
+        "reserves": [
+          {
+            "numerator": "15778706937061367913740705",
+            "denominator": "1",
+            "quotient": "15778706937061367913740705"
+          },
+          {
+            "numerator": "22288599755264956922395",
+            "denominator": "1",
+            "quotient": "22288599755264956922395"
+          }
+        ],
+        "repeat": {
+          "numerator": "1409043018483049",
+          "denominator": "1",
+          "quotient": "1409043018483049"
+        }
+      },
+      "price": {
+        "numerator": "22288601164308153782774",
+        "denominator": "15778705937061367913740705",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "live-0-1",
+      "chain": 56,
+      "pool": {
+        "type": 0,
+        "reserve0": {
+          "currency": {
+            "address": "0x55d398326f99059fF775485246999027B3197955",
+            "decimals": 18,
+            "symbol": "USDT"
+          },
+          "value": "15778705937061367913740705"
+        },
+        "reserve1": {
+          "currency": {
+            "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "decimals": 18,
+            "symbol": "WBNB"
+          },
+          "value": "22288601164308153782774"
+        },
+        "address": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE"
+      },
+      "input": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+      "output": "0x55d398326f99059ff775485246999027b3197955",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "706125731972987271841",
+          "denominator": "1",
+          "quotient": "706125731972987271841"
+        },
+        "gas": "185000",
+        "reserves": [
+          {
+            "numerator": "15777999811329394926468864",
+            "denominator": "1",
+            "quotient": "15777999811329394926468864"
+          },
+          {
+            "numerator": "22289601164308153782774",
+            "denominator": "1",
+            "quotient": "22289601164308153782774"
+          }
+        ],
+        "repeat": {
+          "numerator": "706062454796323797058",
+          "denominator": "1",
+          "quotient": "706062454796323797058"
+        }
+      },
+      "price": {
+        "numerator": "15778705937061367913740705",
+        "denominator": "22288601164308153782774",
+        "quotient": "707"
+      }
+    },
+    {
+      "name": "live-1-0",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "token0": {
+          "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+          "decimals": 18,
+          "symbol": "ETH"
+        },
+        "token1": {
+          "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+          "decimals": 18,
+          "symbol": "WBNB"
+        },
+        "reserve0": {
+          "currency": {
+            "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+            "decimals": 18,
+            "symbol": "ETH"
+          },
+          "value": "268898321495438924043"
+        },
+        "reserve1": {
+          "currency": {
+            "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "decimals": 18,
+            "symbol": "WBNB"
+          },
+          "value": "255213159461977317489"
+        },
+        "fee": 100,
+        "liquidity": "2325877931877454472800",
+        "sqrtRatioX96": "142384908504706873147567647241",
+        "tick": 11724,
+        "address": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+        "token0ProtocolFee": "33",
+        "token1ProtocolFee": "33",
+        "ticks": [
+          {
+            "index": 10500,
+            "liquidityNet": "22526789389048024106",
+            "liquidityGross": "22526789389048024106"
+          },
+          {
+            "index": 10508,
+            "liquidityNet": "35457217261354279",
+            "liquidityGross": "35457217261354279"
+          },
+          {
+            "index": 10528,
+            "liquidityNet": "1500269207223511813",
+            "liquidityGross": "1500269207223511813"
+          },
+          {
+            "index": 10569,
+            "liquidityNet": "1216610136275433168",
+            "liquidityGross": "1216610136275433168"
+          },
+          {
+            "index": 10647,
+            "liquidityNet": "2796116805298171541",
+            "liquidityGross": "2796116805298171541"
+          },
+          {
+            "index": 10674,
+            "liquidityNet": "520245226873922274",
+            "liquidityGross": "520245226873922274"
+          },
+          {
+            "index": 10688,
+            "liquidityNet": "20723662809343632532",
+            "liquidityGross": "20723662809343632532"
+          },
+          {
+            "index": 10716,
+            "liquidityNet": "247269531628033040480",
+            "liquidityGross": "247269531628033040480"
+          },
+          {
+            "index": 10717,
+            "liquidityNet": "663787693889552256",
+            "liquidityGross": "663787693889552256"
+          },
+          {
+            "index": 10783,
+            "liquidityNet": "490737534511273226",
+            "liquidityGross": "490737534511273226"
+          },
+          {
+            "index": 10839,
+            "liquidityNet": "1857359023359665220",
+            "liquidityGross": "1857359023359665220"
+          },
+          {
+            "index": 10846,
+            "liquidityNet": "20714415483837193",
+            "liquidityGross": "20714415483837193"
+          },
+          {
+            "index": 10879,
+            "liquidityNet": "13059592351059467752",
+            "liquidityGross": "13059592351059467752"
+          },
+          {
+            "index": 10905,
+            "liquidityNet": "2329921150211771091",
+            "liquidityGross": "2329921150211771091"
+          },
+          {
+            "index": 10970,
+            "liquidityNet": "36174272226991556757",
+            "liquidityGross": "36174272226991556757"
+          },
+          {
+            "index": 10986,
+            "liquidityNet": "10535805523302512097",
+            "liquidityGross": "10535805523302512097"
+          },
+          {
+            "index": 10987,
+            "liquidityNet": "1382040544618473010",
+            "liquidityGross": "1382040544618473010"
+          },
+          {
+            "index": 10990,
+            "liquidityNet": "1510111751130603641",
+            "liquidityGross": "1510111751130603641"
+          },
+          {
+            "index": 10994,
+            "liquidityNet": "2667041938992671370",
+            "liquidityGross": "2667041938992671370"
+          },
+          {
+            "index": 11023,
+            "liquidityNet": "21889256437576575624",
+            "liquidityGross": "21889256437576575624"
+          },
+          {
+            "index": 11045,
+            "liquidityNet": "1724494972264805904",
+            "liquidityGross": "1724494972264805904"
+          },
+          {
+            "index": 11049,
+            "liquidityNet": "645473559756168540",
+            "liquidityGross": "645473559756168540"
+          },
+          {
+            "index": 11058,
+            "liquidityNet": "355768806606251857286",
+            "liquidityGross": "355768806606251857286"
+          },
+          {
+            "index": 11076,
+            "liquidityNet": "442502273823574037",
+            "liquidityGross": "442502273823574037"
+          },
+          {
+            "index": 11090,
+            "liquidityNet": "30043049552786723723",
+            "liquidityGross": "30043049552786723723"
+          },
+          {
+            "index": 11174,
+            "liquidityNet": "24316085190031409403",
+            "liquidityGross": "24316085190031409403"
+          },
+          {
+            "index": 11178,
+            "liquidityNet": "1483478749437946288",
+            "liquidityGross": "1483478749437946288"
+          },
+          {
+            "index": 11182,
+            "liquidityNet": "4667347047460190340",
+            "liquidityGross": "4667347047460190340"
+          },
+          {
+            "index": 11194,
+            "liquidityNet": "4173762373908119717",
+            "liquidityGross": "4173762373908119717"
+          },
+          {
+            "index": 11208,
+            "liquidityNet": "2003472803795337482",
+            "liquidityGross": "2003472803795337482"
+          },
+          {
+            "index": 11213,
+            "liquidityNet": "946208593150869925",
+            "liquidityGross": "946208593150869925"
+          },
+          {
+            "index": 11239,
+            "liquidityNet": "8930214057679454432",
+            "liquidityGross": "8930214057679454432"
+          },
+          {
+            "index": 11249,
+            "liquidityNet": "42331058594083469266",
+            "liquidityGross": "42331058594083469266"
+          },
+          {
+            "index": 11252,
+            "liquidityNet": "1968138970069242139",
+            "liquidityGross": "1968138970069242139"
+          },
+          {
+            "index": 11263,
+            "liquidityNet": "2217563507747206114",
+            "liquidityGross": "2217563507747206114"
+          },
+          {
+            "index": 11309,
+            "liquidityNet": "168658619781699507115",
+            "liquidityGross": "168658619781699507115"
+          },
+          {
+            "index": 11311,
+            "liquidityNet": "702471377949518785",
+            "liquidityGross": "702471377949518785"
+          },
+          {
+            "index": 11336,
+            "liquidityNet": "91241564952480347013",
+            "liquidityGross": "91241564952480347013"
+          },
+          {
+            "index": 11338,
+            "liquidityNet": "7493517850588913587",
+            "liquidityGross": "7493517850588913587"
+          },
+          {
+            "index": 11344,
+            "liquidityNet": "249773670665390726691",
+            "liquidityGross": "249773670665390726691"
+          },
+          {
+            "index": 11359,
+            "liquidityNet": "-249773670665390726691",
+            "liquidityGross": "249773670665390726691"
+          },
+          {
+            "index": 11388,
+            "liquidityNet": "76324561561820548487",
+            "liquidityGross": "76324561561820548487"
+          },
+          {
+            "index": 11395,
+            "liquidityNet": "94357805003182892",
+            "liquidityGross": "94357805003182892"
+          },
+          {
+            "index": 11410,
+            "liquidityNet": "714646698315873667",
+            "liquidityGross": "714646698315873667"
+          },
+          {
+            "index": 11417,
+            "liquidityNet": "20993479239340284817",
+            "liquidityGross": "20993479239340284817"
+          },
+          {
+            "index": 11463,
+            "liquidityNet": "262545416275309318",
+            "liquidityGross": "262545416275309318"
+          },
+          {
+            "index": 11486,
+            "liquidityNet": "44079954066092765",
+            "liquidityGross": "44079954066092765"
+          },
+          {
+            "index": 11531,
+            "liquidityNet": "344375571607456421",
+            "liquidityGross": "344375571607456421"
+          },
+          {
+            "index": 11568,
+            "liquidityNet": "1219180298206900108",
+            "liquidityGross": "1219180298206900108"
+          },
+          {
+            "index": 11569,
+            "liquidityNet": "17916894103877110814",
+            "liquidityGross": "17916894103877110814"
+          },
+          {
+            "index": 11575,
+            "liquidityNet": "5225906062447244198",
+            "liquidityGross": "5225906062447244198"
+          },
+          {
+            "index": 11582,
+            "liquidityNet": "6031566917062720225",
+            "liquidityGross": "6031566917062720225"
+          },
+          {
+            "index": 11600,
+            "liquidityNet": "32562719334025626366",
+            "liquidityGross": "32562719334025626366"
+          },
+          {
+            "index": 11640,
+            "liquidityNet": "181677717094006924",
+            "liquidityGross": "181677717094006924"
+          },
+          {
+            "index": 11659,
+            "liquidityNet": "45550375786037811395",
+            "liquidityGross": "45550375786037811395"
+          },
+          {
+            "index": 11669,
+            "liquidityNet": "3512735154240172625",
+            "liquidityGross": "3512735154240172625"
+          },
+          {
+            "index": 11689,
+            "liquidityNet": "6852250606441387533",
+            "liquidityGross": "6852250606441387533"
+          },
+          {
+            "index": 11713,
+            "liquidityNet": "23527875238853757",
+            "liquidityGross": "23527875238853757"
+          },
+          {
+            "index": 11732,
+            "liquidityNet": "8959577707057990620",
+            "liquidityGross": "8959577707057990620"
+          },
+          {
+            "index": 11741,
+            "liquidityNet": "207099598090562556",
+            "liquidityGross": "207099598090562556"
+          },
+          {
+            "index": 11770,
+            "liquidityNet": "7889318955790054165",
+            "liquidityGross": "7889318955790054165"
+          },
+          {
+            "index": 11784,
+            "liquidityNet": "296449142954552367",
+            "liquidityGross": "296449142954552367"
+          },
+          {
+            "index": 11787,
+            "liquidityNet": "21668988180218081928",
+            "liquidityGross": "21668988180218081928"
+          },
+          {
+            "index": 11820,
+            "liquidityNet": "-168658619781699507115",
+            "liquidityGross": "168658619781699507115"
+          },
+          {
+            "index": 11821,
+            "liquidityNet": "41727555247422786",
+            "liquidityGross": "41727555247422786"
+          },
+          {
+            "index": 11878,
+            "liquidityNet": "-17916894103877110814",
+            "liquidityGross": "17916894103877110814"
+          },
+          {
+            "index": 11899,
+            "liquidityNet": "8922939900742756102",
+            "liquidityGross": "8922939900742756102"
+          },
+          {
+            "index": 11909,
+            "liquidityNet": "65953397651576720737",
+            "liquidityGross": "65953397651576720737"
+          },
+          {
+            "index": 11926,
+            "liquidityNet": "2665972256015136067",
+            "liquidityGross": "2665972256015136067"
+          },
+          {
+            "index": 11932,
+            "liquidityNet": "46096198662070252",
+            "liquidityGross": "46096198662070252"
+          },
+          {
+            "index": 11938,
+            "liquidityNet": "7600654908082596442",
+            "liquidityGross": "7600654908082596442"
+          },
+          {
+            "index": 11940,
+            "liquidityNet": "10997151992185717924",
+            "liquidityGross": "10997151992185717924"
+          },
+          {
+            "index": 11944,
+            "liquidityNet": "-42331058594083469266",
+            "liquidityGross": "42331058594083469266"
+          },
+          {
+            "index": 11957,
+            "liquidityNet": "121772016327947135",
+            "liquidityGross": "121772016327947135"
+          },
+          {
+            "index": 11971,
+            "liquidityNet": "-36174272226991556757",
+            "liquidityGross": "36174272226991556757"
+          },
+          {
+            "index": 11976,
+            "liquidityNet": "747333678110434817",
+            "liquidityGross": "747333678110434817"
+          },
+          {
+            "index": 11991,
+            "liquidityNet": "-2442565423326052667",
+            "liquidityGross": "2442565423326052667"
+          },
+          {
+            "index": 12007,
+            "liquidityNet": "-2003472803795337482",
+            "liquidityGross": "2003472803795337482"
+          },
+          {
+            "index": 12030,
+            "liquidityNet": "5073576789116571509",
+            "liquidityGross": "5073576789116571509"
+          },
+          {
+            "index": 12036,
+            "liquidityNet": "-13816138590974292562",
+            "liquidityGross": "13816138590974292562"
+          },
+          {
+            "index": 12040,
+            "liquidityNet": "-22526789389048024106",
+            "liquidityGross": "22526789389048024106"
+          },
+          {
+            "index": 12047,
+            "liquidityNet": "804610452881261162298",
+            "liquidityGross": "804610452881261162298"
+          },
+          {
+            "index": 12051,
+            "liquidityNet": "4606006525772908430",
+            "liquidityGross": "4606006525772908430"
+          },
+          {
+            "index": 12065,
+            "liquidityNet": "-65953397651576720737",
+            "liquidityGross": "65953397651576720737"
+          },
+          {
+            "index": 12066,
+            "liquidityNet": "70822575770493813734",
+            "liquidityGross": "70822575770493813734"
+          },
+          {
+            "index": 12090,
+            "liquidityNet": "9579840911709353635",
+            "liquidityGross": "9579840911709353635"
+          },
+          {
+            "index": 12148,
+            "liquidityNet": "32589898103669163061",
+            "liquidityGross": "174235049644656790529"
+          },
+          {
+            "index": 12177,
+            "liquidityNet": "-520245226873922274",
+            "liquidityGross": "520245226873922274"
+          },
+          {
+            "index": 12190,
+            "liquidityNet": "-2217563507747206114",
+            "liquidityGross": "2217563507747206114"
+          },
+          {
+            "index": 12199,
+            "liquidityNet": "-20714415483837193",
+            "liquidityGross": "20714415483837193"
+          },
+          {
+            "index": 12265,
+            "liquidityNet": "-13059592351059467752",
+            "liquidityGross": "13059592351059467752"
+          },
+          {
+            "index": 12290,
+            "liquidityNet": "6991706408734569233",
+            "liquidityGross": "6991706408734569233"
+          },
+          {
+            "index": 12296,
+            "liquidityNet": "-30043049552786723723",
+            "liquidityGross": "30043049552786723723"
+          },
+          {
+            "index": 12304,
+            "liquidityNet": "-17169615833141346261",
+            "liquidityGross": "17169615833141346261"
+          },
+          {
+            "index": 12312,
+            "liquidityNet": "-103412473874162976795",
+            "liquidityGross": "103412473874162976795"
+          },
+          {
+            "index": 12313,
+            "liquidityNet": "171371387071370522609",
+            "liquidityGross": "171371387071370522609"
+          },
+          {
+            "index": 12344,
+            "liquidityNet": "-2667041938992671370",
+            "liquidityGross": "2667041938992671370"
+          },
+          {
+            "index": 12383,
+            "liquidityNet": "-490737534511273226",
+            "liquidityGross": "490737534511273226"
+          },
+          {
+            "index": 12386,
+            "liquidityNet": "-32305222200752",
+            "liquidityGross": "32305222200752"
+          },
+          {
+            "index": 12411,
+            "liquidityNet": "1382557257548338824",
+            "liquidityGross": "1382557257548338824"
+          },
+          {
+            "index": 12417,
+            "liquidityNet": "475916277472410790",
+            "liquidityGross": "475916277472410790"
+          },
+          {
+            "index": 12465,
+            "liquidityNet": "-2114080479244090947",
+            "liquidityGross": "2114080479244090947"
+          },
+          {
+            "index": 12469,
+            "liquidityNet": "-43901656317035788302",
+            "liquidityGross": "298841117825705256916"
+          },
+          {
+            "index": 12477,
+            "liquidityNet": "-857865746263377029",
+            "liquidityGross": "857865746263377029"
+          },
+          {
+            "index": 12510,
+            "liquidityNet": "-1219180298206900108",
+            "liquidityGross": "1219180298206900108"
+          },
+          {
+            "index": 12511,
+            "liquidityNet": "-1382557257548338824",
+            "liquidityGross": "1382557257548338824"
+          },
+          {
+            "index": 12517,
+            "liquidityNet": "-22365172715048986414",
+            "liquidityGross": "22365172715048986414"
+          },
+          {
+            "index": 12520,
+            "liquidityNet": "51671069429620922802",
+            "liquidityGross": "51671069429620922802"
+          },
+          {
+            "index": 12530,
+            "liquidityNet": "-51671069429620922802",
+            "liquidityGross": "51671069429620922802"
+          },
+          {
+            "index": 12553,
+            "liquidityNet": "-8930214057679454432",
+            "liquidityGross": "8930214057679454432"
+          },
+          {
+            "index": 12555,
+            "liquidityNet": "132527940414095278",
+            "liquidityGross": "132527940414095278"
+          },
+          {
+            "index": 12619,
+            "liquidityNet": "-20993479239340284817",
+            "liquidityGross": "20993479239340284817"
+          },
+          {
+            "index": 12641,
+            "liquidityNet": "-6991706408734569233",
+            "liquidityGross": "6991706408734569233"
+          },
+          {
+            "index": 12667,
+            "liquidityNet": "128795772434292415521",
+            "liquidityGross": "128795772434292415521"
+          },
+          {
+            "index": 12669,
+            "liquidityNet": "-127469730754334734307",
+            "liquidityGross": "127469730754334734307"
+          },
+          {
+            "index": 12700,
+            "liquidityNet": "195378569635096795894",
+            "liquidityGross": "195378569635096795894"
+          },
+          {
+            "index": 12704,
+            "liquidityNet": "-4606006525772908430",
+            "liquidityGross": "4606006525772908430"
+          },
+          {
+            "index": 12726,
+            "liquidityNet": "-256669200064388404395",
+            "liquidityGross": "256669200064388404395"
+          },
+          {
+            "index": 12735,
+            "liquidityNet": "-3512735154240172625",
+            "liquidityGross": "3512735154240172625"
+          },
+          {
+            "index": 12777,
+            "liquidityNet": "-13576657887812780597",
+            "liquidityGross": "13576657887812780597"
+          },
+          {
+            "index": 12789,
+            "liquidityNet": "-14107219937351424",
+            "liquidityGross": "14107219937351424"
+          },
+          {
+            "index": 12798,
+            "liquidityNet": "-1151220304741836771",
+            "liquidityGross": "1151220304741836771"
+          }
+        ]
+      },
+      "input": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+      "output": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "3226932758560750580",
+          "denominator": "1",
+          "quotient": "3226932758560750580"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": 11709,
+          "sqrtRatioX96": "142274986746403071744710995234",
+          "liquidity": "2325854404002215619043"
+        },
+        "repeat": {
+          "numerator": "3221954166645522913",
+          "denominator": "1",
+          "quotient": "3221954166645522913"
+        }
+      },
+      "price": {
+        "numerator": "20273462169893747654897207554767418267720585298244214912081",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "3"
+      }
+    },
+    {
+      "name": "live-1-1",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "token0": {
+          "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+          "decimals": 18,
+          "symbol": "ETH"
+        },
+        "token1": {
+          "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+          "decimals": 18,
+          "symbol": "WBNB"
+        },
+        "reserve0": {
+          "currency": {
+            "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+            "decimals": 18,
+            "symbol": "ETH"
+          },
+          "value": "268898321495438924043"
+        },
+        "reserve1": {
+          "currency": {
+            "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "decimals": 18,
+            "symbol": "WBNB"
+          },
+          "value": "255213159461977317489"
+        },
+        "fee": 100,
+        "liquidity": "2325877931877454472800",
+        "sqrtRatioX96": "142384908504706873147567647241",
+        "tick": 11724,
+        "address": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+        "token0ProtocolFee": "33",
+        "token1ProtocolFee": "33",
+        "ticks": [
+          {
+            "index": 10500,
+            "liquidityNet": "22526789389048024106",
+            "liquidityGross": "22526789389048024106"
+          },
+          {
+            "index": 10508,
+            "liquidityNet": "35457217261354279",
+            "liquidityGross": "35457217261354279"
+          },
+          {
+            "index": 10528,
+            "liquidityNet": "1500269207223511813",
+            "liquidityGross": "1500269207223511813"
+          },
+          {
+            "index": 10569,
+            "liquidityNet": "1216610136275433168",
+            "liquidityGross": "1216610136275433168"
+          },
+          {
+            "index": 10647,
+            "liquidityNet": "2796116805298171541",
+            "liquidityGross": "2796116805298171541"
+          },
+          {
+            "index": 10674,
+            "liquidityNet": "520245226873922274",
+            "liquidityGross": "520245226873922274"
+          },
+          {
+            "index": 10688,
+            "liquidityNet": "20723662809343632532",
+            "liquidityGross": "20723662809343632532"
+          },
+          {
+            "index": 10716,
+            "liquidityNet": "247269531628033040480",
+            "liquidityGross": "247269531628033040480"
+          },
+          {
+            "index": 10717,
+            "liquidityNet": "663787693889552256",
+            "liquidityGross": "663787693889552256"
+          },
+          {
+            "index": 10783,
+            "liquidityNet": "490737534511273226",
+            "liquidityGross": "490737534511273226"
+          },
+          {
+            "index": 10839,
+            "liquidityNet": "1857359023359665220",
+            "liquidityGross": "1857359023359665220"
+          },
+          {
+            "index": 10846,
+            "liquidityNet": "20714415483837193",
+            "liquidityGross": "20714415483837193"
+          },
+          {
+            "index": 10879,
+            "liquidityNet": "13059592351059467752",
+            "liquidityGross": "13059592351059467752"
+          },
+          {
+            "index": 10905,
+            "liquidityNet": "2329921150211771091",
+            "liquidityGross": "2329921150211771091"
+          },
+          {
+            "index": 10970,
+            "liquidityNet": "36174272226991556757",
+            "liquidityGross": "36174272226991556757"
+          },
+          {
+            "index": 10986,
+            "liquidityNet": "10535805523302512097",
+            "liquidityGross": "10535805523302512097"
+          },
+          {
+            "index": 10987,
+            "liquidityNet": "1382040544618473010",
+            "liquidityGross": "1382040544618473010"
+          },
+          {
+            "index": 10990,
+            "liquidityNet": "1510111751130603641",
+            "liquidityGross": "1510111751130603641"
+          },
+          {
+            "index": 10994,
+            "liquidityNet": "2667041938992671370",
+            "liquidityGross": "2667041938992671370"
+          },
+          {
+            "index": 11023,
+            "liquidityNet": "21889256437576575624",
+            "liquidityGross": "21889256437576575624"
+          },
+          {
+            "index": 11045,
+            "liquidityNet": "1724494972264805904",
+            "liquidityGross": "1724494972264805904"
+          },
+          {
+            "index": 11049,
+            "liquidityNet": "645473559756168540",
+            "liquidityGross": "645473559756168540"
+          },
+          {
+            "index": 11058,
+            "liquidityNet": "355768806606251857286",
+            "liquidityGross": "355768806606251857286"
+          },
+          {
+            "index": 11076,
+            "liquidityNet": "442502273823574037",
+            "liquidityGross": "442502273823574037"
+          },
+          {
+            "index": 11090,
+            "liquidityNet": "30043049552786723723",
+            "liquidityGross": "30043049552786723723"
+          },
+          {
+            "index": 11174,
+            "liquidityNet": "24316085190031409403",
+            "liquidityGross": "24316085190031409403"
+          },
+          {
+            "index": 11178,
+            "liquidityNet": "1483478749437946288",
+            "liquidityGross": "1483478749437946288"
+          },
+          {
+            "index": 11182,
+            "liquidityNet": "4667347047460190340",
+            "liquidityGross": "4667347047460190340"
+          },
+          {
+            "index": 11194,
+            "liquidityNet": "4173762373908119717",
+            "liquidityGross": "4173762373908119717"
+          },
+          {
+            "index": 11208,
+            "liquidityNet": "2003472803795337482",
+            "liquidityGross": "2003472803795337482"
+          },
+          {
+            "index": 11213,
+            "liquidityNet": "946208593150869925",
+            "liquidityGross": "946208593150869925"
+          },
+          {
+            "index": 11239,
+            "liquidityNet": "8930214057679454432",
+            "liquidityGross": "8930214057679454432"
+          },
+          {
+            "index": 11249,
+            "liquidityNet": "42331058594083469266",
+            "liquidityGross": "42331058594083469266"
+          },
+          {
+            "index": 11252,
+            "liquidityNet": "1968138970069242139",
+            "liquidityGross": "1968138970069242139"
+          },
+          {
+            "index": 11263,
+            "liquidityNet": "2217563507747206114",
+            "liquidityGross": "2217563507747206114"
+          },
+          {
+            "index": 11309,
+            "liquidityNet": "168658619781699507115",
+            "liquidityGross": "168658619781699507115"
+          },
+          {
+            "index": 11311,
+            "liquidityNet": "702471377949518785",
+            "liquidityGross": "702471377949518785"
+          },
+          {
+            "index": 11336,
+            "liquidityNet": "91241564952480347013",
+            "liquidityGross": "91241564952480347013"
+          },
+          {
+            "index": 11338,
+            "liquidityNet": "7493517850588913587",
+            "liquidityGross": "7493517850588913587"
+          },
+          {
+            "index": 11344,
+            "liquidityNet": "249773670665390726691",
+            "liquidityGross": "249773670665390726691"
+          },
+          {
+            "index": 11359,
+            "liquidityNet": "-249773670665390726691",
+            "liquidityGross": "249773670665390726691"
+          },
+          {
+            "index": 11388,
+            "liquidityNet": "76324561561820548487",
+            "liquidityGross": "76324561561820548487"
+          },
+          {
+            "index": 11395,
+            "liquidityNet": "94357805003182892",
+            "liquidityGross": "94357805003182892"
+          },
+          {
+            "index": 11410,
+            "liquidityNet": "714646698315873667",
+            "liquidityGross": "714646698315873667"
+          },
+          {
+            "index": 11417,
+            "liquidityNet": "20993479239340284817",
+            "liquidityGross": "20993479239340284817"
+          },
+          {
+            "index": 11463,
+            "liquidityNet": "262545416275309318",
+            "liquidityGross": "262545416275309318"
+          },
+          {
+            "index": 11486,
+            "liquidityNet": "44079954066092765",
+            "liquidityGross": "44079954066092765"
+          },
+          {
+            "index": 11531,
+            "liquidityNet": "344375571607456421",
+            "liquidityGross": "344375571607456421"
+          },
+          {
+            "index": 11568,
+            "liquidityNet": "1219180298206900108",
+            "liquidityGross": "1219180298206900108"
+          },
+          {
+            "index": 11569,
+            "liquidityNet": "17916894103877110814",
+            "liquidityGross": "17916894103877110814"
+          },
+          {
+            "index": 11575,
+            "liquidityNet": "5225906062447244198",
+            "liquidityGross": "5225906062447244198"
+          },
+          {
+            "index": 11582,
+            "liquidityNet": "6031566917062720225",
+            "liquidityGross": "6031566917062720225"
+          },
+          {
+            "index": 11600,
+            "liquidityNet": "32562719334025626366",
+            "liquidityGross": "32562719334025626366"
+          },
+          {
+            "index": 11640,
+            "liquidityNet": "181677717094006924",
+            "liquidityGross": "181677717094006924"
+          },
+          {
+            "index": 11659,
+            "liquidityNet": "45550375786037811395",
+            "liquidityGross": "45550375786037811395"
+          },
+          {
+            "index": 11669,
+            "liquidityNet": "3512735154240172625",
+            "liquidityGross": "3512735154240172625"
+          },
+          {
+            "index": 11689,
+            "liquidityNet": "6852250606441387533",
+            "liquidityGross": "6852250606441387533"
+          },
+          {
+            "index": 11713,
+            "liquidityNet": "23527875238853757",
+            "liquidityGross": "23527875238853757"
+          },
+          {
+            "index": 11732,
+            "liquidityNet": "8959577707057990620",
+            "liquidityGross": "8959577707057990620"
+          },
+          {
+            "index": 11741,
+            "liquidityNet": "207099598090562556",
+            "liquidityGross": "207099598090562556"
+          },
+          {
+            "index": 11770,
+            "liquidityNet": "7889318955790054165",
+            "liquidityGross": "7889318955790054165"
+          },
+          {
+            "index": 11784,
+            "liquidityNet": "296449142954552367",
+            "liquidityGross": "296449142954552367"
+          },
+          {
+            "index": 11787,
+            "liquidityNet": "21668988180218081928",
+            "liquidityGross": "21668988180218081928"
+          },
+          {
+            "index": 11820,
+            "liquidityNet": "-168658619781699507115",
+            "liquidityGross": "168658619781699507115"
+          },
+          {
+            "index": 11821,
+            "liquidityNet": "41727555247422786",
+            "liquidityGross": "41727555247422786"
+          },
+          {
+            "index": 11878,
+            "liquidityNet": "-17916894103877110814",
+            "liquidityGross": "17916894103877110814"
+          },
+          {
+            "index": 11899,
+            "liquidityNet": "8922939900742756102",
+            "liquidityGross": "8922939900742756102"
+          },
+          {
+            "index": 11909,
+            "liquidityNet": "65953397651576720737",
+            "liquidityGross": "65953397651576720737"
+          },
+          {
+            "index": 11926,
+            "liquidityNet": "2665972256015136067",
+            "liquidityGross": "2665972256015136067"
+          },
+          {
+            "index": 11932,
+            "liquidityNet": "46096198662070252",
+            "liquidityGross": "46096198662070252"
+          },
+          {
+            "index": 11938,
+            "liquidityNet": "7600654908082596442",
+            "liquidityGross": "7600654908082596442"
+          },
+          {
+            "index": 11940,
+            "liquidityNet": "10997151992185717924",
+            "liquidityGross": "10997151992185717924"
+          },
+          {
+            "index": 11944,
+            "liquidityNet": "-42331058594083469266",
+            "liquidityGross": "42331058594083469266"
+          },
+          {
+            "index": 11957,
+            "liquidityNet": "121772016327947135",
+            "liquidityGross": "121772016327947135"
+          },
+          {
+            "index": 11971,
+            "liquidityNet": "-36174272226991556757",
+            "liquidityGross": "36174272226991556757"
+          },
+          {
+            "index": 11976,
+            "liquidityNet": "747333678110434817",
+            "liquidityGross": "747333678110434817"
+          },
+          {
+            "index": 11991,
+            "liquidityNet": "-2442565423326052667",
+            "liquidityGross": "2442565423326052667"
+          },
+          {
+            "index": 12007,
+            "liquidityNet": "-2003472803795337482",
+            "liquidityGross": "2003472803795337482"
+          },
+          {
+            "index": 12030,
+            "liquidityNet": "5073576789116571509",
+            "liquidityGross": "5073576789116571509"
+          },
+          {
+            "index": 12036,
+            "liquidityNet": "-13816138590974292562",
+            "liquidityGross": "13816138590974292562"
+          },
+          {
+            "index": 12040,
+            "liquidityNet": "-22526789389048024106",
+            "liquidityGross": "22526789389048024106"
+          },
+          {
+            "index": 12047,
+            "liquidityNet": "804610452881261162298",
+            "liquidityGross": "804610452881261162298"
+          },
+          {
+            "index": 12051,
+            "liquidityNet": "4606006525772908430",
+            "liquidityGross": "4606006525772908430"
+          },
+          {
+            "index": 12065,
+            "liquidityNet": "-65953397651576720737",
+            "liquidityGross": "65953397651576720737"
+          },
+          {
+            "index": 12066,
+            "liquidityNet": "70822575770493813734",
+            "liquidityGross": "70822575770493813734"
+          },
+          {
+            "index": 12090,
+            "liquidityNet": "9579840911709353635",
+            "liquidityGross": "9579840911709353635"
+          },
+          {
+            "index": 12148,
+            "liquidityNet": "32589898103669163061",
+            "liquidityGross": "174235049644656790529"
+          },
+          {
+            "index": 12177,
+            "liquidityNet": "-520245226873922274",
+            "liquidityGross": "520245226873922274"
+          },
+          {
+            "index": 12190,
+            "liquidityNet": "-2217563507747206114",
+            "liquidityGross": "2217563507747206114"
+          },
+          {
+            "index": 12199,
+            "liquidityNet": "-20714415483837193",
+            "liquidityGross": "20714415483837193"
+          },
+          {
+            "index": 12265,
+            "liquidityNet": "-13059592351059467752",
+            "liquidityGross": "13059592351059467752"
+          },
+          {
+            "index": 12290,
+            "liquidityNet": "6991706408734569233",
+            "liquidityGross": "6991706408734569233"
+          },
+          {
+            "index": 12296,
+            "liquidityNet": "-30043049552786723723",
+            "liquidityGross": "30043049552786723723"
+          },
+          {
+            "index": 12304,
+            "liquidityNet": "-17169615833141346261",
+            "liquidityGross": "17169615833141346261"
+          },
+          {
+            "index": 12312,
+            "liquidityNet": "-103412473874162976795",
+            "liquidityGross": "103412473874162976795"
+          },
+          {
+            "index": 12313,
+            "liquidityNet": "171371387071370522609",
+            "liquidityGross": "171371387071370522609"
+          },
+          {
+            "index": 12344,
+            "liquidityNet": "-2667041938992671370",
+            "liquidityGross": "2667041938992671370"
+          },
+          {
+            "index": 12383,
+            "liquidityNet": "-490737534511273226",
+            "liquidityGross": "490737534511273226"
+          },
+          {
+            "index": 12386,
+            "liquidityNet": "-32305222200752",
+            "liquidityGross": "32305222200752"
+          },
+          {
+            "index": 12411,
+            "liquidityNet": "1382557257548338824",
+            "liquidityGross": "1382557257548338824"
+          },
+          {
+            "index": 12417,
+            "liquidityNet": "475916277472410790",
+            "liquidityGross": "475916277472410790"
+          },
+          {
+            "index": 12465,
+            "liquidityNet": "-2114080479244090947",
+            "liquidityGross": "2114080479244090947"
+          },
+          {
+            "index": 12469,
+            "liquidityNet": "-43901656317035788302",
+            "liquidityGross": "298841117825705256916"
+          },
+          {
+            "index": 12477,
+            "liquidityNet": "-857865746263377029",
+            "liquidityGross": "857865746263377029"
+          },
+          {
+            "index": 12510,
+            "liquidityNet": "-1219180298206900108",
+            "liquidityGross": "1219180298206900108"
+          },
+          {
+            "index": 12511,
+            "liquidityNet": "-1382557257548338824",
+            "liquidityGross": "1382557257548338824"
+          },
+          {
+            "index": 12517,
+            "liquidityNet": "-22365172715048986414",
+            "liquidityGross": "22365172715048986414"
+          },
+          {
+            "index": 12520,
+            "liquidityNet": "51671069429620922802",
+            "liquidityGross": "51671069429620922802"
+          },
+          {
+            "index": 12530,
+            "liquidityNet": "-51671069429620922802",
+            "liquidityGross": "51671069429620922802"
+          },
+          {
+            "index": 12553,
+            "liquidityNet": "-8930214057679454432",
+            "liquidityGross": "8930214057679454432"
+          },
+          {
+            "index": 12555,
+            "liquidityNet": "132527940414095278",
+            "liquidityGross": "132527940414095278"
+          },
+          {
+            "index": 12619,
+            "liquidityNet": "-20993479239340284817",
+            "liquidityGross": "20993479239340284817"
+          },
+          {
+            "index": 12641,
+            "liquidityNet": "-6991706408734569233",
+            "liquidityGross": "6991706408734569233"
+          },
+          {
+            "index": 12667,
+            "liquidityNet": "128795772434292415521",
+            "liquidityGross": "128795772434292415521"
+          },
+          {
+            "index": 12669,
+            "liquidityNet": "-127469730754334734307",
+            "liquidityGross": "127469730754334734307"
+          },
+          {
+            "index": 12700,
+            "liquidityNet": "195378569635096795894",
+            "liquidityGross": "195378569635096795894"
+          },
+          {
+            "index": 12704,
+            "liquidityNet": "-4606006525772908430",
+            "liquidityGross": "4606006525772908430"
+          },
+          {
+            "index": 12726,
+            "liquidityNet": "-256669200064388404395",
+            "liquidityGross": "256669200064388404395"
+          },
+          {
+            "index": 12735,
+            "liquidityNet": "-3512735154240172625",
+            "liquidityGross": "3512735154240172625"
+          },
+          {
+            "index": 12777,
+            "liquidityNet": "-13576657887812780597",
+            "liquidityGross": "13576657887812780597"
+          },
+          {
+            "index": 12789,
+            "liquidityNet": "-14107219937351424",
+            "liquidityGross": "14107219937351424"
+          },
+          {
+            "index": 12798,
+            "liquidityNet": "-1151220304741836771",
+            "liquidityGross": "1151220304741836771"
+          }
+        ]
+      },
+      "input": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+      "output": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "309516594442801954",
+          "denominator": "1",
+          "quotient": "309516594442801954"
+        },
+        "gas": "82000",
+        "state": {
+          "tick": 11729,
+          "sqrtRatioX96": "142418968864716422804335179035",
+          "liquidity": "2325877931877454472800"
+        },
+        "repeat": {
+          "numerator": "309368644178681693",
+          "denominator": "1",
+          "quotient": "309368644178681693"
+        }
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "20273462169893747654897207554767418267720585298244214912081",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "live-2-0",
+      "chain": 56,
+      "pool": {
+        "address": "0x7c762fa6393df0a43730f004c868b93af696ae1e",
+        "type": 2,
+        "balances": [
+          {
+            "currency": {
+              "address": "0x55d398326f99059fF775485246999027B3197955",
+              "decimals": 18,
+              "symbol": "USDT"
+            },
+            "value": "540865247423343528929"
+          },
+          {
+            "currency": {
+              "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+              "decimals": 18,
+              "symbol": "USD1"
+            },
+            "value": "2110783860121274864601"
+          }
+        ],
+        "amplifier": "3500",
+        "fee": "0.01"
+      },
+      "input": "0x55d398326f99059ff775485246999027b3197955",
+      "output": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "1000699953508505703000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "1000699953508505703"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "541865247423343528929",
+            "denominator": "1",
+            "quotient": "541865247423343528929"
+          },
+          {
+            "numerator": "2109783160167766358898000000000000000000",
+            "denominator": "1000000000000000000",
+            "quotient": "2109783160167766358898"
+          }
+        ],
+        "repeat": {
+          "numerator": "1000696745748913042000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "1000696745748913042"
+        }
+      },
+      "price": {
+        "numerator": "1000699953508505703000000000000000000",
+        "denominator": "1000000000000000000000000000000000000",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "live-2-1",
+      "chain": 56,
+      "pool": {
+        "address": "0x7c762fa6393df0a43730f004c868b93af696ae1e",
+        "type": 2,
+        "balances": [
+          {
+            "currency": {
+              "address": "0x55d398326f99059fF775485246999027B3197955",
+              "decimals": 18,
+              "symbol": "USDT"
+            },
+            "value": "540865247423343528929"
+          },
+          {
+            "currency": {
+              "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+              "decimals": 18,
+              "symbol": "USD1"
+            },
+            "value": "2110783860121274864601"
+          }
+        ],
+        "amplifier": "3500",
+        "fee": "0.01"
+      },
+      "input": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+      "output": "0x55d398326f99059ff775485246999027b3197955",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "999097467156744935000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "999097467156744935"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "539866149956186783994000000000000000000",
+            "denominator": "1000000000000000000",
+            "quotient": "539866149956186783994"
+          },
+          {
+            "numerator": "2111783860121274864601",
+            "denominator": "1",
+            "quotient": "2111783860121274864601"
+          }
+        ],
+        "repeat": {
+          "numerator": "999094232392763398000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "999094232392763398"
+        }
+      },
+      "price": {
+        "numerator": "999097467156744935000000000000000000",
+        "denominator": "1000000000000000000000000000000000000",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "live-3-0",
+      "chain": 56,
+      "pool": {
+        "id": "0xd37aa0f0d66ad670279f6b89325c88bdff17d0265144762fb01f54fca9779944",
+        "type": 3,
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "symbol": "BNB"
+        },
+        "currency1": {
+          "address": "0x55d398326f99059fF775485246999027B3197955",
+          "decimals": 18,
+          "symbol": "USDT"
+        },
+        "fee": 67,
+        "dynamic": false,
+        "protocolFee": 131104,
+        "liquidity": "28625963974730312267729",
+        "sqrtRatioX96": "2109358845894265522623123519210",
+        "tick": 65639,
+        "tickSpacing": 1,
+        "poolManager": "0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "ticks": [
+          {
+            "index": 65538,
+            "liquidityNet": "1404721732198312274020",
+            "liquidityGross": "1404721732198312274020"
+          },
+          {
+            "index": 65543,
+            "liquidityNet": "120176072817713720208",
+            "liquidityGross": "120176072817713720208"
+          },
+          {
+            "index": 65567,
+            "liquidityNet": "1060607189136857367898",
+            "liquidityGross": "1060607189136857367898"
+          },
+          {
+            "index": 65584,
+            "liquidityNet": "-1060607189136857367898",
+            "liquidityGross": "1060607189136857367898"
+          },
+          {
+            "index": 65590,
+            "liquidityNet": "301486073583429163579",
+            "liquidityGross": "301486073583429163579"
+          },
+          {
+            "index": 65639,
+            "liquidityNet": "221406155926358439",
+            "liquidityGross": "221406155926358439"
+          },
+          {
+            "index": 65646,
+            "liquidityNet": "2004234691406858572943",
+            "liquidityGross": "2004234691406858572943"
+          },
+          {
+            "index": 65676,
+            "liquidityNet": "-2051681602058473510900",
+            "liquidityGross": "2051681602058473510900"
+          },
+          {
+            "index": 65688,
+            "liquidityNet": "201882050257142452825",
+            "liquidityGross": "201882050257142452825"
+          },
+          {
+            "index": 65714,
+            "liquidityNet": "-22262824128887348445",
+            "liquidityGross": "22262824128887348445"
+          },
+          {
+            "index": 65726,
+            "liquidityNet": "8425434582406495636",
+            "liquidityGross": "8425434582406495636"
+          },
+          {
+            "index": 65753,
+            "liquidityNet": "-400051198844642165458",
+            "liquidityGross": "400051198844642165458"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000000",
+      "output": "0x55d398326f99059ff775485246999027b3197955",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "708100787402367191168",
+          "denominator": "1",
+          "quotient": "708100787402367191168"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": 65620,
+          "sqrtRatioX96": "2107399018509932276724230818966",
+          "liquidity": "28625742568574385909290"
+        },
+        "repeat": {
+          "numerator": "706786200857447955021",
+          "denominator": "1",
+          "quotient": "706786200857447955021"
+        }
+      },
+      "price": {
+        "numerator": "4449394740752387805646977218498690067641898275432655239024100",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "708"
+      }
+    },
+    {
+      "name": "live-3-1",
+      "chain": 56,
+      "pool": {
+        "id": "0xd37aa0f0d66ad670279f6b89325c88bdff17d0265144762fb01f54fca9779944",
+        "type": 3,
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "symbol": "BNB"
+        },
+        "currency1": {
+          "address": "0x55d398326f99059fF775485246999027B3197955",
+          "decimals": 18,
+          "symbol": "USDT"
+        },
+        "fee": 67,
+        "dynamic": false,
+        "protocolFee": 131104,
+        "liquidity": "28625963974730312267729",
+        "sqrtRatioX96": "2109358845894265522623123519210",
+        "tick": 65639,
+        "tickSpacing": 1,
+        "poolManager": "0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "ticks": [
+          {
+            "index": 65538,
+            "liquidityNet": "1404721732198312274020",
+            "liquidityGross": "1404721732198312274020"
+          },
+          {
+            "index": 65543,
+            "liquidityNet": "120176072817713720208",
+            "liquidityGross": "120176072817713720208"
+          },
+          {
+            "index": 65567,
+            "liquidityNet": "1060607189136857367898",
+            "liquidityGross": "1060607189136857367898"
+          },
+          {
+            "index": 65584,
+            "liquidityNet": "-1060607189136857367898",
+            "liquidityGross": "1060607189136857367898"
+          },
+          {
+            "index": 65590,
+            "liquidityNet": "301486073583429163579",
+            "liquidityGross": "301486073583429163579"
+          },
+          {
+            "index": 65639,
+            "liquidityNet": "221406155926358439",
+            "liquidityGross": "221406155926358439"
+          },
+          {
+            "index": 65646,
+            "liquidityNet": "2004234691406858572943",
+            "liquidityGross": "2004234691406858572943"
+          },
+          {
+            "index": 65676,
+            "liquidityNet": "-2051681602058473510900",
+            "liquidityGross": "2051681602058473510900"
+          },
+          {
+            "index": 65688,
+            "liquidityNet": "201882050257142452825",
+            "liquidityGross": "201882050257142452825"
+          },
+          {
+            "index": 65714,
+            "liquidityNet": "-22262824128887348445",
+            "liquidityGross": "22262824128887348445"
+          },
+          {
+            "index": 65726,
+            "liquidityNet": "8425434582406495636",
+            "liquidityGross": "8425434582406495636"
+          },
+          {
+            "index": 65753,
+            "liquidityNet": "-400051198844642165458",
+            "liquidityGross": "400051198844642165458"
+          }
+        ]
+      },
+      "input": "0x55d398326f99059ff775485246999027b3197955",
+      "output": "0x0000000000000000000000000000000000000000",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "1410635026433008",
+          "denominator": "1",
+          "quotient": "1410635026433008"
+        },
+        "gas": "82000",
+        "state": {
+          "tick": 65639,
+          "sqrtRatioX96": "2109361613323128219002138239327",
+          "liquidity": "28625963974730312267729"
+        },
+        "repeat": {
+          "numerator": "1410631325003210",
+          "denominator": "1",
+          "quotient": "1410631325003210"
+        }
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "4449394740752387805646977218498690067641898275432655239024100",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "live-4-0",
+      "chain": 56,
+      "pool": {
+        "id": "0x4344ee25eaf31766bffd42a86de0ba5419d2c1cf081c34bc4fb40c69018b7641",
+        "type": 4,
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "symbol": "BNB"
+        },
+        "currency1": {
+          "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+          "decimals": 18,
+          "symbol": "ETH"
+        },
+        "fee": 335,
+        "dynamic": false,
+        "protocolFee": 671908,
+        "activeId": 8387285,
+        "binStep": 10,
+        "poolManager": "0xC697d2898e0D09264376196696c51D7aBbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8387234": {
+            "reserveX": "0",
+            "reserveY": "2"
+          },
+          "8387235": {
+            "reserveX": "0",
+            "reserveY": "3977892490974"
+          },
+          "8387236": {
+            "reserveX": "0",
+            "reserveY": "3975538403803"
+          },
+          "8387237": {
+            "reserveX": "0",
+            "reserveY": "3992555849781"
+          },
+          "8387238": {
+            "reserveX": "0",
+            "reserveY": "3991885228587"
+          },
+          "8387239": {
+            "reserveX": "0",
+            "reserveY": "4006928594430"
+          },
+          "8387240": {
+            "reserveX": "0",
+            "reserveY": "4014442208150"
+          },
+          "8387241": {
+            "reserveX": "0",
+            "reserveY": "4018278950192"
+          },
+          "8387242": {
+            "reserveX": "0",
+            "reserveY": "4026951583410"
+          },
+          "8387243": {
+            "reserveX": "0",
+            "reserveY": "4052370998475"
+          },
+          "8387244": {
+            "reserveX": "0",
+            "reserveY": "4066218625001"
+          },
+          "8387245": {
+            "reserveX": "0",
+            "reserveY": "4066414466226"
+          },
+          "8387246": {
+            "reserveX": "0",
+            "reserveY": "4080340011328"
+          },
+          "8387247": {
+            "reserveX": "0",
+            "reserveY": "4060621084734"
+          },
+          "8387248": {
+            "reserveX": "0",
+            "reserveY": "4062478086278"
+          },
+          "8387249": {
+            "reserveX": "0",
+            "reserveY": "4042938000143"
+          },
+          "8387250": {
+            "reserveX": "0",
+            "reserveY": "4055200084759"
+          },
+          "8387251": {
+            "reserveX": "0",
+            "reserveY": "4037910452970"
+          },
+          "8387252": {
+            "reserveX": "0",
+            "reserveY": "4051673829139"
+          },
+          "8387253": {
+            "reserveX": "0",
+            "reserveY": "4051205209482"
+          },
+          "8387254": {
+            "reserveX": "0",
+            "reserveY": "4049264428448"
+          },
+          "8387255": {
+            "reserveX": "0",
+            "reserveY": "4024532973537"
+          },
+          "8387256": {
+            "reserveX": "0",
+            "reserveY": "3988263894122"
+          },
+          "8387257": {
+            "reserveX": "0",
+            "reserveY": "3989498159364"
+          },
+          "8387258": {
+            "reserveX": "0",
+            "reserveY": "3985725480616"
+          },
+          "8387259": {
+            "reserveX": "0",
+            "reserveY": "3973547047118"
+          },
+          "8387260": {
+            "reserveX": "0",
+            "reserveY": "7150407480411"
+          },
+          "8387261": {
+            "reserveX": "0",
+            "reserveY": "10335390292747"
+          },
+          "8387262": {
+            "reserveX": "0",
+            "reserveY": "10333161974819"
+          },
+          "8387263": {
+            "reserveX": "0",
+            "reserveY": "10342688467015"
+          },
+          "8387264": {
+            "reserveX": "0",
+            "reserveY": "10364072887001"
+          },
+          "8387265": {
+            "reserveX": "0",
+            "reserveY": "10368120175936"
+          },
+          "8387266": {
+            "reserveX": "0",
+            "reserveY": "10364964073281"
+          },
+          "8387267": {
+            "reserveX": "0",
+            "reserveY": "10366612202997"
+          },
+          "8387268": {
+            "reserveX": "0",
+            "reserveY": "10367202773555"
+          },
+          "8387269": {
+            "reserveX": "0",
+            "reserveY": "10379429916538"
+          },
+          "8387270": {
+            "reserveX": "0",
+            "reserveY": "10385570515610"
+          },
+          "8387271": {
+            "reserveX": "0",
+            "reserveY": "10404627441989"
+          },
+          "8387272": {
+            "reserveX": "0",
+            "reserveY": "10417244974245"
+          },
+          "8387273": {
+            "reserveX": "0",
+            "reserveY": "10424793683634"
+          },
+          "8387274": {
+            "reserveX": "0",
+            "reserveY": "10435998420533"
+          },
+          "8387275": {
+            "reserveX": "0",
+            "reserveY": "10444013030151"
+          },
+          "8387276": {
+            "reserveX": "0",
+            "reserveY": "10460430858361"
+          },
+          "8387277": {
+            "reserveX": "0",
+            "reserveY": "10474726797001"
+          },
+          "8387278": {
+            "reserveX": "0",
+            "reserveY": "10480652560159"
+          },
+          "8387279": {
+            "reserveX": "0",
+            "reserveY": "10490384816182"
+          },
+          "8387280": {
+            "reserveX": "0",
+            "reserveY": "10506928558494"
+          },
+          "8387281": {
+            "reserveX": "0",
+            "reserveY": "10523502597238"
+          },
+          "8387282": {
+            "reserveX": "0",
+            "reserveY": "10529899855832"
+          },
+          "8387283": {
+            "reserveX": "0",
+            "reserveY": "10540344487051"
+          },
+          "8387284": {
+            "reserveX": "0",
+            "reserveY": "10565752924560"
+          },
+          "8387285": {
+            "reserveX": "73595410",
+            "reserveY": "10581704474987"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000000",
+      "output": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "368681302381396",
+          "denominator": "1",
+          "quotient": "368681302381396"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "368681302381396",
+          "denominator": "1",
+          "quotient": "368681302381396"
+        }
+      },
+      "price": {
+        "numerator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "denominator": "3752187265212931683358978875651089242735779092385999723857445297662806659881230753449746514070284108131284242230678382553601671772688014484869854518087827151061230922135249421193703842870139135765858187877124036631802386887630371982048576924748722473472239045440981165635149032901467912694584878761219655437398873918309821383523329817103089029750835243749971204909044088704886005465254311834209849056585123089396085351118472024913765386462027282860125151381322408089198861270473962082087311928591686379028231844282357263087093975660809604032502183974916751075548204559584642236608135317731385481211499868798235416111205407257487028933269544144795352630101986111612079416974063326796259699627562772284127419280735488265336574354867334017222321434593527659776699207923789303560083730103493116565805763562720972503107403849443763723034930533466935099816881933942434547759044122863723303385403038111874347470363363251385773075727095529297355530109358370262388900255008893076802051949250790536094600750072287106217656877184327397225137836490839853058124754929608957381805026186476846073571350723518529895845010590246605372994859480365796863261207015227960102883332702269211027155197939768548580457965241595118335829566861945089081329004900465532791231513763141025948630394672989956530094240685851509394881181731331529237736932101575988464909726564669123367764601314929810448346684731284768675543123203784289210715942341636856619929836592360769703859670272244235780897382162443004240927005697723670157714475762046722152906992146982883308208733959740787613819119356529283216454385475068237484233399525969803274620373043156174834676636244927750403421603039434788095683130549934616111011340260788847366180348397271574051992544134852533801445802108596318690734879226636081416316979216253383797634276954902099148170859064148635747181291862223024574404878370492075716471899169315535861110461943161222861653925368749086023938910205790397142487065214261829537339109974571084462623046126632634930403431876289576164999345512323219070272773775846653144860270503987511318896517479022985557287278541796537213282337069290137207207514609698291328433544631506487978306866223896859285374509775877221579427120289619987840132332016433139379515437604053083614024818193698923892907113188550739455349457600061189529751979073862548412519370119352273660987729144640503253811422861847891227735437709236716851199921431675299780913878244469895669995872223432895778816667121387652002841213833027319375980286801593910490092701760756443212770455804120441525167459789266557886286046494589873003764308696503857872503335296423521603074741016120292853709474177830752411136404618062031341515183523455030780474524271360348291787631731672214608968021953509709432127494896290433638077309324205688402482478145783547914350377592790084494330260816018310259389880173390681256920935365418389428586566438304744574841272812744921629447006257498905532534193328052140834284011637621270186643767445943830254669810373392629675468491273126487914600276379731966377355096467416590249263013150915317286507567618994950459551972529390636314618118102482508694300021455957542139420958093877220927686415018106623605060885655378604823646261550622819349693957753438093379096443310145568947697894524005615878307931394515494855791438925097832527465405058530621152277186783080441192147346258202087007372747067767557905152957192209245711952021315364987481339235003370848810843287810907316958191200688894032683251622738378033284681884502736047758296621738924783356003726531723791579894468898286036712824213784566807171898016816363379266582329026954494480748128377734282084769921898406276325025702124082787066242325278359220095406825174075616772374284929815812156156601009229832192706804653823542357331614361182541098092287440313077153356628010232785099902057745919001565769759796939979287871116756504364260088375481041926610812310266481532325058325518008451505945573561729953575198164403446517970694012316572974093656552135750003695504323001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "live-4-1",
+      "chain": 56,
+      "pool": {
+        "id": "0x4344ee25eaf31766bffd42a86de0ba5419d2c1cf081c34bc4fb40c69018b7641",
+        "type": 4,
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "symbol": "BNB"
+        },
+        "currency1": {
+          "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+          "decimals": 18,
+          "symbol": "ETH"
+        },
+        "fee": 335,
+        "dynamic": false,
+        "protocolFee": 671908,
+        "activeId": 8387285,
+        "binStep": 10,
+        "poolManager": "0xC697d2898e0D09264376196696c51D7aBbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8387234": {
+            "reserveX": "0",
+            "reserveY": "2"
+          },
+          "8387235": {
+            "reserveX": "0",
+            "reserveY": "3977892490974"
+          },
+          "8387236": {
+            "reserveX": "0",
+            "reserveY": "3975538403803"
+          },
+          "8387237": {
+            "reserveX": "0",
+            "reserveY": "3992555849781"
+          },
+          "8387238": {
+            "reserveX": "0",
+            "reserveY": "3991885228587"
+          },
+          "8387239": {
+            "reserveX": "0",
+            "reserveY": "4006928594430"
+          },
+          "8387240": {
+            "reserveX": "0",
+            "reserveY": "4014442208150"
+          },
+          "8387241": {
+            "reserveX": "0",
+            "reserveY": "4018278950192"
+          },
+          "8387242": {
+            "reserveX": "0",
+            "reserveY": "4026951583410"
+          },
+          "8387243": {
+            "reserveX": "0",
+            "reserveY": "4052370998475"
+          },
+          "8387244": {
+            "reserveX": "0",
+            "reserveY": "4066218625001"
+          },
+          "8387245": {
+            "reserveX": "0",
+            "reserveY": "4066414466226"
+          },
+          "8387246": {
+            "reserveX": "0",
+            "reserveY": "4080340011328"
+          },
+          "8387247": {
+            "reserveX": "0",
+            "reserveY": "4060621084734"
+          },
+          "8387248": {
+            "reserveX": "0",
+            "reserveY": "4062478086278"
+          },
+          "8387249": {
+            "reserveX": "0",
+            "reserveY": "4042938000143"
+          },
+          "8387250": {
+            "reserveX": "0",
+            "reserveY": "4055200084759"
+          },
+          "8387251": {
+            "reserveX": "0",
+            "reserveY": "4037910452970"
+          },
+          "8387252": {
+            "reserveX": "0",
+            "reserveY": "4051673829139"
+          },
+          "8387253": {
+            "reserveX": "0",
+            "reserveY": "4051205209482"
+          },
+          "8387254": {
+            "reserveX": "0",
+            "reserveY": "4049264428448"
+          },
+          "8387255": {
+            "reserveX": "0",
+            "reserveY": "4024532973537"
+          },
+          "8387256": {
+            "reserveX": "0",
+            "reserveY": "3988263894122"
+          },
+          "8387257": {
+            "reserveX": "0",
+            "reserveY": "3989498159364"
+          },
+          "8387258": {
+            "reserveX": "0",
+            "reserveY": "3985725480616"
+          },
+          "8387259": {
+            "reserveX": "0",
+            "reserveY": "3973547047118"
+          },
+          "8387260": {
+            "reserveX": "0",
+            "reserveY": "7150407480411"
+          },
+          "8387261": {
+            "reserveX": "0",
+            "reserveY": "10335390292747"
+          },
+          "8387262": {
+            "reserveX": "0",
+            "reserveY": "10333161974819"
+          },
+          "8387263": {
+            "reserveX": "0",
+            "reserveY": "10342688467015"
+          },
+          "8387264": {
+            "reserveX": "0",
+            "reserveY": "10364072887001"
+          },
+          "8387265": {
+            "reserveX": "0",
+            "reserveY": "10368120175936"
+          },
+          "8387266": {
+            "reserveX": "0",
+            "reserveY": "10364964073281"
+          },
+          "8387267": {
+            "reserveX": "0",
+            "reserveY": "10366612202997"
+          },
+          "8387268": {
+            "reserveX": "0",
+            "reserveY": "10367202773555"
+          },
+          "8387269": {
+            "reserveX": "0",
+            "reserveY": "10379429916538"
+          },
+          "8387270": {
+            "reserveX": "0",
+            "reserveY": "10385570515610"
+          },
+          "8387271": {
+            "reserveX": "0",
+            "reserveY": "10404627441989"
+          },
+          "8387272": {
+            "reserveX": "0",
+            "reserveY": "10417244974245"
+          },
+          "8387273": {
+            "reserveX": "0",
+            "reserveY": "10424793683634"
+          },
+          "8387274": {
+            "reserveX": "0",
+            "reserveY": "10435998420533"
+          },
+          "8387275": {
+            "reserveX": "0",
+            "reserveY": "10444013030151"
+          },
+          "8387276": {
+            "reserveX": "0",
+            "reserveY": "10460430858361"
+          },
+          "8387277": {
+            "reserveX": "0",
+            "reserveY": "10474726797001"
+          },
+          "8387278": {
+            "reserveX": "0",
+            "reserveY": "10480652560159"
+          },
+          "8387279": {
+            "reserveX": "0",
+            "reserveY": "10490384816182"
+          },
+          "8387280": {
+            "reserveX": "0",
+            "reserveY": "10506928558494"
+          },
+          "8387281": {
+            "reserveX": "0",
+            "reserveY": "10523502597238"
+          },
+          "8387282": {
+            "reserveX": "0",
+            "reserveY": "10529899855832"
+          },
+          "8387283": {
+            "reserveX": "0",
+            "reserveY": "10540344487051"
+          },
+          "8387284": {
+            "reserveX": "0",
+            "reserveY": "10565752924560"
+          },
+          "8387285": {
+            "reserveX": "73595410",
+            "reserveY": "10581704474987"
+          }
+        }
+      },
+      "input": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+      "output": "0x0000000000000000000000000000000000000000",
+      "amount": {
+        "numerator": "1000000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "73595410",
+          "denominator": "1",
+          "quotient": "73595410"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "73595410",
+          "denominator": "1",
+          "quotient": "73595410"
+        }
+      },
+      "price": {
+        "numerator": "3752187265212931683358978875651089242735779092385999723857445297662806659881230753449746514070284108131284242230678382553601671772688014484869854518087827151061230922135249421193703842870139135765858187877124036631802386887630371982048576924748722473472239045440981165635149032901467912694584878761219655437398873918309821383523329817103089029750835243749971204909044088704886005465254311834209849056585123089396085351118472024913765386462027282860125151381322408089198861270473962082087311928591686379028231844282357263087093975660809604032502183974916751075548204559584642236608135317731385481211499868798235416111205407257487028933269544144795352630101986111612079416974063326796259699627562772284127419280735488265336574354867334017222321434593527659776699207923789303560083730103493116565805763562720972503107403849443763723034930533466935099816881933942434547759044122863723303385403038111874347470363363251385773075727095529297355530109358370262388900255008893076802051949250790536094600750072287106217656877184327397225137836490839853058124754929608957381805026186476846073571350723518529895845010590246605372994859480365796863261207015227960102883332702269211027155197939768548580457965241595118335829566861945089081329004900465532791231513763141025948630394672989956530094240685851509394881181731331529237736932101575988464909726564669123367764601314929810448346684731284768675543123203784289210715942341636856619929836592360769703859670272244235780897382162443004240927005697723670157714475762046722152906992146982883308208733959740787613819119356529283216454385475068237484233399525969803274620373043156174834676636244927750403421603039434788095683130549934616111011340260788847366180348397271574051992544134852533801445802108596318690734879226636081416316979216253383797634276954902099148170859064148635747181291862223024574404878370492075716471899169315535861110461943161222861653925368749086023938910205790397142487065214261829537339109974571084462623046126632634930403431876289576164999345512323219070272773775846653144860270503987511318896517479022985557287278541796537213282337069290137207207514609698291328433544631506487978306866223896859285374509775877221579427120289619987840132332016433139379515437604053083614024818193698923892907113188550739455349457600061189529751979073862548412519370119352273660987729144640503253811422861847891227735437709236716851199921431675299780913878244469895669995872223432895778816667121387652002841213833027319375980286801593910490092701760756443212770455804120441525167459789266557886286046494589873003764308696503857872503335296423521603074741016120292853709474177830752411136404618062031341515183523455030780474524271360348291787631731672214608968021953509709432127494896290433638077309324205688402482478145783547914350377592790084494330260816018310259389880173390681256920935365418389428586566438304744574841272812744921629447006257498905532534193328052140834284011637621270186643767445943830254669810373392629675468491273126487914600276379731966377355096467416590249263013150915317286507567618994950459551972529390636314618118102482508694300021455957542139420958093877220927686415018106623605060885655378604823646261550622819349693957753438093379096443310145568947697894524005615878307931394515494855791438925097832527465405058530621152277186783080441192147346258202087007372747067767557905152957192209245711952021315364987481339235003370848810843287810907316958191200688894032683251622738378033284681884502736047758296621738924783356003726531723791579894468898286036712824213784566807171898016816363379266582329026954494480748128377734282084769921898406276325025702124082787066242325278359220095406825174075616772374284929815812156156601009229832192706804653823542357331614361182541098092287440313077153356628010232785099902057745919001565769759796939979287871116756504364260088375481041926610812310266481532325058325518008451505945573561729953575198164403446517970694012316572974093656552135750003695504323001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "denominator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "quotient": "3"
+      }
+    },
+    {
+      "name": "ticks-forward-1",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "ticks-forward-1000000000000000",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "1000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "998641667814824",
+          "denominator": "1",
+          "quotient": "998641667814824"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": -18,
+          "sqrtRatioX96": "79156962409874225922849210564",
+          "liquidity": "1000000000000000000"
+        },
+        "repeat": {
+          "numerator": "996709047130687",
+          "denominator": "1",
+          "quotient": "996709047130687"
+        }
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "ticks-forward-20000000000000000",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "20000000000000000",
+        "denominator": "1",
+        "quotient": "20000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "19602053945541563",
+          "denominator": "1",
+          "quotient": "19602053945541563"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": -394,
+          "sqrtRatioX96": "77683048238614631367312059931",
+          "liquidity": "1000000000000000000"
+        },
+        "repeat": null,
+        "repeatGasError": true
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "ticks-exhausted-forward",
+      "chain": 8453,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "10000000000000000000000000",
+        "denominator": "1",
+        "quotient": "10000000000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "29652980886135769",
+          "denominator": "1",
+          "quotient": "29652980886135769"
+        },
+        "gas": "0",
+        "state": {
+          "tick": -887272,
+          "sqrtRatioX96": "4295128740",
+          "liquidity": "0"
+        },
+        "repeat": null
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "ticks-reverse-1",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "ticks-reverse-1000000000000000",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "1000000000000000",
+        "denominator": "1",
+        "quotient": "1000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "998641667814824",
+          "denominator": "1",
+          "quotient": "998641667814824"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": 17,
+          "sqrtRatioX96": "79299426661724203674413767743",
+          "liquidity": "1000000000000000000"
+        },
+        "repeat": {
+          "numerator": "996709047130687",
+          "denominator": "1",
+          "quotient": "996709047130687"
+        }
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "ticks-reverse-20000000000000000",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "20000000000000000",
+        "denominator": "1",
+        "quotient": "20000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "19602053945541563",
+          "denominator": "1",
+          "quotient": "19602053945541563"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": 393,
+          "sqrtRatioX96": "80804009081951340577483964132",
+          "liquidity": "1000000000000000000"
+        },
+        "repeat": {
+          "numerator": "10050926940594206",
+          "denominator": "1",
+          "quotient": "10050926940594206"
+        }
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "ticks-exhausted-reverse",
+      "chain": 8453,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "10000000000000000000000000",
+        "denominator": "1",
+        "quotient": "10000000000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "29652980886135769",
+          "denominator": "1",
+          "quotient": "29652980886135769"
+        },
+        "gas": "0",
+        "state": {
+          "tick": 887271,
+          "sqrtRatioX96": "1461446703485210103287273052203988822378723970341",
+          "liquidity": "0"
+        },
+        "repeat": null
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "cl-crossing-forward",
+      "chain": 56,
+      "pool": {
+        "type": 3,
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ],
+        "id": "0xabababababababababababababababababababababababababababababababab",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "symbol": "BNB"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "tickSpacing": 10,
+        "protocolFee": 819300,
+        "poolManager": "0xa0ffb9c1ce1fe56963b0321b32e7a0302114058b",
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "input": "0x0000000000000000000000000000000000000000",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "20000000000000000",
+        "denominator": "1",
+        "quotient": "20000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "19600131189444244",
+          "denominator": "1",
+          "quotient": "19600131189444244"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": -394,
+          "sqrtRatioX96": "77683200575047185003203657088",
+          "liquidity": "1000000000000000000"
+        },
+        "repeat": null,
+        "repeatGasError": true
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "cl-exhausted-forward",
+      "chain": 8453,
+      "pool": {
+        "type": 3,
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ],
+        "id": "0xabababababababababababababababababababababababababababababababab",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "symbol": "BNB"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "tickSpacing": 10,
+        "protocolFee": 819300,
+        "poolManager": "0xa0ffb9c1ce1fe56963b0321b32e7a0302114058b",
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "input": "0x0000000000000000000000000000000000000000",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "10000000000000000000000000",
+        "denominator": "1",
+        "quotient": "10000000000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "29652980886135769",
+          "denominator": "1",
+          "quotient": "29652980886135769"
+        },
+        "gas": "0",
+        "state": {
+          "tick": -887272,
+          "sqrtRatioX96": "4295128740",
+          "liquidity": "0"
+        },
+        "repeat": null
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "cl-crossing-reverse",
+      "chain": 56,
+      "pool": {
+        "type": 3,
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ],
+        "id": "0xabababababababababababababababababababababababababababababababab",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "symbol": "BNB"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "tickSpacing": 10,
+        "protocolFee": 819300,
+        "poolManager": "0xa0ffb9c1ce1fe56963b0321b32e7a0302114058b",
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000000",
+      "amount": {
+        "numerator": "20000000000000000",
+        "denominator": "1",
+        "quotient": "20000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "19600131189444244",
+          "denominator": "1",
+          "quotient": "19600131189444244"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": 393,
+          "sqrtRatioX96": "80803850625626312048808777044",
+          "liquidity": "1000000000000000000"
+        },
+        "repeat": {
+          "numerator": "10052849696691524",
+          "denominator": "1",
+          "quotient": "10052849696691524"
+        }
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "cl-exhausted-reverse",
+      "chain": 8453,
+      "pool": {
+        "type": 3,
+        "fee": 500,
+        "liquidity": "1200000000000000000",
+        "sqrtRatioX96": "79228162514264337593543950336",
+        "tick": 0,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -600,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -10,
+            "liquidityNet": "200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 10,
+            "liquidityNet": "-200000000000000000",
+            "liquidityGross": "200000000000000000"
+          },
+          {
+            "index": 600,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ],
+        "id": "0xabababababababababababababababababababababababababababababababab",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "symbol": "BNB"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "tickSpacing": 10,
+        "protocolFee": 819300,
+        "poolManager": "0xa0ffb9c1ce1fe56963b0321b32e7a0302114058b",
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000000",
+      "amount": {
+        "numerator": "10000000000000000000000000",
+        "denominator": "1",
+        "quotient": "10000000000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "29652980886135769",
+          "denominator": "1",
+          "quotient": "29652980886135769"
+        },
+        "gas": "0",
+        "state": {
+          "tick": 887271,
+          "sqrtRatioX96": "1461446703485210103287273052203988822378723970341",
+          "liquidity": "0"
+        },
+        "repeat": null
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "stable-three-0-1",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "100000000000000000000000"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "123456789012"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000044",
+              "decimals": 8,
+              "symbol": "C"
+            },
+            "value": "8765432109876"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "1234567",
+        "denominator": "1",
+        "quotient": "1234567"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "999802794298905715000000",
+        "denominator": "1000000000000000000000000000000000000",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "stable-three-1-0",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "100000000000000000000000"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "123456789012"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000044",
+              "decimals": 8,
+              "symbol": "C"
+            },
+            "value": "8765432109876"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "1234567",
+        "denominator": "1",
+        "quotient": "1234567"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "1233822835928446727000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "1233822835928446727"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "99998766177164071553273000000000000000000",
+            "denominator": "1000000000000000000",
+            "quotient": "99998766177164071553273"
+          },
+          {
+            "numerator": "123458023579",
+            "denominator": "1",
+            "quotient": "123458023579"
+          },
+          {
+            "numerator": "8765432109876",
+            "denominator": "1",
+            "quotient": "8765432109876"
+          }
+        ],
+        "repeat": {
+          "numerator": "1233822808417889481000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "1233822808417889481"
+        }
+      },
+      "price": {
+        "numerator": "999397228779411444000000000000000000",
+        "denominator": "1000000000000000000000000",
+        "quotient": "999397228779"
+      }
+    },
+    {
+      "name": "stable-three-1-2",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "100000000000000000000000"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "123456789012"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000044",
+              "decimals": 8,
+              "symbol": "C"
+            },
+            "value": "8765432109876"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000044",
+      "amount": {
+        "numerator": "1234567",
+        "denominator": "1",
+        "quotient": "1234567"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "123363733613678191600000000",
+          "denominator": "1000000000000000000",
+          "quotient": "123363733"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "100000000000000000000000",
+            "denominator": "1",
+            "quotient": "100000000000000000000000"
+          },
+          {
+            "numerator": "123458023579",
+            "denominator": "1",
+            "quotient": "123458023579"
+          },
+          {
+            "numerator": "8765308746142386321808400000000",
+            "denominator": "1000000000000000000",
+            "quotient": "8765308746142"
+          }
+        ],
+        "repeat": {
+          "numerator": "123363730254666672300000000",
+          "denominator": "1000000000000000000",
+          "quotient": "123363730"
+        }
+      },
+      "price": {
+        "numerator": "99924697430643928900000000",
+        "denominator": "1000000000000000000000000",
+        "quotient": "99"
+      }
+    },
+    {
+      "name": "stable-three-2-1",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "100000000000000000000000"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "123456789012"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000044",
+              "decimals": 8,
+              "symbol": "C"
+            },
+            "value": "8765432109876"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000044",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "1234567",
+        "denominator": "1",
+        "quotient": "1234567"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "12345091472630663000000",
+          "denominator": "1000000000000000000",
+          "quotient": "12345"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "100000000000000000000000",
+            "denominator": "1",
+            "quotient": "100000000000000000000000"
+          },
+          {
+            "numerator": "123456776666908527369337000000",
+            "denominator": "1000000000000000000",
+            "quotient": "123456776666"
+          },
+          {
+            "numerator": "8765433344443",
+            "denominator": "1",
+            "quotient": "8765433344443"
+          }
+        ],
+        "repeat": {
+          "numerator": "12345091469267882000000",
+          "denominator": "1000000000000000000",
+          "quotient": "12345"
+        }
+      },
+      "price": {
+        "numerator": "999953128351801246000000",
+        "denominator": "100000000000000000000000000",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "stable-three-0-2",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "100000000000000000000000"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "123456789012"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000044",
+              "decimals": 8,
+              "symbol": "C"
+            },
+            "value": "8765432109876"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000044",
+      "amount": {
+        "numerator": "1234567",
+        "denominator": "1",
+        "quotient": "1234567"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "99944970465581786400000000",
+        "denominator": "1000000000000000000000000000000000000",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "stable-three-2-0",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "100000000000000000000000"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "123456789012"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000044",
+              "decimals": 8,
+              "symbol": "C"
+            },
+            "value": "8765432109876"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000044",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "1234567",
+        "denominator": "1",
+        "quotient": "1234567"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "12342587352946317000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "12342587352946317"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "99999987657412647053683000000000000000000",
+            "denominator": "1000000000000000000",
+            "quotient": "99999987657412647053683"
+          },
+          {
+            "numerator": "123456789012",
+            "denominator": "1",
+            "quotient": "123456789012"
+          },
+          {
+            "numerator": "8765433344443",
+            "denominator": "1",
+            "quotient": "8765433344443"
+          }
+        ],
+        "repeat": {
+          "numerator": "12342587349170799000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "12342587349170799"
+        }
+      },
+      "price": {
+        "numerator": "999750293171517955000000000000000000",
+        "denominator": "100000000000000000000000000",
+        "quotient": "9997502931"
+      }
+    },
+    {
+      "name": "stable-fractional-input",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "100000000000000000000000"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "123456789012"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000044",
+              "decimals": 8,
+              "symbol": "C"
+            },
+            "value": "8765432109876"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "2000000000000000001",
+        "denominator": "2",
+        "quotient": "1000000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "999802794298905715000000",
+          "denominator": "1000000000000000000",
+          "quotient": "999802"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "200002000000000000000001",
+            "denominator": "2",
+            "quotient": "100001000000000000000000"
+          },
+          {
+            "numerator": "123455789209205701094285000000",
+            "denominator": "1000000000000000000",
+            "quotient": "123455789209"
+          },
+          {
+            "numerator": "8765432109876",
+            "denominator": "1",
+            "quotient": "8765432109876"
+          }
+        ],
+        "repeat": {
+          "numerator": "999802776237813679000000",
+          "denominator": "1000000000000000000",
+          "quotient": "999802"
+        }
+      },
+      "price": {
+        "numerator": "999802794298905715000000",
+        "denominator": "1000000000000000000000000000000000000",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "bin-forward-1",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-forward-1000",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "1000",
+        "denominator": "1",
+        "quotient": "1000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "999",
+          "denominator": "1",
+          "quotient": "999"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "999",
+          "denominator": "1",
+          "quotient": "999"
+        }
+      },
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-forward-1000401",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "1000401",
+        "denominator": "1",
+        "quotient": "1000401"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "1000000",
+          "denominator": "1",
+          "quotient": "1000000"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "1000000",
+          "denominator": "1",
+          "quotient": "1000000"
+        }
+      },
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-forward-2000000",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "2000000",
+        "denominator": "1",
+        "quotient": "2000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "1998200",
+          "denominator": "1",
+          "quotient": "1998200"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "1998200",
+          "denominator": "1",
+          "quotient": "1998200"
+        }
+      },
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-forward-999999999999",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "999999999999",
+        "denominator": "1",
+        "quotient": "999999999999"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "2000000",
+          "denominator": "1",
+          "quotient": "2000000"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "2000000",
+          "denominator": "1",
+          "quotient": "2000000"
+        }
+      },
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-reverse-1",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-reverse-1000",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "1000",
+        "denominator": "1",
+        "quotient": "1000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "999",
+          "denominator": "1",
+          "quotient": "999"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "999",
+          "denominator": "1",
+          "quotient": "999"
+        }
+      },
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-reverse-1000401",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "1000401",
+        "denominator": "1",
+        "quotient": "1000401"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "1000000",
+          "denominator": "1",
+          "quotient": "1000000"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "1000000",
+          "denominator": "1",
+          "quotient": "1000000"
+        }
+      },
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-reverse-2000000",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "2000000",
+        "denominator": "1",
+        "quotient": "2000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "1998200",
+          "denominator": "1",
+          "quotient": "1998200"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "1998200",
+          "denominator": "1",
+          "quotient": "1998200"
+        }
+      },
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "bin-reverse-999999999999",
+      "chain": 56,
+      "pool": {
+        "type": 4,
+        "id": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "currency0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "currency1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 300,
+        "protocolFee": 409700,
+        "activeId": 8388608,
+        "binStep": 10,
+        "poolManager": "0xc697d2898e0d09264376196696c51d7abbbAA4a9",
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "reserveOfBin": {
+          "8388607": {
+            "reserveX": "0",
+            "reserveY": "1000000"
+          },
+          "8388608": {
+            "reserveX": "1000000",
+            "reserveY": "1000000"
+          },
+          "8388609": {
+            "reserveX": "1000000",
+            "reserveY": "0"
+          }
+        }
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "999999999999",
+        "denominator": "1",
+        "quotient": "999999999999"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "2000000",
+          "denominator": "1",
+          "quotient": "2000000"
+        },
+        "gas": "0",
+        "unchanged": true,
+        "repeat": {
+          "numerator": "2000000",
+          "denominator": "1",
+          "quotient": "2000000"
+        }
+      },
+      "price": {
+        "numerator": "1",
+        "denominator": "1",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "stable-small-0",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "123456789012345678"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "456789"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "123456",
+        "denominator": "1",
+        "quotient": "123456"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "123543453402913596000000",
+        "denominator": "123456789012345680000000000000000000",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "stable-small-1",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "123456789012345678"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "456789"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "123456",
+        "denominator": "1",
+        "quotient": "123456"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "117137322703331490000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "117137322703331490"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "6319466309014188000000000000000000",
+            "denominator": "1000000000000000000",
+            "quotient": "6319466309014188"
+          },
+          {
+            "numerator": "580245",
+            "denominator": "1",
+            "quotient": "580245"
+          }
+        ],
+        "repeat": {
+          "numerator": "6037431807772598000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "6037431807772598"
+        }
+      },
+      "price": {
+        "numerator": "117137811431938798000000000000000000",
+        "denominator": "123457000000000000000000",
+        "quotient": "948814659613"
+      }
+    },
+    {
+      "name": "stable-tiny-0",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "12345678901"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "1"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "123456",
+        "denominator": "1",
+        "quotient": "123456"
+      },
+      "expected": null,
+      "priceError": true
+    },
+    {
+      "name": "stable-tiny-1",
+      "chain": 56,
+      "pool": {
+        "type": 2,
+        "address": "0x0000000000000000000000000000000000000033",
+        "amplifier": "1000",
+        "fee": "0.04",
+        "balances": [
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000011",
+              "decimals": 18,
+              "symbol": "A"
+            },
+            "value": "12345678901"
+          },
+          {
+            "currency": {
+              "address": "0x0000000000000000000000000000000000000022",
+              "decimals": 6,
+              "symbol": "B"
+            },
+            "value": "1"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "123456",
+        "denominator": "1",
+        "quotient": "123456"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "12340740630000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "12340740630"
+        },
+        "gas": "250000",
+        "reserves": [
+          {
+            "numerator": "4938271000000000000000000",
+            "denominator": "1000000000000000000",
+            "quotient": "4938271"
+          },
+          {
+            "numerator": "123457",
+            "denominator": "1",
+            "quotient": "123457"
+          }
+        ],
+        "repeat": {
+          "numerator": "3706435000000000000000000",
+          "denominator": "1000000000000000000",
+          "quotient": "3706435"
+        }
+      },
+      "price": {
+        "numerator": "12340740630000000000000000000",
+        "denominator": "1234560000000000000000000",
+        "quotient": "9996"
+      }
+    },
+    {
+      "name": "negative-word-edge-0",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 100,
+        "liquidity": "1000000000000000000",
+        "sqrtRatioX96": "78220554859095770638340573244",
+        "tick": -256,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -1024,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -256,
+            "liquidityNet": "0",
+            "liquidityGross": "10"
+          },
+          {
+            "index": 256,
+            "liquidityNet": "0",
+            "liquidityGross": "10"
+          },
+          {
+            "index": 1024,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000011",
+      "output": "0x0000000000000000000000000000000000000022",
+      "amount": {
+        "numerator": "20000000000000000",
+        "denominator": "1",
+        "quotient": "20000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "19115169933374734",
+          "denominator": "1",
+          "quotient": "19115169933374734"
+        },
+        "gas": "113000",
+        "state": {
+          "tick": -648,
+          "sqrtRatioX96": "76706095069126577754576370594",
+          "liquidity": "1000000000000000000"
+        },
+        "repeat": null,
+        "repeatGasError": true
+      },
+      "price": {
+        "numerator": "6118455202464810974821409688330787346069843209478528683536",
+        "denominator": "6277101735386680763835789423207666416102355444464034512896",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "negative-word-edge-1",
+      "chain": 56,
+      "pool": {
+        "type": 1,
+        "address": "0x0000000000000000000000000000000000000033",
+        "token0": {
+          "address": "0x0000000000000000000000000000000000000011",
+          "decimals": 18,
+          "symbol": "A"
+        },
+        "token1": {
+          "address": "0x0000000000000000000000000000000000000022",
+          "decimals": 18,
+          "symbol": "B"
+        },
+        "fee": 100,
+        "liquidity": "1000000000000000000",
+        "sqrtRatioX96": "78220554859095770638340573244",
+        "tick": -256,
+        "token0ProtocolFee": "0",
+        "token1ProtocolFee": "0",
+        "ticks": [
+          {
+            "index": -1024,
+            "liquidityNet": "1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          },
+          {
+            "index": -256,
+            "liquidityNet": "0",
+            "liquidityGross": "10"
+          },
+          {
+            "index": 256,
+            "liquidityNet": "0",
+            "liquidityGross": "10"
+          },
+          {
+            "index": 1024,
+            "liquidityNet": "-1000000000000000000",
+            "liquidityGross": "1000000000000000000"
+          }
+        ]
+      },
+      "input": "0x0000000000000000000000000000000000000022",
+      "output": "0x0000000000000000000000000000000000000011",
+      "amount": {
+        "numerator": "20000000000000000",
+        "denominator": "1",
+        "quotient": "20000000000000000"
+      },
+      "expected": {
+        "quote": {
+          "numerator": "20109207564211361",
+          "denominator": "1",
+          "quotient": "20109207564211361"
+        },
+        "gas": "82000",
+        "state": {
+          "tick": 145,
+          "sqrtRatioX96": "79804959653056028768593256982",
+          "liquidity": "1000000000000000000"
+        },
+        "repeat": {
+          "numerator": "19326276647280076",
+          "denominator": "1",
+          "quotient": "19326276647280076"
+        }
+      },
+      "price": {
+        "numerator": "6277101735386680763835789423207666416102355444464034512896",
+        "denominator": "6118455202464810974821409688330787346069843209478528683536",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "uint256-overflow-0-0",
+      "chain": 56,
+      "pool": {
+        "type": 0,
+        "reserve0": {
+          "currency": {
+            "address": "0x55d398326f99059fF775485246999027B3197955",
+            "decimals": 18,
+            "symbol": "USDT"
+          },
+          "value": "15778705937061367913740705"
+        },
+        "reserve1": {
+          "currency": {
+            "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "decimals": 18,
+            "symbol": "WBNB"
+          },
+          "value": "22288601164308153782774"
+        },
+        "address": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE"
+      },
+      "input": "0x55d398326f99059ff775485246999027b3197955",
+      "output": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+      "amount": {
+        "numerator": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+        "denominator": "1",
+        "quotient": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "22288601164308153782774",
+        "denominator": "15778705937061367913740705",
+        "quotient": "0"
+      }
+    },
+    {
+      "name": "uint256-overflow-0-1",
+      "chain": 56,
+      "pool": {
+        "type": 0,
+        "reserve0": {
+          "currency": {
+            "address": "0x55d398326f99059fF775485246999027B3197955",
+            "decimals": 18,
+            "symbol": "USDT"
+          },
+          "value": "15778705937061367913740705"
+        },
+        "reserve1": {
+          "currency": {
+            "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "decimals": 18,
+            "symbol": "WBNB"
+          },
+          "value": "22288601164308153782774"
+        },
+        "address": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE"
+      },
+      "input": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+      "output": "0x55d398326f99059ff775485246999027b3197955",
+      "amount": {
+        "numerator": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+        "denominator": "1",
+        "quotient": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "15778705937061367913740705",
+        "denominator": "22288601164308153782774",
+        "quotient": "707"
+      }
+    },
+    {
+      "name": "uint256-overflow-2-0",
+      "chain": 56,
+      "pool": {
+        "address": "0x7c762fa6393df0a43730f004c868b93af696ae1e",
+        "type": 2,
+        "balances": [
+          {
+            "currency": {
+              "address": "0x55d398326f99059fF775485246999027B3197955",
+              "decimals": 18,
+              "symbol": "USDT"
+            },
+            "value": "540865247423343528929"
+          },
+          {
+            "currency": {
+              "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+              "decimals": 18,
+              "symbol": "USD1"
+            },
+            "value": "2110783860121274864601"
+          }
+        ],
+        "amplifier": "3500",
+        "fee": "0.01"
+      },
+      "input": "0x55d398326f99059ff775485246999027b3197955",
+      "output": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+      "amount": {
+        "numerator": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+        "denominator": "1",
+        "quotient": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "1000699953508505703000000000000000000",
+        "denominator": "1000000000000000000000000000000000000",
+        "quotient": "1"
+      }
+    },
+    {
+      "name": "uint256-overflow-2-1",
+      "chain": 56,
+      "pool": {
+        "address": "0x7c762fa6393df0a43730f004c868b93af696ae1e",
+        "type": 2,
+        "balances": [
+          {
+            "currency": {
+              "address": "0x55d398326f99059fF775485246999027B3197955",
+              "decimals": 18,
+              "symbol": "USDT"
+            },
+            "value": "540865247423343528929"
+          },
+          {
+            "currency": {
+              "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+              "decimals": 18,
+              "symbol": "USD1"
+            },
+            "value": "2110783860121274864601"
+          }
+        ],
+        "amplifier": "3500",
+        "fee": "0.01"
+      },
+      "input": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d",
+      "output": "0x55d398326f99059ff775485246999027b3197955",
+      "amount": {
+        "numerator": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+        "denominator": "1",
+        "quotient": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      },
+      "expected": null,
+      "price": {
+        "numerator": "999097467156744935000000000000000000",
+        "denominator": "1000000000000000000000000000000000000",
+        "quotient": "0"
+      }
+    }
+  ],
+  "ticks": [
+    {
+      "tick": -887272,
+      "sqrt": "4295128739"
+    },
+    {
+      "tick": -887271,
+      "sqrt": "4295343490"
+    },
+    {
+      "tick": -257,
+      "sqrt": "78216644124655454786675147356"
+    },
+    {
+      "tick": -256,
+      "sqrt": "78220554859095770638340573244"
+    },
+    {
+      "tick": -255,
+      "sqrt": "78224465789067920332153814871"
+    },
+    {
+      "tick": -1,
+      "sqrt": "79224201403219477170569942574"
+    },
+    {
+      "tick": 0,
+      "sqrt": "79228162514264337593543950336"
+    },
+    {
+      "tick": 1,
+      "sqrt": "79232123823359799118286999568"
+    },
+    {
+      "tick": 255,
+      "sqrt": "80244737654238127488718973609"
+    },
+    {
+      "tick": 256,
+      "sqrt": "80248749790819932309965073893"
+    },
+    {
+      "tick": 257,
+      "sqrt": "80252762128003551301467845506"
+    },
+    {
+      "tick": 887271,
+      "sqrt": "1461373636630004318706518188784493106690254656249"
+    },
+    {
+      "tick": 887272,
+      "sqrt": "1461446703485210103287273052203988822378723970342"
+    }
+  ]
+}

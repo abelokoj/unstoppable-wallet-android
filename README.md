@@ -86,4 +86,4 @@ Tor protects supported network requests only while enabled and connected. Extern
 - [Changelog](CHANGELOG.md) records implementation, validation and known limitations.
 - [PancakeSwap Cross-chain details](docs/PancakeSwap-CrossChain.md) documents current route coverage and its limits.
 - [Unstoppable Wallet](https://github.com/horizontalsystems/unstoppable-wallet-android) is the upstream project.
-- Open Swap is available under the [MIT License](LICENSE).
+- [Project license](LICENSE) and [PancakeSwap routing license notices](walletkit/src/main/assets/licenses/pancake_routing_licenses.txt).

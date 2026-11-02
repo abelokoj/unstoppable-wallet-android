@@ -1,0 +1,14 @@
+{
+  "recordedAt": "2026-11-02T02:03:59-05:00",
+  "websiteBuildIds": [
+    "_j9eHfua-CCKO5KzyxAiz"
+  ],
+  "websiteHtmlSha256": "f28d598af88144776c0f45e27746db454fd95f1e9c2eddfd18ff0f69e37951e3",
+  "result": "No documented public end-to-end cross-chain planner found in the checked official docs, five published SDK type surfaces and current dapp implementation. Private partner capabilities remain unconfirmed.",
+  "supportedSameChainAPI": "https://swap.pancakeswap.com/v1/quote",
+  "sameChainAPIKeylessQuoteWorked": true,
+  "fullNativeBNBToETHMetadataResult": "supported=false; Route is not enabled.",
+  "legacyRoutingAPIProbeResult": "ConnectionError for both same-chain control and cross-chain probe; no capability conclusion from this failure.",
+  "runtimeChanged": false,
+  "publications": false
+}

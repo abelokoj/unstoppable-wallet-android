@@ -14,7 +14,7 @@ class OpenSwapProviderRatingsTest {
         assertEquals(RiskLevel.FAIR, serverScores.riskLevel("u_JUPITER"))
         assertEquals(RiskLevel.EXCELLENT, UProvider.Jupiter.riskLevel)
         assertEquals(RiskLevel.EXCELLENT, UProvider.Across.riskLevel)
-        assertEquals(RiskLevel.FAIR, UProvider.Relay.riskLevel)
+        assertEquals(RiskLevel.GOOD, UProvider.Relay.riskLevel)
         assertEquals(RiskLevel.GOOD, UProvider.Lizex.riskLevel)
         assertEquals(RiskLevel.FAIR, UProvider.NearConfidential.riskLevel)
         assertEquals(RiskLevel.FAIR, UProvider.XSwap.riskLevel)

@@ -1,0 +1,92 @@
+{
+  "provenance": "Pinned public SmartRouter 7.8.0 fallback; offline V2 quote provider; generated 2026-11-02",
+  "chain": 56,
+  "input": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+  "output": "0x0000000000000000000000000000000000000000",
+  "amount": "1000000000000000000000",
+  "gasPrice": "0",
+  "pools": [
+    {
+      "type": 0,
+      "address": "0x74e4716e431f45807dcf19f284c7aa99f18a4fbc",
+      "reserve0": {
+        "currency": {
+          "address": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+          "decimals": 18,
+          "symbol": "ETH"
+        },
+        "value": "1000000000000000000000"
+      },
+      "reserve1": {
+        "currency": {
+          "address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+          "decimals": 18,
+          "symbol": "WBNB"
+        },
+        "value": "1000000000000000000000"
+      }
+    },
+    {
+      "type": 0,
+      "address": "0x531febfeb9a61d948c384acfbe6dcc51057aea7e",
+      "reserve0": {
+        "currency": {
+          "address": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+          "decimals": 18,
+          "symbol": "ETH"
+        },
+        "value": "1000000000000000000000"
+      },
+      "reserve1": {
+        "currency": {
+          "address": "0x55d398326f99059ff775485246999027b3197955",
+          "decimals": 18,
+          "symbol": "USDT"
+        },
+        "value": "1000000000000000000000000"
+      }
+    },
+    {
+      "type": 0,
+      "address": "0x16b9a82891338f9ba80e2d6970fdda79d1eb0dae",
+      "reserve0": {
+        "currency": {
+          "address": "0x55d398326f99059ff775485246999027b3197955",
+          "decimals": 18,
+          "symbol": "USDT"
+        },
+        "value": "1000000000000000000000000"
+      },
+      "reserve1": {
+        "currency": {
+          "address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+          "decimals": 18,
+          "symbol": "WBNB"
+        },
+        "value": "1000000000000000000000"
+      }
+    }
+  ],
+  "expected": {
+    "amountOut": "598512699400004140994",
+    "routes": [
+      {
+        "amountIn": "650000000000000000000",
+        "amountOut": "393341927656024872980",
+        "percent": 65,
+        "pools": [
+          "0x74e4716e431f45807dcf19f284c7aa99f18a4fbc"
+        ]
+      },
+      {
+        "amountIn": "350000000000000000000",
+        "amountOut": "205170771743979268014",
+        "percent": 35,
+        "pools": [
+          "0x531febfeb9a61d948c384acfbe6dcc51057aea7e",
+          "0x16b9a82891338f9ba80e2d6970fdda79d1eb0dae"
+        ]
+      }
+    ]
+  }
+}

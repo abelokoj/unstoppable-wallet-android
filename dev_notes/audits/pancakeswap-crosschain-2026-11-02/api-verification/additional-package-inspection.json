@@ -1,0 +1,65 @@
+[
+  {
+    "package": "@pancakeswap/swap-sdk-evm",
+    "version": "1.3.0",
+    "description": "An SDK for Pancakeswap EVM based chains",
+    "repository": {
+      "url": "git+https://github.com/pancakeswap/pancake-frontend.git",
+      "type": "git",
+      "directory": "packages/swap-sdk-evm"
+    },
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js"
+      },
+      "./package.json": "./package.json"
+    },
+    "declarationFiles": 14,
+    "crosschainTypeHits": [],
+    "tarballSha256": "c0ea1c00fc06456602465a3b42017beaa80f1eea1e31b83785aef412d0a88f57"
+  },
+  {
+    "package": "@pancakeswap/swap-sdk-solana",
+    "version": "1.1.10",
+    "description": "An SDK for Pancakeswap Solana",
+    "repository": {
+      "url": "git+https://github.com/pancakeswap/pancake-frontend.git",
+      "type": "git",
+      "directory": "packages/swap-sdk-solana"
+    },
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js"
+      },
+      "./package.json": "./package.json"
+    },
+    "declarationFiles": 6,
+    "crosschainTypeHits": [],
+    "tarballSha256": "96ca2386a6a93011c8ff238f4b086f56c14518946ce6f90e9984de97664dfe90"
+  },
+  {
+    "package": "@pancakeswap/sdk",
+    "version": "5.9.3",
+    "description": "\ud83d\udee0 An SDK for building applications on top of Pancakeswap.",
+    "repository": {
+      "url": "git+https://github.com/pancakeswap/pancake-frontend.git",
+      "type": "git",
+      "directory": "packages/swap-sdk"
+    },
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js"
+      },
+      "./package.json": "./package.json"
+    },
+    "declarationFiles": 4,
+    "crosschainTypeHits": [],
+    "tarballSha256": "c61ee536c4be5c6c33dd3a8000e40734da48b1d9a2b435b4b7383e1815629d03"
+  }
+]
