@@ -3,10 +3,12 @@
 - [x] Integrate the four selected themed Baseline MP4 cartoons and reduced-motion stills; remove the large animated cartoon WebPs. Preserve the crypto scanner and archived 60-fps alternative.
 - [x] Set Relay to Good consistently in both provider declarations and update the existing public release-note section.
 - [x] All 21 focused checks and both F-Droid builds passed. Final signatures, 18 media resources, scanner preservation, compact ZIP layout and packaged size verified. Both version 0.53.2 (189) APKs are in computer Downloads; regular installer is 102,738,088 bytes.
-- [ ] Publish the source and refresh the existing build-189 GitHub APK and release notes after showing the commit message. Preserve previous assets/tag metadata and verify the public download.
+- [x] Published source be069a375 and refreshed v0.53.2 (189) notes/APK after showing the commit message. The 102,738,088-byte public F-Droid APK matches the signed local checksum; old assets/tag metadata are backed up, the retag workflow was skipped and v0.51.1 is unchanged.
 - [ ] Obtain native device playback feedback; unsupported decoder errors use the existing scanner fallback.
 
 ## Five scan animations and F-Droid builds, updated 2026-11-01
+
+Historical preview milestones below are retained for reference. The current shipped MP4 state is recorded in the compact-video release section above.
 
 - [x] Add the original ground-search animation as the fifth scan style using its smaller lossless WebP and restore the NEAR Confidential logo.
 - [x] Require F-Droid distribution locally and in GitHub release checks.
