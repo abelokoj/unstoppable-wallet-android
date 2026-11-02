@@ -1,6 +1,7 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
 import com.google.gson.Gson
+import io.horizontalsystems.walletkit.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -48,5 +49,14 @@ class SwapProviderIdMappingTest {
         val unmatched = appProviderIds.filterNot { SwapSuspensionIndex.serverId(it) in serverIds }
 
         assertEquals(listOf<String>(), unmatched)
+    }
+
+    @Test
+    fun `near confidential uses the bundled Near provider logo`() {
+        assertEquals(R.drawable.swap_provider_near, UProvider.NearConfidential.icon)
+    }
+    @Test
+    fun `relay uses the requested Good rating`() {
+        assertEquals(RiskLevel.GOOD, UProvider.Relay.riskLevel)
     }
 }

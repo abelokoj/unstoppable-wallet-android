@@ -254,6 +254,15 @@ android {
     }
 }
 
+// All installable variants use the requested F-Droid distribution.
+androidComponents {
+    beforeVariants(selector().all()) { variant ->
+        if (variant.productFlavors.none { it.first == "distribution" && it.second == "fdroid" }) {
+            variant.enable = false
+        }
+    }
+}
+
 dependencies {
     // Everything else now lives in :walletkit, which re-exports its dependencies (api),
     // so the thin :app shell only needs :walletkit plus the flavor/test bits below.
@@ -308,29 +317,13 @@ dependencies {
     testRuntimeOnly(libs.kotlin.reflect)
 }
 
-// Flavor-specific dependencies must be added after evaluation
+// Flavor-specific dependencies must be added after evaluation.
 afterEvaluate {
     dependencies {
-        "baseDebugImplementation"(project(":subscriptions-dev"))
-        findProject(":subscriptions-google-play")?.let {
-            "baseReleaseImplementation"(it)
-        }
-
         "fdroidImplementation"(project(":subscriptions-fdroid"))
-        "fdroidCiImplementation"(project(":subscriptions-fdroid"))
-        "ciImplementation"(project(":subscriptions-dev"))
-
         findProject(":dapp-wallet-connect")?.let {
-            "baseDebugImplementation"(it)
-            "baseReleaseImplementation"(it)
-            "ciImplementation"(it)
             "fdroidImplementation"(it)
-            "fdroidCiImplementation"(it)
         }
-
-        "baseDebugImplementation"(libs.androidx.credentials.play.services.auth)
-        "baseReleaseImplementation"(libs.androidx.credentials.play.services.auth)
-        "ciImplementation"(libs.androidx.credentials.play.services.auth)
     }
 }
 

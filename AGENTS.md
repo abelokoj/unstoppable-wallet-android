@@ -13,10 +13,10 @@ Unstoppable Wallet - A multi-currency crypto wallet Android app supporting Bitco
 
 ```bash
 # Debug build
-./gradlew assembleDebug
+./gradlew :app:assembleFdroidDebug
 
 # Release build
-./gradlew assembleRelease
+./gradlew :app:assembleFdroidRelease
 
 # Run tests
 ./gradlew test
@@ -24,6 +24,12 @@ Unstoppable Wallet - A multi-currency crypto wallet Android app supporting Bitco
 # Lint
 ./gradlew lint
 ```
+
+## Required app distribution
+
+- Build F-Droid only, both locally and on GitHub. Development APKs use `:app:assembleFdroidDebug`; signed regular installers use `:app:assembleFdroidRelease`.
+- Do not build or publish Base, CI or fdroidCi app installers. The app variant filter disables these alternatives. Preserve this policy and verify `FDROID_BUILD = true` plus the APK output's `fdroidDebug` / `fdroidRelease` variant before copying or uploading an installer.
+- Keep the requested signing identity, package ID and version/build number unless the user requests a change. A manually uploaded GitHub APK must also be the verified F-Droid release artifact.
 
 ## Project Structure
 

@@ -36,7 +36,7 @@ object RelayProvider : IMultiSwapProvider {
     override val type = SwapProviderType.DEX
     override val isEvm = true
     override val requireTerms = true
-    override val riskLevel = RiskLevel.FAIR
+    override val riskLevel = RiskLevel.GOOD
 
     private const val nativeCurrency = "0x0000000000000000000000000000000000000000"
 

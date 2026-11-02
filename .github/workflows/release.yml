@@ -45,8 +45,19 @@ jobs:
           printf 'keyAlias=%s\n' "$KEY_ALIAS" >> keystore.properties
           printf 'keyPassword=%s\n' "$KEY_PASSWORD" >> keystore.properties
 
-      - name: Build signed APK
+      - name: Build signed F-Droid APK
         run: ./gradlew :app:assembleFdroidRelease --no-daemon
+
+      - name: Verify F-Droid distribution
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          metadata = json.loads(Path("app/build/outputs/apk/fdroid/release/output-metadata.json").read_text())
+          assert metadata["variantName"] == "fdroidRelease"
+          config = Path("app/build/generated/source/buildConfig/fdroid/release/io/horizontalsystems/bankwallet/BuildConfig.java").read_text()
+          assert "FDROID_BUILD = true;" in config
+          PY
 
       - name: Rename APK
         run: mv app/build/outputs/apk/fdroid/release/app-fdroid-release.apk open-swap-${{ github.ref_name }}.apk

@@ -1,3 +1,24 @@
+## Compact scan-video integration and release refresh
+
+- [x] Integrate the four selected themed Baseline MP4 cartoons and reduced-motion stills; remove the large animated cartoon WebPs. Preserve the crypto scanner and archived 60-fps alternative.
+- [x] Set Relay to Good consistently in both provider declarations and update the existing public release-note section.
+- [x] All 21 focused checks and both F-Droid builds passed. Final signatures, 18 media resources, scanner preservation, compact ZIP layout and packaged size verified. Both version 0.53.2 (189) APKs are in computer Downloads; regular installer is 102,738,088 bytes.
+- [ ] Publish the source and refresh the existing build-189 GitHub APK and release notes after showing the commit message. Preserve previous assets/tag metadata and verify the public download.
+- [ ] Obtain native device playback feedback; unsupported decoder errors use the existing scanner fallback.
+
+## Five scan animations and F-Droid builds, updated 2026-11-01
+
+- [x] Add the original ground-search animation as the fifth scan style using its smaller lossless WebP and restore the NEAR Confidential logo.
+- [x] Require F-Droid distribution locally and in GitHub release checks.
+- [x] Apply 1.4x timing to all three published cartoon loops, preserving all 325 frames and image bytes; save a playable preview. Both final F-Droid APK checks passed.
+- [x] All 19 focused checks and both F-Droid installers pass; signatures, variant flags, six media resources and licenses verified. Animation media total 25,572,137 bytes. Version 0.53.2 (189) testing APKs and checksums are in computer Downloads; no installation or publication performed.
+- [x] Save a separate 1.7x preview; the user selected this speed for the compressed version. FFmpeg quality-70 comparison copies retain all 325 frames and alpha, saving 1,867,046 bytes (8.24%). Current app APKs remain at 1.4x; compressed-asset review and integration are pending.
+- [x] Show the FFmpeg commands before encoding and save stronger lossy quality-50 previews at 1.7x. All 325 frames and alpha retained; the three files total 19,317,938 bytes, saving 14.72%. Preview review/integration remain pending; no app build changed.
+- [x] Prepare aggressive reduced-resolution/frame-rate trials for all four cartoons: smaller WebP 1,026,080 bytes, minimum WebP 471,618 bytes, or both-theme MP4 files 70,206 bytes. Save comparisons and preserve originals. These are preview media only; native playback and integration are pending.
+- [x] Prepare higher-quality cartoon previews around the revised 3 MB budget: full-resolution 60-fps MP4 set plus unchanged scanner totals 2,501,235 bytes; 16-fps transparent WebP alternative plus scanner totals 3,084,777 bytes. Crypto scanner files verified unchanged against the current APK. Native playback/integration remain pending.
+- [x] Archive the exact sharper 60-fps MP4 set in the named Downloads backup folder, with player and checksums. Prepare a separate Constrained Baseline Level 3.0 / 480-pixel / 30-fps comparison: 2,377,985 bytes including the unchanged scanner. Preview review and native playback/integration remain pending.
+- [ ] Obtain personal feedback on the fifth animation and NEAR Confidential icon.
+
 ## Existing release refresh, updated 2026-10-31
 
 - [x] Preserve the original Tom and Jerry ground-search preview as a separate unchanged developer-note alternative and offline snapshot/ZIP.

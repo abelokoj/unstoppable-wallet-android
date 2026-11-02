@@ -51,64 +51,72 @@ class ApprovalScanningAnimationTest {
     @Test
     fun animationSelectionCyclesInOrderAndRecoversInvalidStoredValues() {
         val expected = listOf(ApprovalScanAnimation.Scanner, ApprovalScanAnimation.Together,
-            ApprovalScanAnimation.Tom, ApprovalScanAnimation.Jerry)
+            ApprovalScanAnimation.Tom, ApprovalScanAnimation.Jerry, ApprovalScanAnimation.Original)
         var stored = 0
-        repeat(12) { scan ->
+        repeat(15) { scan ->
             val selected = ApprovalScanAnimation.fromStoredIndex(stored)
             assertEquals(expected[scan % expected.size], selected)
             stored = selected.next.ordinal
         }
-        for (invalid in listOf(-1, 4, Int.MIN_VALUE, Int.MAX_VALUE)) {
+        for (invalid in listOf(-1, 5, Int.MIN_VALUE, Int.MAX_VALUE)) {
             assertEquals(ApprovalScanAnimation.Scanner, ApprovalScanAnimation.fromStoredIndex(invalid))
         }
     }
 
+    private fun media() = JsonParser.parseString(File("src/test/resources/approval-cartoon-media.json").readText()).asJsonObject
+
+    private fun sha256(bytes: ByteArray) = java.security.MessageDigest.getInstance("SHA-256")
+        .digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }
+
     @Test
-    fun cartoonAnimationsAreTransparentSmoothOfflineLoops() {
-        for (name in listOf("together", "tom", "jerry")) {
-            val bytes = File("src/main/res/raw/approval_scanning_$name.webp").readBytes()
-            fun tag(offset: Int) = bytes.copyOfRange(offset, offset + 4).decodeToString()
-            fun little(offset: Int, count: Int) = (0 until count).fold(0) { value, i ->
-                value or ((bytes[offset + i].toInt() and 255) shl (i * 8))
-            }
-            assertEquals("RIFF", tag(0))
-            assertEquals("WEBP", tag(8))
-            assertEquals(bytes.size - 8, little(4, 4))
+    fun cartoonVideosMatchTheApprovedBaselineExports() {
+        val videos = media().getAsJsonArray("videos")
+        assertEquals(8, videos.size())
+        assertEquals(8, videos.map { it.asJsonObject["video"].asString }.toSet().size)
+        for (entry in videos) {
+            val item = entry.asJsonObject
+            val bytes = File("src/main/res/raw/" + item["video"].asString).readBytes()
+            assertEquals(item["bytes"].asInt, bytes.size)
+            assertEquals("ftyp", bytes.copyOfRange(4, 8).decodeToString())
+            assertEquals(item["sha256"].asString, sha256(bytes))
+            assertFalse(File("src/main/res/raw/approval_scanning_" + item["name"].asString + ".webp").exists())
+        }
+    }
+
+    @Test
+    fun stillPostersAreStaticAndTheMediaFitsTheBudget() {
+        val fixture = media()
+        var total = 37_929
+        for (entry in fixture.getAsJsonArray("videos")) {
+            val item = entry.asJsonObject
+            val bytes = File("src/main/res/drawable-nodpi/" + item["poster"].asString).readBytes()
+            assertEquals(item["posterBytes"].asInt, bytes.size)
+            assertEquals(item["posterSha256"].asString, sha256(bytes))
+            assertEquals("RIFF", bytes.copyOfRange(0, 4).decodeToString())
+            assertEquals("WEBP", bytes.copyOfRange(8, 12).decodeToString())
             var offset = 12
-            var frames = 0
-            var duration = 0
-            var hasCanvas = false
-            var hasLoop = false
             while (offset + 8 <= bytes.size) {
-                val length = little(offset + 4, 4)
-                val body = offset + 8
-                assertTrue(length >= 0 && length <= bytes.size - body)
-                when (tag(offset)) {
-                    "VP8X" -> {
-                        assertTrue(length >= 10)
-                        assertEquals(0x12, bytes[body].toInt() and 0x12)
-                        assertEquals(640, little(body + 4, 3) + 1)
-                        assertEquals(400, little(body + 7, 3) + 1)
-                        hasCanvas = true
-                    }
-                    "ANIM" -> {
-                        assertTrue(length >= 6)
-                        assertEquals(0, little(body + 4, 2))
-                        hasLoop = true
-                    }
-                    "ANMF" -> {
-                        assertTrue(length >= 16)
-                        val frameDuration = little(body + 12, 3)
-                        assertTrue(frameDuration > 0)
-                        duration += frameDuration
-                        frames++
-                    }
+                val tag = bytes.copyOfRange(offset, offset + 4).decodeToString()
+                assertFalse(tag == "ANIM" || tag == "ANMF")
+                val length = (0 until 4).fold(0) { value, i ->
+                    value or ((bytes[offset + 4 + i].toInt() and 255) shl (8 * i))
                 }
-                offset = body + length + (length and 1)
+                assertTrue(length >= 0 && length <= bytes.size - offset - 8)
+                offset += 8 + length + (length and 1)
             }
             assertEquals(bytes.size, offset)
-            assertTrue(hasCanvas && hasLoop && frames >= 200)
-            assertEquals(13_600, duration)
+            total += item["bytes"].asInt + bytes.size
+        }
+        assertEquals(fixture["estimatedPackagedMediaBytes"].asInt, total)
+        assertTrue(total < 3_000_000)
+    }
+
+    @Test
+    fun cryptoScannerFilesRemainUnchanged() {
+        for (entry in media().getAsJsonArray("scanner")) {
+            val item = entry.asJsonObject
+            val bytes = File("src/main/res/raw/" + item["name"].asString).readBytes()
+            assertEquals(item["sha256"].asString, sha256(bytes))
         }
     }
 }

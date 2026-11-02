@@ -5,17 +5,21 @@ Build 189 improves approval discovery, adds animated scanning and makes token sw
 ## ✨ Added
 
 - **Basic Coin Info:** View an unlisted token's name, symbol, network, token standard, decimals and full copyable contract or mint address. Open its block explorer and see total supply when available on supported EVM and Solana networks.
-- **Scan animations:** Revoke Access shows an animation while checking permissions. Successive scans rotate between the crypto-document scanner, Tom and Jerry together, Tom alone and Jerry alone. The selection continues between visits, follows the app's light or dark appearance and respects disabled system animations.
+- **Scan animations:** Revoke Access rotates between the crypto-document scanner, Tom and Jerry together, Tom alone, Jerry alone and the original ground-search cartoon. The selection continues between visits, follows the app's light or dark appearance and respects disabled system animations.
 - **Full swap amounts:** Tap either main swap amount to reveal its complete value inline. The input remains editable and the received amount stays read-only, without opening a separate popup.
 
 ## 🔄 Updated
 
+- **Smaller scan animations:** Replaced the large cartoon files with compact videos and still frames for reduced-motion settings. The crypto scanner is unchanged and is also used if video playback fails.
+- **Relay Bridge:** Updated the route rating from Fair to Good. Provider restrictions, fees and settlement risks still apply.
+- **Android packages:** Development and release APKs now use the F-Droid distribution.
 - **Swap amounts:** Both main amount displays use up to 10 characters, retaining meaningful digits and familiar K, M, B and T abbreviations. Very small or large values use scientific notation when needed. Formatting preserves the exact amount used for quotes, review and signing.
 - **Swap routes:** Provider names and received amounts share one line, with amounts aligned right and selection indicators beside the time and rating below. The swap-page exchange rate uses the available space beside the provider and wraps when necessary. Existing fonts, sizes and colors are retained.
 - **Revoke confirmation:** Revoke Access follows the wallet's existing token-approval confirmation and signing flow.
 
 ## 🐛 Fixed
 
+- **Provider icon:** Added the missing NEAR Confidential swap-provider icon.
 - **Approval RPC fallback:** Permission checks try the selected network provider first, then other available built-in and custom RPCs when a response is empty or unavailable. Failed checks remain visible as incomplete, rather than being reported as no approvals found.
 - **BNB Smart Chain approvals:** Scanning fetches fresh address transaction history independently of history stored on the phone. Historical receipt lookup can recover when an RPC omits an old transaction, and current permissions are checked before display.
 - **Scanning feedback:** The checking message and animation remain visible during repeat scans while previous results are still listed, then disappear when the operation finishes.

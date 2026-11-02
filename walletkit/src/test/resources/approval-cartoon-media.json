@@ -1,0 +1,133 @@
+{
+  "videos": [
+    {
+      "name": "together",
+      "theme": "light",
+      "video": "approval_scanning_together_light.mp4",
+      "sha256": "f3d5297b650a36e9651ae51cd7b06d8369a4888372b8c08ab77db9e45a4ea9ae",
+      "bytes": 423598,
+      "poster": "approval_scanning_together_light_poster.webp",
+      "posterSha256": "45db33ceab753a048f64c24208092733cc4c5fe47035728da442fc34c4553383",
+      "posterBytes": 39076,
+      "width": 480,
+      "height": 300,
+      "fps": 30,
+      "loopMs": 8000
+    },
+    {
+      "name": "together",
+      "theme": "dark",
+      "video": "approval_scanning_together_dark.mp4",
+      "sha256": "4991fe4da3f86c33a8a922a77c9fbf87d5d7bc12adc3d127f6dafdcf4c1ab945",
+      "bytes": 318309,
+      "poster": "approval_scanning_together_dark_poster.webp",
+      "posterSha256": "8ee1e06eb8a13c8898f0bf75ca6aefa452ba5242c83c6e46ffdfbc9f76d943c5",
+      "posterBytes": 36522,
+      "width": 480,
+      "height": 300,
+      "fps": 30,
+      "loopMs": 8000
+    },
+    {
+      "name": "tom",
+      "theme": "light",
+      "video": "approval_scanning_tom_light.mp4",
+      "sha256": "eb8f7b3516e11cce69550db2557d3e603760b95709e2e802878c2a034152cdae",
+      "bytes": 347855,
+      "poster": "approval_scanning_tom_light_poster.webp",
+      "posterSha256": "81546726bde6f88decde21b758c7a4c8703fbb95bd9695d60f986b7fb008f54a",
+      "posterBytes": 35262,
+      "width": 480,
+      "height": 300,
+      "fps": 30,
+      "loopMs": 8000
+    },
+    {
+      "name": "tom",
+      "theme": "dark",
+      "video": "approval_scanning_tom_dark.mp4",
+      "sha256": "ed0cb996bcae8c9b32b017565514466dd94b88ffd96842ef555b1200766605ed",
+      "bytes": 263941,
+      "poster": "approval_scanning_tom_dark_poster.webp",
+      "posterSha256": "7c8d28cd14e9f08262eb303646d988b365a26ea2b8c40dcd474f4629120eeedf",
+      "posterBytes": 32670,
+      "width": 480,
+      "height": 300,
+      "fps": 30,
+      "loopMs": 8000
+    },
+    {
+      "name": "jerry",
+      "theme": "light",
+      "video": "approval_scanning_jerry_light.mp4",
+      "sha256": "3abb7254ff74dc250a21ee0d6fdf4c607b8b4b8298dff42474da30bbe94b853a",
+      "bytes": 325140,
+      "poster": "approval_scanning_jerry_light_poster.webp",
+      "posterSha256": "fcf1ef95bfb3b13fc09ed7a4d3ec4cfe7385b1207c1229a84d1e7e7696f68004",
+      "posterBytes": 36198,
+      "width": 480,
+      "height": 300,
+      "fps": 30,
+      "loopMs": 8000
+    },
+    {
+      "name": "jerry",
+      "theme": "dark",
+      "video": "approval_scanning_jerry_dark.mp4",
+      "sha256": "60175d2618e4c2dac2bd1335f9a9d3bbe3378921d06c4d49f5c6ada928af069c",
+      "bytes": 256803,
+      "poster": "approval_scanning_jerry_dark_poster.webp",
+      "posterSha256": "eec8a123546e5ad31954566099ea71dcac49f50a883b8eb10280e5cd5bed32a3",
+      "posterBytes": 33294,
+      "width": 480,
+      "height": 300,
+      "fps": 30,
+      "loopMs": 8000
+    },
+    {
+      "name": "original",
+      "theme": "light",
+      "video": "approval_scanning_original_light.mp4",
+      "sha256": "fa2896b80d7c40f4144628c72d8b70b4881c6d9855b2382ff216b0894152f9aa",
+      "bytes": 202402,
+      "poster": "approval_scanning_original_light_poster.webp",
+      "posterSha256": "9fe6d9329542ffca6e5e84a6cbd023407cc2b2f81dcb2a4c5f733e43dc446c8c",
+      "posterBytes": 58158,
+      "width": 480,
+      "height": 320,
+      "fps": 30,
+      "loopMs": 2400
+    },
+    {
+      "name": "original",
+      "theme": "dark",
+      "video": "approval_scanning_original_dark.mp4",
+      "sha256": "893e13df2985760c4a6c6eb9943a38cb1d4e539bf0216390dce6be90a340a0e2",
+      "bytes": 202008,
+      "poster": "approval_scanning_original_dark_poster.webp",
+      "posterSha256": "0d93453ad3fe84b706b20a083014f32a95c5f3de7d1fea03dfea87a9198c6c65",
+      "posterBytes": 56396,
+      "width": 480,
+      "height": 320,
+      "fps": 30,
+      "loopMs": 2400
+    }
+  ],
+  "scanner": [
+    {
+      "name": "approval_scanning_light.json",
+      "sha256": "028cc34960ea0970fe09ad3ba36fb83665e9532e46d45f4698343cc7df2164a7",
+      "bytes": 221746,
+      "packagedBytes": 18672,
+      "matchesExistingApk": true
+    },
+    {
+      "name": "approval_scanning_dark.json",
+      "sha256": "8e822f38d9cfcbe2db6bd43e60d9c42f41b80b2647e955d0ff6db6334a491f5d",
+      "bytes": 223664,
+      "packagedBytes": 19257,
+      "matchesExistingApk": true
+    }
+  ],
+  "estimatedPackagedMediaBytes": 2705561
+}

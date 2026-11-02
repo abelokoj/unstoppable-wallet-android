@@ -53,7 +53,8 @@ enum class UProvider(
         true,
         isEvm = false,
         isSingleTransactionSwap = false,
-        supportsSimpleUtxoTransactions = true
+        supportsSimpleUtxoTransactions = true,
+        icon = R.drawable.swap_provider_near
     ),
     QuickEx(
         "QUICKEX",
@@ -345,7 +346,7 @@ enum class UProvider(
             NearConfidential -> RiskLevel.FAIR
             Pegasus -> RiskLevel.GOOD
             QuickEx -> RiskLevel.GOOD
-            Relay -> RiskLevel.FAIR
+            Relay -> RiskLevel.GOOD
             StealthEx -> RiskLevel.FAIR
             Swapuz -> RiskLevel.GOOD
             else -> RiskLevel.FAIR

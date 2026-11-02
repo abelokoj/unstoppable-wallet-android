@@ -1,8 +1,9 @@
 Approval scanner cartoon artwork
 
-Three custom, user-approved cap-free sand-search illustrations: Tom and Jerry together, Tom alone, and Jerry alone. Native WebP exports preserve the approved walking, ground inspections and slower turns. Each transparent 640 by 400 animation loops in 13.6 seconds, with 30 fps motion and coalesced identical hold frames. The same files are used on the existing light and dark surfaces.
+Four user-approved ground-search styles: Tom and Jerry together, Tom alone, Jerry alone, and the original ground-search loop. The three refined cap-free styles retain 1.7x playback and eight-second loops. Original retains its 2.4-second loop. The bundled H.264 Constrained Baseline Level 3.0 MP4s use 30 fps, 480 by 300 pixels (Original 480 by 320), silent playback and separate light/dark backgrounds. Intermediate frames are sampled. Static lossless WebP first-frame posters support reduced-motion settings and decoder preparation.
 
-Source revision: Refined natural heads, cap-free, extended sand inspections and slower turns.
-Source preview SHA-256: 8d969ba006715a1146a542d1f6f19059d52eae31d68c9b8836dbe5de3df4777a
+Refined source preview SHA-256: 8d969ba006715a1146a542d1f6f19059d52eae31d68c9b8836dbe5de3df4777a
+Original source preview SHA-256: 82d3fecd07657604b9ecbf958421a7b671f51a167b06a09d649d70d1cbe5fe73
+Original preserved GIF SHA-256: 76e82602311dcfd37e0bb15a0926fea718527cd02dd53a392c762c85d354fc18
 
-These custom character depictions are not official licensed artwork. Tom and Jerry names and likenesses belong to their respective rights holders. This provenance record does not grant third-party character rights.
+These custom character depictions are not official licensed artwork. Tom and Jerry names and likenesses belong to their respective rights holders. This provenance record does not grant third-party character rights. The original masters and sharper 60-fps alternative remain preserved separately for later reuse.

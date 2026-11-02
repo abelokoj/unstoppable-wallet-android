@@ -57,7 +57,7 @@ import java.math.BigInteger
  * conversion step is provably behavior-preserving.
  *
  * To regenerate the fixture after an INTENTIONAL behavior change:
- *   ./gradlew :app:testBaseDebugUnitTest --tests "*ChainBehaviorParityTest*" -PupdateParityFixture=true
+ *   ./gradlew :app:testFdroidDebugUnitTest --tests "*ChainBehaviorParityTest*" -PupdateParityFixture=true
  */
 class ChainBehaviorParityTest {
 
