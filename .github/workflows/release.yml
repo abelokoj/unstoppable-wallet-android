@@ -92,7 +92,12 @@ jobs:
           PY
 
       - name: Release notes from the annotated tag
-        run: git tag -l --format='%(contents)' "${{ github.ref_name }}" > RELEASE_NOTES.md
+        run: |
+          # Checkout may replace an annotated tag with its peeled commit.
+          git fetch --force --no-tags origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+          test "$(git cat-file -t "refs/tags/$GITHUB_REF_NAME")" = tag
+          test "$(git rev-parse "refs/tags/$GITHUB_REF_NAME^{}")" = "$(git rev-parse HEAD)"
+          git tag -l --format='%(contents)' "$GITHUB_REF_NAME" > RELEASE_NOTES.md
 
       - uses: softprops/action-gh-release@v2
         with:

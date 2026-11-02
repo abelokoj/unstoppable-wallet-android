@@ -1,9 +1,11 @@
-## Release 0.53.3 (190) preparation, 2026-11-02
+## Release 0.53.3 (190), published 2026-11-02
 
 - [x] Prepare version/build 0.53.3 (190), the requested Together → Original → Scanner → Tom → Jerry rotation and the release-note draft. Preserve the 48dp home icons and all prior native routing/media work.
 - [x] Pass the updated animation regression, all 64 focused native tests and automated F-Droid publication/version/signature guard checks. Confirm the GitHub workflow/signing configuration is available and the new tag is unused.
-- [ ] Obtain the user's release-note/commit-message review before publishing; commit the relevant source, create a new annotated v0.53.3 tag with verbatim approved notes and push to trigger GitHub's signed F-Droid build.
-- [ ] Monitor the automated release, then verify the attached APK's F-Droid flavor, version 0.53.3 (190), production certificate and published notes. Do not replace earlier release tags or manually upload the old local APK.
+- [x] Obtain the user's release-note/commit-message review, commit the wallet batch as 864961b49, and publish a new annotated v0.53.3 tag. Tagged source 7aaf19fa1 includes the signing-output guard correction; all older release tags are unchanged.
+- [x] GitHub Actions run 41495565297 passed all 64 focused tests and built/attached the signed F-Droid 0.53.3 (190) APK. Downloaded the actual public asset and verified its SHA-256, production signature, manifest, native Kotlin engine, licenses and all 18 media resources. The APK and checksum are in computer Downloads; no manual APK upload or installation was performed.
+- [x] Restore the exact approved public notes after checkout peeled the local annotated tag. Add and test a future-workflow guard that refetches the annotation and rejects missing, lightweight or wrong-source tags. Keep the published tag and APK fixed.
+- [ ] Obtain device lifecycle, live Tor cancellation and funded EVM/Solana settlement/refund feedback for the published build. Do not infer these from compilation or offline route fixtures.
 
 ## Upstream UI carryovers reviewed, 2026-11-02
 
