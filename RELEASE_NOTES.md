@@ -1,6 +1,6 @@
 # Open Swap v0.53.3
 
-Build 190 improves PancakeSwap cross-chain quotes, refreshes approval-scan animations and restores larger home-page token icons.
+Build 190 improves PancakeSwap cross-chain quotes, adds authentication to approval revocations, refreshes scan animations and restores larger home-page token icons.
 
 ## 🔄 Updated
 
@@ -10,6 +10,7 @@ Build 190 improves PancakeSwap cross-chain quotes, refreshes approval-scan anima
 
 ## 🐛 Fixed
 
+- **Revoke Access:** Require fresh biometric confirmation when enabled, with wallet-passcode fallback, before each revocation. Canceling or leaving authentication does not submit a transaction. Wallets without a passcode are prompted to set one up first.
 - **Balances icons:** Restored the larger token icons on the home page after an upstream update reduced their size. Blockchain badges and sync-error indicators are retained.
 
 ## ⚠️ Notes
@@ -17,6 +18,8 @@ Build 190 improves PancakeSwap cross-chain quotes, refreshes approval-scan anima
 PancakeSwap Cross-chain remains a preview. Pool, bridge, provider and network fees may apply; no Open Swap developer or referral fee is added. Quotes can change before confirmation, and identical prices to the PancakeSwap website are not guaranteed. Funded settlement and refund-recovery testing remain pending.
 
 Existing wallet signing and Tor preferences are retained. Enabled but disconnected Tor is not bypassed for supported routing requests.
+
+Physical-device testing of the new authentication flow is still pending.
 
 ---
 # Open Swap v0.53.2

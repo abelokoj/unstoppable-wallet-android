@@ -25,11 +25,14 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Test wallet routing and scan animations
+      - name: Test wallet routing, approvals and authentication
         run: >-
           ./gradlew :walletkit:testDebugUnitTest
           --tests '*Pancake*Test'
-          --tests '*ApprovalScanningAnimationTest'
+          --tests '*Approval*Test'
+          --tests '*PinConfirm*Test'
+          --tests '*ConfirmPinPageTest'
+          --tests '*LockGateTest'
           --tests '*OpenSwapProviderRatingsTest'
           --tests '*SwapProviderIdMappingTest'
           --no-daemon

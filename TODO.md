@@ -1,3 +1,11 @@
+## Revoke Access authentication, updated 2026-11-03
+
+- [x] Require fresh biometrics (when supported/enabled) or the wallet passcode before each revocation transaction, including Select All/manual review. Keep the existing EVM sender and validation. Require passcode setup first when none exists; do not reuse an unlocked session as authorization.
+- [x] Isolate and serialize confirmation state, check passcode configuration at the actual tap, reject lockout/relocking/security-setting changes, cancel departed prompts and keep non-opted-in protected actions passcode-only. All 49 focused approval/authentication/lock-gate tests pass, and future release CI includes the new tests.
+- [x] Both F-Droid 0.53.3 (190) APKs passed packaging, signature/metadata checks, ZIP checks and authentication-class/serializer verification. Installer/checksum pairs are in computer Downloads as OpenSwap-FDroid-0.53.3-190-Revoke-Auth.apk and OpenSwap-FDroid-Development-0.53.3-190-Revoke-Auth.apk. All 49 focused tests and release vital lint pass. Source remains local/uncommitted; no GitHub release/tag/APK was changed.
+- [ ] Publish the authorized authentication update to the existing v0.53.3 (190) release: retain the previous APK/tag locally, align the current source tag, refresh installer source metadata, replace the signed F-Droid asset and verify its public download and notes. Older release tags stay unchanged.
+- [ ] Obtain physical-device feedback for fingerprint, wallet-passcode fallback, canceled prompts/back, background/relock and consecutive single/multiple revocations. No funded transaction or installation is inferred from automated checks.
+
 ## Release 0.53.3 (190), published 2026-11-02
 
 - [x] Prepare version/build 0.53.3 (190), the requested Together → Original → Scanner → Tom → Jerry rotation and the release-note draft. Preserve the 48dp home icons and all prior native routing/media work.

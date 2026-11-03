@@ -29,6 +29,7 @@ import io.horizontalsystems.walletkit.modules.multiswap.ui.DataFieldFeeTemplate
 import io.horizontalsystems.walletkit.modules.nav3.HSNavigation
 import io.horizontalsystems.walletkit.modules.nav3.HSPage
 import io.horizontalsystems.walletkit.modules.nav3.LocalResultEventBus
+import io.horizontalsystems.walletkit.modules.pin.SetPinPage
 import io.horizontalsystems.walletkit.uiv3.components.controls.HSButton
 import io.horizontalsystems.walletkit.ui.compose.components.VSpacer
 import io.horizontalsystems.walletkit.uiv3.components.HSScaffold
@@ -48,6 +49,7 @@ data class ApprovalRevokePage(val accountId: String, val blockchainType: Blockch
     override fun GetContent(navigation: HSNavigation) {
         val model = viewModel<ApprovalRevokeViewModel>(factory = ApprovalRevokeViewModel.Factory(this))
         val results = LocalResultEventBus.current
+        val authorize = navigation.authorizedAction(allowBiometrics = true, action = model::submit)
         LaunchedEffect(model.hash) {
             val hash = model.hash
             if (hash != null && resultKey != null) results.sendResult(Result(target.key, hash))
@@ -63,7 +65,11 @@ data class ApprovalRevokePage(val accountId: String, val blockchainType: Blockch
                     title = stringResource(if (model.submitted) R.string.Button_Done else R.string.Swap_Revoke),
                     enabled = model.submitted || (model.ready && !model.submitting && model.feeState?.sendable == true),
                     loadingIndicator = model.submitting,
-                    onClick = { if (model.submitted) navigation.removeLastOrNull() else model.submit() },
+                    onClick = {
+                        if (model.submitted) navigation.removeLastOrNull()
+                        else if (!App.pinComponent.isPinSet) navigation.slideFromRight(SetPinPage())
+                        else authorize()
+                    },
                 )
             },
         ) {
@@ -150,7 +156,8 @@ class ApprovalRevokeViewModel(private val page: ApprovalRevokePage) : ViewModel(
     }
 
     fun submit() {
-        if (!ready || submitting || submitted || feeState?.sendable != true) return
+        if (!ready || submitting || submitted || feeState?.sendable != true ||
+            !App.pinComponent.isPinSet || App.pinComponent.isLocked) return
         submitting = true
         error = false
         viewModelScope.launch {
@@ -160,6 +167,7 @@ class ApprovalRevokeViewModel(private val page: ApprovalRevokePage) : ViewModel(
                 val expected = ApprovalAbi.revoke(page.target)
                 require(data.to == expected.to && data.value == expected.value && data.input.contentEquals(expected.input))
                 require(App.accountManager.activeAccount?.id == page.accountId)
+                check(App.pinComponent.isPinSet && !App.pinComponent.isLocked)
                 val result = requireNotNull(sendService).sendTransaction() as SendTransactionResult.Evm
                 hash = result.transactionHash
                 submitted = true

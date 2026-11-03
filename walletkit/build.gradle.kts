@@ -205,6 +205,7 @@ dependencies {
     api(project(":dapp-core"))
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.serialization.json)
 }
 
 // Forward -PupdateParityFixture=true to the test JVM so ChainBehaviorParityTest can

@@ -28,6 +28,8 @@ class PinConfirmViewModel(
     private val lockoutManager: ILockoutManager,
     private val timer: OneTimeTimer,
     private val localStorage: ILocalStorage,
+    private val allowBiometrics: Boolean = false,
+    private val biometricAuthSupported: Boolean = false,
 ) : ViewModel(), OneTimerDelegate {
 
     private var attemptsLeft: Int? = null
@@ -61,7 +63,19 @@ class PinConfirmViewModel(
         pinRandomized = random
     }
 
+    val biometricEnabled: Boolean
+        get() = allowBiometrics && biometricAuthSupported && pinComponent.isBiometricAuthEnabled &&
+            pinComponent.isPinSet && !pinComponent.isLocked
+
+    fun onBiometricSuccess() {
+        if (!biometricEnabled || lockoutManager.currentState !is LockoutState.Unlocked || uiState.unlocked) return
+        // Confirm this action without changing the active user/duress level.
+        lockoutManager.dropFailedAttempts()
+        uiState = uiState.copy(unlocked = true)
+    }
+
     fun onKeyClick(number: Int) {
+        if (!pinComponent.isPinSet || pinComponent.isLocked || lockoutManager.currentState !is LockoutState.Unlocked) return
         if (enteredPin.length < PinModule.PIN_COUNT) {
 
             enteredPin += number.toString()
@@ -137,7 +151,7 @@ class PinConfirmViewModel(
         return valid
     }
 
-    class Factory : ViewModelProvider.Factory {
+    class Factory(private val allowBiometrics: Boolean = false) : ViewModelProvider.Factory {
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -150,7 +164,9 @@ class PinConfirmViewModel(
                 App.pinComponent,
                 lockoutManager,
                 OneTimeTimer(),
-                App.localStorage
+                App.localStorage,
+                allowBiometrics,
+                App.systemInfoManager.biometricAuthSupported,
             ) as T
         }
     }

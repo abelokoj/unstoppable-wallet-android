@@ -184,7 +184,7 @@ class HSNavigation(
     }
 
     @Composable
-    fun authorizedAction(action: () -> Unit): () -> Unit {
+    fun authorizedAction(allowBiometrics: Boolean = false, action: () -> Unit): () -> Unit {
         val uuid = rememberSaveable { UUID.randomUUID().toString() }
         ResultEffect<ConfirmPinPage.Result>(resultKeyUuid = uuid) {
             if (it.success) {
@@ -192,14 +192,14 @@ class HSNavigation(
             }
         }
 
-        return if (App.pinComponent.isPinSet) {
-            {
-                val screen = ConfirmPinPage
-                screen.resultKey = uuid
-                add(screen)
-            }
-        } else {
-            {
+        return {
+            if (App.pinComponent.isPinSet) {
+                if (backStack.none { it.resultKey == uuid }) {
+                    val screen = ConfirmPinPage(allowBiometrics)
+                    screen.resultKey = uuid
+                    add(screen)
+                }
+            } else {
                 action.invoke()
             }
         }
