@@ -1,3 +1,10 @@
+# Publish and verify 0.53.4 (191) - 2026-11-04T05:40:33-05:00
+
+- Published application source 2b29183d2e4f21d2bfc3ee4802c874073bf6f279 with the new annotated v0.53.4 tag. GitHub Actions run 41813264539 successfully tested/built the unsigned F-Droid release, signed it on a separate runner and published the installer using the annotated release notes. All three jobs passed. No older release tag or installer was replaced.
+- Downloaded the actual public APK and verified its SHA-256 65b0ee0c3a817223b40e098b3b09d74efac772d02e25bca40335d2fe65f09686, 103,114,669-byte size, production signing certificate 277c10bbed425c98b8df4aa7372dfe483daeefdc6ddbc19b462ac83df8d8b295, package money.openswap.wallet, version/build 0.53.4 (191), non-debuggable manifest, embedded source revision and optimized Relay classes/models. The live release body matches the prepared notes and the latest-release link selects v0.53.4. Release: https://github.com/abelokoj/unstoppable-wallet-android/releases/tag/v0.53.4.
+- Confirmed all previously recorded tags and the v0.53.3 release body/assets remain unchanged. Updated the public follow-up checklist while retaining detailed unresolved assessment evidence and full local audit history privately. Further security work remains open; publication does not imply physical-device, funded settlement/refund or independent security certification. No installation or wallet transaction was performed. Recording time in America/New_York.
+
+---
 # Prepare 0.53.4 (191) security release - 2026-11-04T05:15:57-05:00
 
 - The user authorized a new 0.53.4 release/build 191. Publish the direct Relay intent/deposit validation and hardened build/sign/publication workflow, preserving the existing signing identity, F-Droid distribution, wallet UI and prior releases. Updated reader-facing notes cover the direct Relay availability limit, fees and provider settlement/refund trust.

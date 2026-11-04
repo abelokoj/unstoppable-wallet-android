@@ -2,7 +2,7 @@
 
 - [x] Prepare direct Relay validation, isolated production signing and version/build metadata, retaining F-Droid-only distribution and the existing signing certificate.
 - [x] Verify the selected 131 routing/approval/authentication test results and eight workflow checks. Earlier optimized packaging and disposable-key checks passed on the unchanged feature code.
-- [ ] Publish the new v0.53.4 source/tag and verify the automated signed F-Droid APK and release notes.
+- [x] Published source 2b29183d2 and the new v0.53.4 tag; all automated build/sign/publish jobs passed. Verified the public signed F-Droid 0.53.4 (191) APK, source, production certificate, checksum and notes. Older releases are unchanged.
 - [ ] Obtain device and funded settlement/refund feedback; automated checks do not establish these outcomes.
 
 Remaining engineering work is tracked in [security follow-ups](dev_notes/SECURITY_FOLLOWUPS.md). Detailed unresolved assessment evidence is retained locally.
