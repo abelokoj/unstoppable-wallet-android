@@ -1,3 +1,12 @@
+## Release 0.53.4 (191), prepared 2026-11-04T05:15:57-05:00
+
+- [x] Prepare direct Relay validation, isolated production signing and version/build metadata, retaining F-Droid-only distribution and the existing signing certificate.
+- [x] Verify the selected 131 routing/approval/authentication test results and eight workflow checks. Earlier optimized packaging and disposable-key checks passed on the unchanged feature code.
+- [ ] Publish the new v0.53.4 source/tag and verify the automated signed F-Droid APK and release notes.
+- [ ] Obtain device and funded settlement/refund feedback; automated checks do not establish these outcomes.
+
+Remaining engineering work is tracked in [security follow-ups](dev_notes/SECURITY_FOLLOWUPS.md). Detailed unresolved assessment evidence is retained locally.
+
 ## Revoke Access authentication, updated 2026-11-03
 
 - [x] Require fresh biometrics (when supported/enabled) or the wallet passcode before each revocation transaction, including Select All/manual review. Keep the existing EVM sender and validation. Require passcode setup first when none exists; do not reuse an unlocked session as authorization.

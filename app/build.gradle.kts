@@ -17,6 +17,8 @@ fun com.android.build.api.dsl.VariantDimension.buildConfigFieldString(name: Stri
     buildConfigField("String", name, "\"$value\"")
 }
 
+val unsignedRelease = providers.gradleProperty("unsignedRelease").orNull == "true"
+
 android {
     namespace = "io.horizontalsystems.bankwallet"
     compileSdk = libs.versions.compileSdk.get().toInt()
@@ -25,8 +27,8 @@ android {
         applicationId = "money.openswap.wallet"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
-        versionCode = 190
-        versionName = "0.53.3"
+        versionCode = 191
+        versionName = "0.53.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         resourceConfigurations += listOf("de", "es", "en", "fa", "fr", "ko", "pt", "pt-rBR", "ru", "tr", "zh")
@@ -68,7 +70,7 @@ android {
 
         create("release") {
             val propsFile = rootProject.file("keystore.properties")
-            if (propsFile.exists()) {
+            if (propsFile.exists() && !unsignedRelease) {
                 val props = propsFile.readLines()
                     .filter { it.contains("=") && !it.startsWith("#") }
                     .associate { line ->
@@ -160,7 +162,7 @@ android {
 
         release {
             buildConfigFieldString("ONE_INCH_API_KEY", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq")
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (unsignedRelease) null else signingConfigs.getByName("release")
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true

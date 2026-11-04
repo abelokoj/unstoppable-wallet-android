@@ -1,3 +1,22 @@
+# Open Swap v0.53.4
+
+Build 191 strengthens Relay swap verification and installer signing.
+
+## 🐛 Fixed
+
+- **Relay Bridge:** The direct Relay route now checks the quoted assets, amounts, recipient and minimum received before preparing a transaction. Unexpected approval targets and unsupported deposit instructions are rejected.
+
+## 🔄 Updated
+
+- **Release security:** Added stronger checks around building, signing and publishing installers, while retaining the existing app signing identity for in-place updates.
+
+## ⚠️ Notes
+
+Direct Relay deposits from Fantom are not offered until its deposit contract can be verified. Relay provider and network fees still apply; Open Swap adds no developer or referral fee.
+
+Relay execution and refunds still depend on its provider. Funded settlement and refund-recovery testing remain pending.
+
+---
 # Open Swap v0.53.3
 
 Build 190 improves PancakeSwap cross-chain quotes, adds authentication to approval revocations, refreshes scan animations and restores larger home-page token icons.

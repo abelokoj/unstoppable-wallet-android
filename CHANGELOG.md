@@ -1,3 +1,10 @@
+# Prepare 0.53.4 (191) security release - 2026-11-04T05:15:57-05:00
+
+- The user authorized a new 0.53.4 release/build 191. Publish the direct Relay intent/deposit validation and hardened build/sign/publication workflow, preserving the existing signing identity, F-Droid distribution, wallet UI and prior releases. Updated reader-facing notes cover the direct Relay availability limit, fees and provider settlement/refund trust.
+- Release preflight passed in 35 seconds with unchanged Kotlin outputs reused: 131 selected routing/approval/authentication test results remain green, and all eight workflow policy/shell checks pass. Earlier fresh-response replay, optimized unsigned packaging and disposable-key signing checks are retained in local verification records. GitHub's actual version-191 build, production signing and public download verification are pending.
+- Added a concise public security follow-up list and updated build documentation. Detailed unresolved assessment/proof material and the full local assessment history are retained privately; only the public release entries and previously committed history are staged for the changelog/TODO. Unrelated installers and private audit records are excluded. Further security follow-ups remain open; no device or funded transaction testing is implied. Recording time in America/New_York, before publication.
+
+---
 # Current 0.53.3 (190) authentication refresh published - 2026-11-03T16:04:41-05:00
 
 - Pushed source commit ff4341493e35c5f13d04b52fc62b2737e64fe3ed (Require authentication before revoking approvals) and updated only the existing v0.53.3 annotated tag to that source with an exact-ref lease. Current tag object: ad436bdfe73c3b6365a0abdffcd38f6ad28e88ce. Older remote tag objects and targets match the saved before-state. The previous current tag annotation, release metadata and exact public APK remain backed up locally under revoke-auth-publication.

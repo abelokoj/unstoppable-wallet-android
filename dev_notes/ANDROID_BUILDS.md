@@ -1,6 +1,6 @@
 # Local Android build workflow
 
-Build the F-Droid distribution only. Use `:app:assembleFdroidDebug` for development and `:app:assembleFdroidRelease` for the signed regular installer. GitHub releases must upload `app/build/outputs/apk/fdroid/release/app-fdroid-release.apk`. Verify the output metadata identifies the F-Droid variant and generated BuildConfig has `FDROID_BUILD = true`. Other app variants are disabled to prevent accidental Base or CI installers.
+Build the F-Droid distribution only. Use `:app:assembleFdroidDebug` for development and `:app:assembleFdroidRelease` for the signed regular installer. GitHub builds an unsigned F-Droid release with `-PunsignedRelease=true`, then signs it in a separate job without checking out or running project build code there. The published `open-swap-vX.Y.Z.apk` must be the verified signed output of that workflow. Ordinary local release builds retain the existing production signing configuration. Verify the output metadata identifies the F-Droid variant and generated BuildConfig has `FDROID_BUILD = true`. Other app variants are disabled to prevent accidental Base or CI installers.
 
 The local Gradle user configuration already enables the build cache and configuration cache. Preserve the checkout's build outputs as well: switching historical versions in the active checkout or creating a new checkout can still require Kotlin/KSP compilation and dex assembly. Keep historical installer repairs separate from the active development checkout.
 

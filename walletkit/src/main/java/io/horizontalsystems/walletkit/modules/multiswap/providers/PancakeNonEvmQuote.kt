@@ -1,9 +1,7 @@
 package io.horizontalsystems.walletkit.modules.multiswap.providers
 
 import com.google.gson.JsonObject
-import io.horizontalsystems.walletkit.core.hexStringToByteArray
 import io.horizontalsystems.walletkit.modules.multiswap.sendtransaction.EvmTransactionData
-import org.web3j.crypto.Hash
 import java.math.BigInteger
 
 internal data class PancakeNonEvmQuote(val raw: JsonObject, val requestId: String,
@@ -35,54 +33,19 @@ internal data class PancakeNonEvmQuote(val raw: JsonObject, val requestId: Strin
 
 /** Source deposits for the Relay rail used by PancakeSwap's Solana routes. */
 internal object PancakeRelayEvmTransaction {
-    // relayprotocol/relay-settlement, ethereum-vm/deployments/addresses.prod.json.
-    const val DEPOSITORY = "0x4cd00e387622c35bddb9b4c962c136462338bc31"
-    private val nativeSelector = selector("depositNative(address,bytes32)")
-    private val tokenSelector = selector("depositErc20(address,address,uint256,bytes32)")
-    private val allowanceSelector = selector("depositErc20(address,address,bytes32)")
+    const val DEPOSITORY = RelayDepositTransaction.DEPOSITORY
 
     fun build(response: JsonObject, chain: Long, input: String, amount: BigInteger, sender: String): EvmTransactionData {
         PancakeCrossChainTransaction.chain(chain)
-        require(amount.signum() > 0 && amount.bitLength() <= 256)
-        val owner = PancakeCrossChainTransaction.address(sender).also { require(it.drop(2).toBigInteger(16) > BigInteger.valueOf(2)) }
-        val token = PancakeCrossChainTransaction.address(input)
         val steps = requireNotNull(response.getAsJsonArray("steps")).map { it.asJsonObject }
         require(steps.isNotEmpty() && steps.all { it.get("kind")?.asString == "transaction" && it.get("id")?.asString in setOf("deposit", "approve") })
         val deposit = steps.single { it.get("id").asString == "deposit" }
         val items = requireNotNull(deposit.getAsJsonArray("items")); require(items.size() == 1)
         val tx = requireNotNull(items.single().asJsonObject.getAsJsonObject("data"))
-        require(tx.get("chainId")?.asLong == chain && tx.get("from")?.asString.equals(owner, true))
-        require(tx.get("to")?.asString.equals(DEPOSITORY, true)) { "Unrecognized Relay deposit contract" }
-        val data = requireNotNull(tx.get("data")?.asString).lowercase()
-        require(data.matches(Regex("^0x[0-9a-f]{136,264}$")))
-        fun word(index: Int): String = data.substring(10 + index * 64, 74 + index * 64)
-        val credited = word(0).also { require(it.take(24).all { c -> c == '0' }) }.toBigInteger(16)
-        require(credited == BigInteger.ZERO || credited == owner.drop(2).toBigInteger(16)) { "Relay changed the depositor" }
-        val valueText = requireNotNull(tx.get("value")?.asString)
-        val value = if (valueText.startsWith("0x")) valueText.drop(2).ifEmpty { "0" }.toBigInteger(16)
-                    else PancakeCrossChainTransaction.uint(valueText)
-        val intent: String
-        val rebuilt: String
-        if (token == PancakeCrossChainTransaction.NATIVE) {
-            require(data.length == 138 && data.startsWith(nativeSelector) && value == amount)
-            intent = word(1)
-            rebuilt = nativeSelector + owner.drop(2).padStart(64, '0') + intent
-        } else {
-            require(value == BigInteger.ZERO && word(1) == token.drop(2).padStart(64, '0'))
-            when {
-                data.startsWith(tokenSelector) -> {
-                    require(data.length == 266 && word(2).toBigInteger(16) == amount)
-                    intent = word(3)
-                }
-                data.startsWith(allowanceSelector) -> { require(data.length == 202); intent = word(2) }
-                else -> error("Unsupported Relay deposit method")
-            }
-            // Always use the explicit-amount overload, even if the service requests the allowance overload.
-            rebuilt = tokenSelector + owner.drop(2).padStart(64, '0') + token.drop(2).padStart(64, '0') + amount.toString(16).padStart(64, '0') + intent
-        }
-        require(intent.toBigInteger(16) > BigInteger.ZERO)
-        return EvmTransactionData(DEPOSITORY, if (token == PancakeCrossChainTransaction.NATIVE) amount else BigInteger.ZERO,
-            rebuilt.hexStringToByteArray())
+        return RelayDepositTransaction.build(chain, input, amount, sender, RelayApi.TransactionData(
+            from = requireNotNull(tx.get("from")?.asString), to = requireNotNull(tx.get("to")?.asString),
+            data = requireNotNull(tx.get("data")?.asString), value = requireNotNull(tx.get("value")?.asString),
+            chainId = requireNotNull(tx.get("chainId")?.asLong),
+        ))
     }
-    private fun selector(signature: String) = Hash.sha3String(signature).take(10)
 }

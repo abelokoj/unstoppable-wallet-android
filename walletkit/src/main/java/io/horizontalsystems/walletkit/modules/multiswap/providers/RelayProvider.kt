@@ -2,7 +2,6 @@ package io.horizontalsystems.walletkit.modules.multiswap.providers
 
 import io.horizontalsystems.walletkit.core.App
 import io.horizontalsystems.walletkit.core.chain.ChainRegistry
-import io.horizontalsystems.walletkit.core.hexStringToByteArray
 import io.horizontalsystems.walletkit.core.managers.APIClient
 import io.horizontalsystems.walletkit.core.managers.requireSocksProxy
 import io.horizontalsystems.walletkit.entities.Address
@@ -23,7 +22,6 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 import java.math.BigDecimal
-import java.math.BigInteger
 
 /**
  * Direct Relay v2 integration. Relay builds the deposit transaction without requiring an API key;
@@ -38,7 +36,7 @@ object RelayProvider : IMultiSwapProvider {
     override val requireTerms = true
     override val riskLevel = RiskLevel.GOOD
 
-    private const val nativeCurrency = "0x0000000000000000000000000000000000000000"
+    private const val nativeCurrency = RelayDepositTransaction.NATIVE
 
     private val directApi = APIClient
         .retrofit("https://api.relay.link", 60)
@@ -78,6 +76,7 @@ object RelayProvider : IMultiSwapProvider {
 
     override fun supports(tokenFrom: Token, tokenTo: Token): Boolean =
         tokenFrom.blockchainType != tokenTo.blockchainType &&
+            chainIds[tokenFrom.blockchainType] in RelayDepositTransaction.chains &&
             supports(tokenFrom.blockchainType) && supports(tokenTo.blockchainType) &&
             tokenFrom.type.isRelayCurrency && tokenTo.type.isRelayCurrency
 
@@ -100,7 +99,7 @@ object RelayProvider : IMultiSwapProvider {
 
         val actionRequired: ISwapProviderAction? = if (tokenIn.type is TokenType.Eip20) {
             val plugin = ChainRegistry[tokenIn.blockchainType]
-            val spender = response.approvalSpender(tokenIn) ?: deposit.to
+            val spender = deposit.to
             val allowance = plugin?.eip20Allowance(tokenIn, spender)
             plugin?.eip20ApproveAction(allowance, amountIn, spender, tokenIn)
         } else {
@@ -132,7 +131,7 @@ object RelayProvider : IMultiSwapProvider {
         val recipientAddress = recipient?.hex ?: SwapHelper.getReceiveAddressForToken(tokenOut)
         val response = quote(tokenIn, tokenOut, amountIn, sender, recipientAddress, slippage)
         val deposit = response.validatedDepositTransaction(tokenIn, amountIn, sender)
-        val approvalSpender = response.approvalSpender(tokenIn) ?: deposit.to
+        val approvalSpender = deposit.to
 
         val fields = buildList {
             recipient?.let { add(DataFieldRecipient(it)) }
@@ -146,12 +145,8 @@ object RelayProvider : IMultiSwapProvider {
             amountOut = response.outputAmount(tokenOut),
             amountOutMin = response.minimumOutputAmount(tokenOut),
             sendTransactionData = SendTransactionData.Evm(
-                transactionData = EvmTransactionData(
-                    to = deposit.to,
-                    value = deposit.value.toBigIntegerFlexible(),
-                    input = deposit.data.hexStringToByteArray(),
-                ),
-                gasLimit = deposit.gas?.toLongFlexible(),
+                transactionData = deposit,
+                gasLimit = null,
             ),
             priceImpact = null,
             fields = fields,
@@ -172,26 +167,21 @@ object RelayProvider : IMultiSwapProvider {
         recipient: String?,
         slippage: BigDecimal,
     ): RelayApi.QuoteResponse {
-        val response = api.quote(
-            RelayApi.QuoteRequest(
-                user = sender,
-                originChainId = chainIds.getValue(tokenIn.blockchainType),
-                destinationChainId = chainIds.getValue(tokenOut.blockchainType),
-                originCurrency = tokenIn.relayCurrency,
-                destinationCurrency = tokenOut.relayCurrency,
-                amount = amountIn.movePointRight(tokenIn.decimals).toBigInteger().toString(),
-                recipient = recipient,
-                refundTo = sender,
-                slippageTolerance = slippage.movePointRight(2).toBigInteger().toString(),
-                explicitDeposit = true,
-                usePermit = false,
-            )
+        val request = RelayApi.QuoteRequest(
+            user = sender,
+            originChainId = chainIds.getValue(tokenIn.blockchainType),
+            destinationChainId = chainIds.getValue(tokenOut.blockchainType),
+            originCurrency = tokenIn.relayCurrency,
+            destinationCurrency = tokenOut.relayCurrency,
+            amount = amountIn.movePointRight(tokenIn.decimals).toBigIntegerExact().toString(),
+            recipient = recipient ?: requireNotNull(SwapHelper.getReceiveAddressForToken(tokenOut)),
+            refundTo = sender,
+            slippageTolerance = slippage.movePointRight(2).toBigIntegerExact().toString(),
+            explicitDeposit = true,
+            usePermit = false,
         )
-        response.fees?.app?.amount?.let { appFee ->
-            require(appFee.toBigInteger() == BigInteger.ZERO) {
-                "Relay returned an unexpected application fee"
-            }
-        }
+        val response = api.quote(request)
+        RelayQuoteValidation.validate(response, request, tokenIn.decimals, tokenOut.decimals)
         return response
     }
 
@@ -205,76 +195,20 @@ object RelayProvider : IMultiSwapProvider {
     private val TokenType.isRelayCurrency: Boolean
         get() = this is TokenType.Native || this is TokenType.Eip20
 
-    private fun RelayApi.QuoteResponse.depositTransaction(): RelayApi.TransactionData =
-        steps.firstOrNull { it.id == "deposit" }
-            ?.items
-            ?.firstNotNullOfOrNull { it.data }
-            ?: throw IllegalStateException("Relay quote did not include a deposit transaction")
-
     private fun RelayApi.QuoteResponse.validatedDepositTransaction(
         tokenIn: Token,
         amountIn: BigDecimal,
         sender: String,
-    ): RelayApi.TransactionData {
-        val transaction = depositTransaction()
-        val expectedChainId = chainIds.getValue(tokenIn.blockchainType)
-        require(transaction.chainId == expectedChainId) { "Relay returned a transaction for another chain" }
-        require(transaction.from.equals(sender, ignoreCase = true)) { "Relay returned a transaction for another sender" }
-        require(transaction.to.isEvmAddress()) { "Relay returned an invalid destination contract" }
-        require(transaction.data.isHexData()) { "Relay returned invalid transaction data" }
-
-        val value = transaction.value.toBigIntegerFlexible()
-        val inputAmount = amountIn.movePointRight(tokenIn.decimals).toBigInteger()
-        when (tokenIn.type) {
-            TokenType.Native -> require(value == inputAmount) { "Relay changed the native deposit amount" }
-            is TokenType.Eip20 -> require(value == BigInteger.ZERO) { "Relay attached native value to a token deposit" }
-            else -> error("Unsupported Relay input token")
-        }
-        return transaction
-    }
-
-    private fun RelayApi.QuoteResponse.approvalSpender(tokenIn: Token): String? {
-        val tokenAddress = (tokenIn.type as? TokenType.Eip20)?.address ?: return null
-        val approval = steps.firstOrNull { it.id == "approve" || it.id == "approval" }
-            ?.items
-            ?.firstNotNullOfOrNull { it.data }
-            ?: return null
-        require(approval.to.equals(tokenAddress, ignoreCase = true)) {
-            "Relay returned an approval for another token"
-        }
-
-        val calldata = approval.data.removePrefix("0x")
-        require(calldata.length >= 136 && calldata.take(8).equals("095ea7b3", ignoreCase = true)) {
-            "Relay returned an unsupported approval transaction"
-        }
-        val spender = "0x${calldata.substring(8, 72).takeLast(40)}"
-        require(spender.isEvmAddress()) { "Relay returned an invalid approval spender" }
-        return spender
-    }
+    ): EvmTransactionData = RelayQuoteValidation.deposit(
+        this, chainIds.getValue(tokenIn.blockchainType), tokenIn.relayCurrency,
+        amountIn.movePointRight(tokenIn.decimals).toBigIntegerExact(), sender,
+    )
 
     private fun RelayApi.QuoteResponse.outputAmount(token: Token): BigDecimal =
-        details.currencyOut.amountFormatted
-            ?: details.currencyOut.amount?.toBigDecimal()?.movePointLeft(token.decimals)
-            ?: throw IllegalStateException("Relay quote did not include an output amount")
+        requireNotNull(details.currencyOut.amount).toBigDecimal().movePointLeft(token.decimals)
 
-    private fun RelayApi.QuoteResponse.minimumOutputAmount(token: Token): BigDecimal? =
-        details.currencyOut.minimumAmountFormatted
-            ?: details.currencyOut.minimumAmount?.toBigDecimal()?.movePointLeft(token.decimals)
-
-    private fun String.toBigIntegerFlexible(): BigInteger =
-        if (startsWith("0x", ignoreCase = true)) drop(2).ifEmpty { "0" }.toBigInteger(16)
-        else toBigInteger()
-
-    private fun String.toLongFlexible(): Long =
-        if (startsWith("0x", ignoreCase = true)) drop(2).ifEmpty { "0" }.toLong(16)
-        else toLong()
-
-    private fun String.isEvmAddress() = matches(Regex("^0x[0-9a-fA-F]{40}$"))
-
-    private fun String.isHexData(): Boolean {
-        if (!startsWith("0x") || length % 2 != 0) return false
-        return drop(2).all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
-    }
+    private fun RelayApi.QuoteResponse.minimumOutputAmount(token: Token): BigDecimal =
+        requireNotNull(details.currencyOut.minimumAmount).toBigDecimal().movePointLeft(token.decimals)
 
     data class RelayQuoteExtraData(val requestId: String) : SwapQuote.ExtraData
 }
@@ -310,7 +244,7 @@ interface RelayApi {
 
     data class Fees(val app: CurrencyAmount? = null)
 
-    data class Step(val id: String, val items: List<StepItem>)
+    data class Step(val id: String, val items: List<StepItem>, val kind: String? = null, val requestId: String? = null)
     data class StepItem(val data: TransactionData?)
     data class TransactionData(
         val from: String,
@@ -324,13 +258,20 @@ interface RelayApi {
     data class Details(
         val currencyOut: CurrencyAmount,
         val timeEstimate: Long? = null,
+        val sender: String? = null,
+        val recipient: String? = null,
+        val currencyIn: CurrencyAmount? = null,
+        val refundCurrency: CurrencyAmount? = null,
     )
+
+    data class Currency(val chainId: Long, val address: String, val decimals: Int)
 
     data class CurrencyAmount(
         val amount: String? = null,
         val amountFormatted: BigDecimal? = null,
         val minimumAmount: String? = null,
         val minimumAmountFormatted: BigDecimal? = null,
+        val currency: Currency? = null,
     )
 
     data class StatusResponse(
